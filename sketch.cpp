@@ -6,7 +6,7 @@ void setup(){
 
 void draw(){
 
-    //color("#fff");
-    //circle(100,100,50);
+    fill(200);
+    circle(100,100,50);
 
 }

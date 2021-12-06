@@ -17,9 +17,11 @@
 
 struct Context{
     int width,height;
-    bool loop;
+    bool loop = true;
     float stroke;
     NVGcontext* nvgctx;
+    NVGcolor color;
+    NVGpaint paint;
 } ctx;
 
 
@@ -42,6 +44,46 @@ void noLoop(){
     ctx.loop = false;
 }
 
+// shapes
+
+void fill(float c){
+    ctx.color = nvgRGB(c,c,c);
+}
+
+void begin(){
+    nvgBeginPath(ctx.nvgctx);
+}
+
+void end(){
+    if(ctx.stroke == 0.f){
+        nvgFillColor(ctx.nvgctx,ctx.color);
+        nvgFill(ctx.nvgctx);
+    }else{
+        nvgStrokeColor(ctx.nvgctx, ctx.color);
+        nvgStroke(ctx.nvgctx);
+    }
+}
+
+void rect(float x,float y,float w, float h){
+    begin();
+    nvgRect(ctx.nvgctx,x,y,w,h);
+    end();
+}
+
+void circle(float x,float y,float r){
+    begin();
+    nvgCircle(ctx.nvgctx,x,y,r);
+    end();
+}
+
+void ellipse(float x,float y,float w,float h){
+    begin();
+    nvgEllipse(ctx.nvgctx,x,y,w,h);
+    end();
+}
+
+
+
 
 GLFWwindow* window = nullptr;
 
@@ -62,7 +104,7 @@ int main(){
     if(!glfwInit() )error("Failed to initialize GLFW\n" );
 
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
-    glfwWindowHint(GLFW_VERSION_MINOR,2);
+    glfwWindowHint(GLFW_VERSION_MINOR,3);
     glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
     //glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 
@@ -74,7 +116,7 @@ int main(){
     glewInit();
     glfwSwapInterval( 1 );
 
-    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_STENCIL_STROKES | NVGcreateFlags::NVG_ANTIALIAS);
+    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
 
     while( !glfwWindowShouldClose(window) ){
         int winWidth, winHeight;
