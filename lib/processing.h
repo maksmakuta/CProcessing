@@ -14,6 +14,7 @@ struct Context{
     int width,height;
     bool loop;
     float stroke;
+    NVGcontext* nvgctx;
 } ctx;
 
 
@@ -68,8 +69,16 @@ int main(){
     glewInit();
     glfwSwapInterval( 1 );
 
+    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_STENCIL_STROKES | NVGcreateFlags::NVG_ANTIALIAS);
+
     while( !glfwWindowShouldClose(window) ){
+        int winWidth, winHeight;
+        int fbWidth, fbHeight;
+        glfwGetWindowSize(window, &winWidth, &winHeight);
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+        nvgBeginFrame(ctx.nvgctx,winWidth,winHeight,(float)winWidth / (float)fbWidth);
         if(ctx.loop) draw();
+        nvgEndFrame(ctx.nvgctx);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
