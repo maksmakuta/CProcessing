@@ -13,16 +13,19 @@
 #define PI 3.1415926
 #define PI_TWO PI*2.0
 #define PI_Four PI_TWO*2.0
+#define CAPPA 0.5522847493f
+
+#define radians(x) x*(PI/180)
 
 
 struct Context{
-    int width,height;
     bool loop = true,fill = true;
     NVGcontext* nvgctx;
     NVGcolor color,bg;
     NVGpaint paint;
 } ctx;
 
+    int width,height;
 double mouseX,mouseY;
 
 enum Cap{
@@ -39,14 +42,14 @@ void draw();
 
 // API
 void size(int w,int h){
-    ctx.width = w;
-    ctx.height = h;
+    width = w;
+    height = h;
 }
 void strokeWeight(float s){
     nvgStrokeWidth(ctx.nvgctx,s);
 }
 void noStroke(){
-    strokeWeight(0.f);
+    //TODO ctx.fill = false;
 }
 void noLoop(){
     ctx.loop = false;
@@ -116,9 +119,13 @@ void circle(float x,float y,float r){
     end();
 }
 
+void point(float x,float y){
+    circle(x,y,10);
+}
+
 void ellipse(float x,float y,float w,float h){
     begin();
-    nvgEllipse(ctx.nvgctx,x,y,w,h);
+    nvgEllipse(ctx.nvgctx,x,y,w/2,h/2);
     end();
 }
 
@@ -136,8 +143,32 @@ void bezier(float x1,float y1,float x2,float y2,
     nvgBezierTo(ctx.nvgctx,x2,y2,x3,y3,x4,y4);
     end();
 }
+// TODO arc
+void arc(float cx,float cy,float rx,float ry,float a0,float a1){
 
+  begin();
+  nvgMoveTo(ctx.nvgctx,cx,cy);
+  nvgLineTo(ctx.nvgctx,cx-rx,cy);
+  nvgBezierTo(ctx.nvgctx,cx-rx, cy+ry*CAPPA, cx-rx*CAPPA, cy+ry, cx, cy+ry);
+  end();
 
+  fill(0);
+  point(cx-rx,cy);
+  point(cx-rx, cy+ry*CAPPA);
+  point(cx-rx*CAPPA, cy+ry);
+  point(cx, cy+ry);
+}
+
+////////////////////
+// Math
+
+template<class T> T map(T val,T rmin,T rmax,T min,T max){
+        T OldRange = rmax - rmin;
+        T NewRange = max - min;
+        return (((val - rmin) * NewRange) / OldRange) + min;
+}
+
+////////////////////////////////////////////////////////////////
 
 GLFWwindow* window = nullptr;
 
@@ -163,7 +194,7 @@ int main(){
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     //glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_COMPAT_PROFILE);
 
-    window = glfwCreateWindow( ctx.width, ctx.height, "App", nullptr, nullptr );
+    window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
 
     glfwSetErrorCallback(error);
@@ -172,6 +203,7 @@ int main(){
     glfwSwapInterval( 1 );
 
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
+    //| NVGcreateFlags::NVG_STENCIL_STROKES);
 
     while( !glfwWindowShouldClose(window) ){
         int winWidth, winHeight;
