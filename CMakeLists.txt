@@ -16,6 +16,7 @@ set(processing_api lib/processing.h )
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(OpenGL_GL_PREFERENCE GLVND)
 
 find_package(OpenGL REQUIRED)
 if (OPENGL_FOUND)

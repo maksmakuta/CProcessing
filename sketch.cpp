@@ -1,12 +1,14 @@
 #include "lib/processing.h"
 
+int u = 60;
+bool showGrid = true;
+
 void setup(){
-    size(400,400);
+    size(600,600);
 }
 
 void draw(){
-
-    fill(200);
-    circle(100,100,50);
-
+    background(255);
+    fill(255);
+    rect(100,100,200,200);
 }

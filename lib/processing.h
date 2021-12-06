@@ -20,7 +20,7 @@ struct Context{
     bool loop = true;
     float stroke;
     NVGcontext* nvgctx;
-    NVGcolor color;
+    NVGcolor color,bg;
     NVGpaint paint;
 } ctx;
 
@@ -34,7 +34,7 @@ void size(int w,int h){
     ctx.width = w;
     ctx.height = h;
 }
-void stroke(float s){
+void strokeWeight(float s){
     ctx.stroke = s;
 }
 void noStroke(){
@@ -44,11 +44,34 @@ void noLoop(){
     ctx.loop = false;
 }
 
-// shapes
+///////////////////////////
+// colors
+
+void background(float r,float g,float b){
+    ctx.bg = nvgRGB(r,g,b);
+}
+void background(float f){
+   background(f,f,f);
+}
+
+void fill(float r,float g,float b){
+    ctx.color = nvgRGB(r,g,b);
+}
 
 void fill(float c){
-    ctx.color = nvgRGB(c,c,c);
+    fill(c,c,c);
 }
+
+void stroke(float r,float g,float b){
+    ctx.color = nvgRGB(r,g,b);
+}
+
+void stroke(float c){
+    stroke(c,c,c);
+}
+
+///////////////////////////
+// shapes
 
 void begin(){
     nvgBeginPath(ctx.nvgctx);
@@ -82,6 +105,12 @@ void ellipse(float x,float y,float w,float h){
     end();
 }
 
+void line(float x1,float y1,float x2,float y2){
+    begin();
+    nvgMoveTo(ctx.nvgctx,x1,y1);
+    nvgLineTo(ctx.nvgctx,x2,y2);
+    end();
+}
 
 
 
