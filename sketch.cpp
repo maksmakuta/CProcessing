@@ -1,15 +1,25 @@
 #include "lib/processing.h"
+
+float i = 0.0f;
+bool state = true;
+float s;
+
 void setup() {
   size(640, 360);
-  noStroke();
+  s = min(width,height) /2;
 }
 
 void draw() {
   background(0);
-  // Scale the mouseX value from 0 to 640 to a range between 0 and 175
-  float c = map<float>(mouseX, 0, width, 0, 175);
-  // Scale the mouseX value from 0 to 640 to a range between 40 and 300
-  float d = map<float>(mouseX, 0, width, 40, 300);
-  fill(255, c, 0);
-  ellipse(width/2, height/2, d, d);   
+
+  if(state){
+    i += 0.001f;
+  }else{
+    i -= 0.001f;
+  }
+
+  fill(200);
+  circle(width /2,height / 2, s * i);
+
+  if(i > 1.f || i < 0.f) state = !state;
 }
