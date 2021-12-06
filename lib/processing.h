@@ -10,6 +10,11 @@
 #include "gl/nanovg.h"
 #include "gl/nanovg_gl.h"
 
+#define PI 3.1415926
+#define PI_TWO PI*2.0
+#define PI_Four PI_TWO*2.0
+
+
 struct Context{
     int width,height;
     bool loop;
