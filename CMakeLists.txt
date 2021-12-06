@@ -11,7 +11,7 @@ set(nvg
     lib/gl/stb_truetype.h
 )
 
-set(processing_api lib/processing.h lib/processing.cpp)
+set(processing_api lib/processing.h )
 
 
 set(CMAKE_CXX_STANDARD 11)
@@ -37,4 +37,5 @@ if (GLEW_FOUND)
     link_libraries(     ${GLEW_LIBRARIES})
 endif()
 
-add_executable(processing++ main.cpp ${nvg} ${processing_api})
+add_executable(processing++ ${nvg} ${processing_api} sketch.cpp)
+target_include_directories(processing++ PRIVATE lib)
