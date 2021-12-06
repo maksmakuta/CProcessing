@@ -192,9 +192,6 @@ int main(){
 
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_COMPAT_PROFILE);
 
     window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
@@ -205,7 +202,6 @@ int main(){
     glfwSwapInterval( 1 );
 
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
-    //| NVGcreateFlags::NVG_STENCIL_STROKES);
 
     while( !glfwWindowShouldClose(window) ){
         int winWidth, winHeight;
@@ -217,7 +213,6 @@ int main(){
         glClearColor(ctx.bg.r,ctx.bg.g,ctx.bg.b,ctx.bg.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         nvgBeginFrame(ctx.nvgctx,winWidth,winHeight,(float)winWidth / (float)fbWidth);
-        //if(ctx.loop)
             draw();
         nvgEndFrame(ctx.nvgctx);
         glfwSwapBuffers(window);
