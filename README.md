@@ -3,8 +3,8 @@
 Just processing, but in C/C++ <br>
 Most sketches are compatible, but library not fully ported
 
-![Sketch from main page of processing](screenshots/1.png)<br>
-<center>[Code](/examples/001.cpp)</center>
+![Sketch from main page of processing](screenshots/1.png) <br>
+[Code](examples/001.cpp)
 
 ## Dependencies
  - GLFW - window creation
