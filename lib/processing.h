@@ -17,13 +17,21 @@
 
 struct Context{
     int width,height;
-    bool loop = true;
-    float stroke;
+    bool loop = true,fill = true;
     NVGcontext* nvgctx;
     NVGcolor color,bg;
     NVGpaint paint;
 } ctx;
 
+double mouseX,mouseY;
+
+enum Cap{
+    BUT     = NVGlineCap::NVG_BUTT,
+    ROUND   = NVGlineCap::NVG_ROUND,
+    SQUARE  = NVGlineCap::NVG_SQUARE,
+    MITTER  = NVGlineCap::NVG_MITER,
+    BEVEL   = NVGlineCap::NVG_BEVEL
+};
 
 // must be initialized
 void setup();
@@ -35,10 +43,10 @@ void size(int w,int h){
     ctx.height = h;
 }
 void strokeWeight(float s){
-    ctx.stroke = s;
+    nvgStrokeWidth(ctx.nvgctx,s);
 }
 void noStroke(){
-    ctx.stroke = 0.f;
+    strokeWeight(0.f);
 }
 void noLoop(){
     ctx.loop = false;
@@ -50,6 +58,7 @@ void noLoop(){
 void background(float r,float g,float b){
     ctx.bg = nvgRGB(r,g,b);
 }
+
 void background(float f){
    background(f,f,f);
 }
@@ -70,6 +79,14 @@ void stroke(float c){
     stroke(c,c,c);
 }
 
+void noFill(){
+    ctx.fill = false;
+}
+
+void strokeCap(int c){
+    nvgLineCap(ctx.nvgctx,c);
+}
+
 ///////////////////////////
 // shapes
 
@@ -78,7 +95,7 @@ void begin(){
 }
 
 void end(){
-    if(ctx.stroke == 0.f){
+    if(ctx.fill){
         nvgFillColor(ctx.nvgctx,ctx.color);
         nvgFill(ctx.nvgctx);
     }else{
@@ -112,6 +129,14 @@ void line(float x1,float y1,float x2,float y2){
     end();
 }
 
+void bezier(float x1,float y1,float x2,float y2,
+            float x3,float y3,float x4,float y4){
+    begin();
+    nvgMoveTo(ctx.nvgctx,x1,y1);
+    nvgBezierTo(ctx.nvgctx,x2,y2,x3,y3,x4,y4);
+    end();
+}
+
 
 
 GLFWwindow* window = nullptr;
@@ -127,7 +152,7 @@ void error(int a,const char* t){
 }
 
 int main(){
-
+    background(0);
     setup();
 
     if(!glfwInit() )error("Failed to initialize GLFW\n" );
@@ -135,7 +160,8 @@ int main(){
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_VERSION_MINOR,3);
     glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_COMPAT_PROFILE);
 
     window = glfwCreateWindow( ctx.width, ctx.height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
@@ -152,8 +178,13 @@ int main(){
         int fbWidth, fbHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
         glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+        glfwGetCursorPos(window,&mouseX,&mouseY);
+        glViewport(0, 0, fbWidth, fbHeight);
+        glClearColor(ctx.bg.r,ctx.bg.g,ctx.bg.b,ctx.bg.a);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         nvgBeginFrame(ctx.nvgctx,winWidth,winHeight,(float)winWidth / (float)fbWidth);
-        if(ctx.loop) draw();
+        //if(ctx.loop)
+            draw();
         nvgEndFrame(ctx.nvgctx);
         glfwSwapBuffers(window);
         glfwPollEvents();
