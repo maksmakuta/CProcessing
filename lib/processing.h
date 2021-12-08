@@ -52,6 +52,7 @@ void strokeWeight(float s){
 }
 void noStroke(){
     ctx.strokeColor = ctx.bg;
+    strokeWeight(1);
 }
 void noFill(){
     ctx.fillColor = ctx.bg;
@@ -141,20 +142,54 @@ void bezier(float x1,float y1,float x2,float y2,
     nvgBezierTo(ctx.nvgctx,x2,y2,x3,y3,x4,y4);
     endShape();
 }
-// TODO arc
-void arc(float cx,float cy,float rx,float ry,float a0,float a1){
+
+void arc(float cx,float cy,float r,float a0,float a1){
+    beginShape();
+    nvgArc(ctx.nvgctx,cx,cy,r,a0,a1,a1-a0 > 0 ? NVG_CCW : NVG_CW);
+    endShape();
+}
+
+void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
 
   beginShape();
-  nvgMoveTo(ctx.nvgctx,cx,cy);
-  nvgLineTo(ctx.nvgctx,cx-rx,cy);
-  nvgBezierTo(ctx.nvgctx,cx-rx, cy+ry*CAPPA, cx-rx*CAPPA, cy+ry, cx, cy+ry);
+  nvgMoveTo(ctx.nvgctx,x1,y1);
+  nvgLineTo(ctx.nvgctx,x2,y2);
+  nvgLineTo(ctx.nvgctx,x3,y3);
   endShape();
 
-  fill(0);
-  point(cx-rx,cy);
-  point(cx-rx, cy+ry*CAPPA);
-  point(cx-rx*CAPPA, cy+ry);
-  point(cx, cy+ry);
+}
+
+void quad(float x1,float y1,
+          float x2,float y2,
+          float x3,float y3,
+          float x4,float y4){
+
+  beginShape();
+  nvgMoveTo(ctx.nvgctx,x1,y1);
+  nvgLineTo(ctx.nvgctx,x2,y2);
+  nvgLineTo(ctx.nvgctx,x3,y3);
+  nvgLineTo(ctx.nvgctx,x4,y4);
+  endShape();
+}
+
+///////////////////
+// Matrix
+
+void pushMatrix(){
+    nvgSave(ctx.nvgctx);
+}
+
+void popMatrix(){
+    nvgRestore(ctx.nvgctx);
+}
+
+
+void translate(float x,float y){
+    nvgTranslate(ctx.nvgctx,x,y);
+}
+
+void rotate(float a){
+    nvgRotate(ctx.nvgctx,a);
 }
 
 ////////////////////
@@ -173,6 +208,14 @@ float norm(float val,float min,float max){
 ////////////////////////////////////////////////////////////////
 
 GLFWwindow* window = nullptr;
+
+void center(int w,int h){
+  const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+    int window_width = mode->width;
+    int window_height = mode->height;
+    glfwSetWindowPos(window,window_width/2 - w/2,window_height/2 - h/2);
+}
 
 void error(const char* terr){
     fprintf(stderr,"%s\n",terr);
@@ -196,11 +239,14 @@ int main(){
     window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
 
+    center(width,height);
+
     glfwSetErrorCallback(error);
     glfwMakeContextCurrent(window);
     glewInit();
     glfwSwapInterval( 1 );
 
+    
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
 
     while( !glfwWindowShouldClose(window) ){
