@@ -11,7 +11,7 @@ set(nvg
     lib/gl/stb_truetype.h
 )
 
-set(processing_api lib/processing.h )
+set(processing_api lib/processing.h lib/PVector.h lib/Math.h)
 
 
 set(CMAKE_CXX_STANDARD 11)

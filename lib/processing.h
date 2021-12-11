@@ -13,7 +13,6 @@
 #define PI 3.1415926
 #define HALF_PI PI/2.0
 #define TWO_PI PI*2.0
-#define QPI TWO_PI*2.0
 #define CAPPA 0.5522847493f
 
 #define radians(x) x*(PI/180)
@@ -209,12 +208,12 @@ float norm(float val,float min,float max){
 
 GLFWwindow* window = nullptr;
 
-void center(int w,int h){
+void center(GLFWwindow* w,int _w,int _h){
   const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
     int window_width = mode->width;
     int window_height = mode->height;
-    glfwSetWindowPos(window,window_width/2 - w/2,window_height/2 - h/2);
+    glfwSetWindowPos(w,window_width/2 - _w/2,window_height/2 - _h/2);
 }
 
 void error(const char* terr){
@@ -235,16 +234,17 @@ int main(){
 
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_VERSION_MINOR,3);
+    glfwWindowHint(GLFW_RESIZABLE,0);
 
     window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
 
-    center(width,height);
+    center(window,width,height);
 
     glfwSetErrorCallback(error);
     glfwMakeContextCurrent(window);
     glewInit();
-    glfwSwapInterval( 1 );
+    glfwSwapInterval(0);
 
     
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
