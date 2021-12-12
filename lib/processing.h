@@ -7,8 +7,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #define NANOVG_GL3_IMPLEMENTATION
-#include "gl/nanovg.h"
-#include "gl/nanovg_gl.h"
+#include "ngl/nanovg.h"
+#include "ngl/nanovg_gl.h"
 
 #define PI 3.1415926
 #define HALF_PI PI/2.0
@@ -16,6 +16,7 @@
 #define CAPPA 0.5522847493f
 
 #define radians(x) x*(PI/180)
+#define degrees(x) x*(180/PI)
 #define max(a,b) a > b ? a : b
 #define min(a,b) a < b ? a : b
 
@@ -26,8 +27,13 @@ struct Context{
     NVGpaint paint;
 } ctx;
 
+
+GLFWwindow* window = nullptr;
     int width,height;
 double mouseX,mouseY;
+double framerate = 60;
+unsigned long long frameCount = 0;
+
 
 enum Cap{
     BUT     = NVGlineCap::NVG_BUTT,
@@ -35,6 +41,15 @@ enum Cap{
     SQUARE  = NVGlineCap::NVG_SQUARE,
     MITTER  = NVGlineCap::NVG_MITER,
     BEVEL   = NVGlineCap::NVG_BEVEL
+};
+
+enum CursorType{
+    ARROW = GLFW_ARROW_CURSOR       ,
+    CROSS = GLFW_CROSSHAIR_CURSOR   ,
+    HAND  = GLFW_HAND_CURSOR,
+    MOVE  = CROSS,
+    TEXT  = GLFW_IBEAM_CURSOR,
+    WAIT  = ARROW
 };
 
 // must be initialized
@@ -59,6 +74,26 @@ void noFill(){
 void noLoop(){
     ctx.loop = false;
 }
+
+void noCursor(){
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+}
+void cursor(CursorType t = ARROW){
+    GLFWcursor* curs = glfwCreateStandardCursor(t);
+    glfwSetCursor(window,curs);
+}
+void cursor(){
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    cursor(ARROW);
+}
+void delay(int millis){
+
+}
+
+void frameRate(int fps){
+    framerate = fps;
+}
+
 
 ///////////////////////////
 // colors
@@ -206,8 +241,6 @@ float norm(float val,float min,float max){
 
 ////////////////////////////////////////////////////////////////
 
-GLFWwindow* window = nullptr;
-
 void center(GLFWwindow* w,int _w,int _h){
   const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
@@ -246,10 +279,17 @@ int main(){
     glewInit();
     glfwSwapInterval(0);
 
+    double lasttime = glfwGetTime();
     
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
 
     while( !glfwWindowShouldClose(window) ){
+
+        while (glfwGetTime() < lasttime + 1.0/framerate) {
+            // TODO: Put the thread to sleep, yield, or simply do nothing
+        }
+        lasttime += 1.0/framerate;
+
         int winWidth, winHeight;
         int fbWidth, fbHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
@@ -263,6 +303,7 @@ int main(){
         nvgEndFrame(ctx.nvgctx);
         glfwSwapBuffers(window);
         glfwPollEvents();
+        frameCount++;
     }
 
     glfwTerminate();

@@ -2,16 +2,20 @@ cmake_minimum_required(VERSION 3.10)
 project(processing++)
 
 set(nvg
-    lib/gl/fontstash.h
-    lib/gl/nanovg.c
-    lib/gl/nanovg.h
-    lib/gl/nanovg_gl.h
-    lib/gl/nanovg_gl_utils.h
-    lib/gl/stb_image.h
-    lib/gl/stb_truetype.h
+    lib/ngl/fontstash.h
+    lib/ngl/nanovg.c
+    lib/ngl/nanovg.h
+    lib/ngl/nanovg_gl.h
+    lib/ngl/nanovg_gl_utils.h
+    lib/ngl/stb_image.h
+    lib/ngl/stb_truetype.h
 )
 
-set(processing_api lib/processing.h lib/PVector.h lib/Math.h)
+set(processing_api
+    lib/processing.h
+    lib/PVector.h
+    lib/Math.h
+    lib/ArrayList.h)
 
 
 set(CMAKE_CXX_STANDARD 11)
