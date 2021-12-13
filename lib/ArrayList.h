@@ -2,7 +2,8 @@
 #define ARRAYLIST_H
 /**
  * @brief The ArrayList class
- */ beta 1.0
+ * beta 1.0
+ */
 template<class T>
 class ArrayList{
 private:
@@ -125,10 +126,12 @@ public:
 
     bool remove(T obj){
         bool x = false;
+        int p = 0;
         T* tmp = new T[_size - 1];
         for(int a = 0;a < _size;a++){
             if(arr[a] == obj){
                 x = true;
+                p = a;
             }else{
                 if(a > p)
                     tmp[a] = arr[a-1];
@@ -141,27 +144,14 @@ public:
     }
 
     void removeRange(int start, int end){
-        bool x = false;
-        T* tmp = new T[_size - 1];
-        for(int a = 0;a < _size;a++){
-            if(a >= start && a < end){
-                x = true;
-            }else{
-                if(a > p)
-                    tmp[a] = arr[a-1];
-                else
-                    tmp[a] = arr[a];
-            }
-        }
-        arr = tmp;
-        return x;
+
     }
 
     T set(int p, T obj){
         if(p >= 0 && p < _size){
             T item = arr[p];
             arr[p] = obj;
-            return item;x
+            return item;
         }else{
             return obj;
         }

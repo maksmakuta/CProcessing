@@ -27,13 +27,28 @@ struct Context{
     NVGpaint paint;
 } ctx;
 
+enum Key{
+    None    = 0                     ,
+    UP      = GLFW_KEY_UP           ,
+    DOWN    = GLFW_KEY_DOWN         ,
+    LEFT    = GLFW_KEY_LEFT         ,
+    RIGHT   = GLFW_KEY_RIGHT        ,
+    ENTER   = GLFW_KEY_ENTER        ,
+    ESC     = GLFW_KEY_ESCAPE       ,
+    SPACE   = GLFW_KEY_SPACE        ,
+    ALT     = GLFW_KEY_LEFT_ALT     ,
+    SHIFT   = GLFW_KEY_LEFT_SHIFT   ,
+    CTRL    = GLFW_KEY_LEFT_CONTROL
+};
 
 GLFWwindow* window = nullptr;
     int width,height;
 double mouseX,mouseY;
 double framerate = 60;
 unsigned long long frameCount = 0;
-
+bool _keyPressed = false;
+char key;
+int keyCode = None;
 
 enum Cap{
     BUT     = NVGlineCap::NVG_BUTT,
@@ -55,6 +70,7 @@ enum CursorType{
 // must be initialized
 void setup();
 void draw();
+void keyPressed();
 
 // API
 void size(int w,int h){
@@ -87,7 +103,7 @@ void cursor(){
     cursor(ARROW);
 }
 void delay(int millis){
-
+    // TODO delay fun
 }
 
 void frameRate(int fps){
@@ -258,30 +274,44 @@ void error(const char* terr){
 void error(int a,const char* t){
     fprintf(stderr,"%i -> %s\n",a,t);
 }
+char parse(int key);
+
+void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
+    if(_action == GLFW_PRESS){
+        _keyPressed = true;
+        keyCode = _key;
+        key = parse(_key);
+        keyPressed();
+    }else
+        _keyPressed = false;
+
+
+    keyCode = None;
+    key = 0;
+}
 
 int main(){
     background(0);
     setup();
 
-    if(!glfwInit() )error("Failed to initialize GLFW\n" );
+    if(!glfwInit())error("Failed to initialize GLFW\n" );
 
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_RESIZABLE,0);
+    glfwWindowHint(GLFW_RESIZABLE,GL_FALSE);
 
     window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
     if (!window) error( "Failed to open GLFW window\n" );
 
-    center(window,width,height);
-
     glfwSetErrorCallback(error);
+    glfwSetKeyCallback(window,onKey);
     glfwMakeContextCurrent(window);
     glewInit();
     glfwSwapInterval(0);
 
     double lasttime = glfwGetTime();
     
-    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS);
+    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS | NVG_STENCIL_STROKES);
 
     while( !glfwWindowShouldClose(window) ){
 
@@ -309,6 +339,52 @@ int main(){
     glfwTerminate();
     exit( EXIT_SUCCESS );
 
+    return 0;
+}
+
+
+char parse(int key){
+    bool b = glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+             glfwGetKey(window,GLFW_MOD_CAPS_LOCK ) == GLFW_PRESS ;
+    switch (key) {
+        case GLFW_KEY_0: return '0';
+        case GLFW_KEY_1: return '1';
+        case GLFW_KEY_2: return '2';
+        case GLFW_KEY_3: return '3';
+        case GLFW_KEY_4: return '4';
+        case GLFW_KEY_5: return '5';
+        case GLFW_KEY_6: return '6';
+        case GLFW_KEY_7: return '7';
+        case GLFW_KEY_8: return '8';
+        case GLFW_KEY_9: return '9';
+
+        case GLFW_KEY_A: return b ? 'A' : 'a';
+        case GLFW_KEY_B: return b ? 'B' : 'b';
+        case GLFW_KEY_C: return b ? 'C' : 'c';
+        case GLFW_KEY_D: return b ? 'D' : 'd';
+        case GLFW_KEY_E: return b ? 'E' : 'e';
+        case GLFW_KEY_F: return b ? 'F' : 'f';
+        case GLFW_KEY_G: return b ? 'G' : 'g';
+        case GLFW_KEY_H: return b ? 'H' : 'h';
+        case GLFW_KEY_I: return b ? 'I' : 'i';
+        case GLFW_KEY_J: return b ? 'J' : 'j';
+        case GLFW_KEY_K: return b ? 'K' : 'k';
+        case GLFW_KEY_L: return b ? 'L' : 'l';
+        case GLFW_KEY_M: return b ? 'M' : 'm';
+        case GLFW_KEY_N: return b ? 'N' : 'n';
+        case GLFW_KEY_O: return b ? 'O' : 'o';
+        case GLFW_KEY_P: return b ? 'P' : 'p';
+        case GLFW_KEY_Q: return b ? 'Q' : 'q';
+        case GLFW_KEY_R: return b ? 'R' : 'r';
+        case GLFW_KEY_S: return b ? 'S' : 's';
+        case GLFW_KEY_T: return b ? 'T' : 't';
+        case GLFW_KEY_U: return b ? 'U' : 'u';
+        case GLFW_KEY_V: return b ? 'V' : 'v';
+        case GLFW_KEY_W: return b ? 'W' : 'w';
+        case GLFW_KEY_X: return b ? 'X' : 'x';
+        case GLFW_KEY_Y: return b ? 'Y' : 'y';
+        case GLFW_KEY_Z: return b ? 'Z' : 'z';
+    }
     return 0;
 }
 
