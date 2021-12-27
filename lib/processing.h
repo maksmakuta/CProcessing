@@ -3,25 +3,18 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 #include <GL/glew.h>
-#define GLFW_INCLUDE_NONE
+#include "Math.h"
+#define GLFW_INCLUDE_GLEW
 #include <GLFW/glfw3.h>
 #define NANOVG_GL3_IMPLEMENTATION
 #include "ngl/nanovg.h"
 #include "ngl/nanovg_gl.h"
 
-#define PI 3.1415926
-#define HALF_PI PI/2.0
-#define TWO_PI PI*2.0
-#define CAPPA 0.5522847493f
-
-#define radians(x) x*(PI/180)
-#define degrees(x) x*(180/PI)
-#define max(a,b) a > b ? a : b
-#define min(a,b) a < b ? a : b
 
 struct Context{
-    bool loop = true,fill = true;
+    bool fill = true,fullscreen = false;
     NVGcontext* nvgctx;
     NVGcolor fillColor,strokeColor,bg;
     NVGpaint paint;
@@ -38,13 +31,16 @@ enum Key{
     SPACE   = GLFW_KEY_SPACE        ,
     ALT     = GLFW_KEY_LEFT_ALT     ,
     SHIFT   = GLFW_KEY_LEFT_SHIFT   ,
-    CTRL    = GLFW_KEY_LEFT_CONTROL
+    CTRL    = GLFW_KEY_LEFT_CONTROL ,
+
+    KEY_A = GLFW_KEY_A,
 };
 
 GLFWwindow* window = nullptr;
-    int width,height;
+int width = -1,height = -1;
 double mouseX,mouseY;
 double framerate = 60;
+bool loop = true;
 unsigned long long frameCount = 0;
 bool _keyPressed = false;
 char key;
@@ -70,12 +66,19 @@ enum CursorType{
 // must be initialized
 void setup();
 void draw();
-void keyPressed();
+void keyPressed(){}
 
 // API
 void size(int w,int h){
+    if(ctx.fullscreen == true){
+        printf("Cannot use fullscreen() with size()\n");
+        exit(0);
+    }
     width = w;
     height = h;
+}
+void fullscreen(){
+    ctx.fullscreen = true;
 }
 void strokeWeight(float s){
     nvgStrokeWidth(ctx.nvgctx,s);
@@ -88,7 +91,7 @@ void noFill(){
     ctx.fillColor = ctx.bg;
 }
 void noLoop(){
-    ctx.loop = false;
+    loop = false;
 }
 
 void noCursor(){
@@ -103,7 +106,7 @@ void cursor(){
     cursor(ARROW);
 }
 void delay(int millis){
-    // TODO delay fun
+    usleep(millis * 1000);
 }
 
 void frameRate(int fps){
@@ -274,6 +277,7 @@ void error(const char* terr){
 void error(int a,const char* t){
     fprintf(stderr,"%i -> %s\n",a,t);
 }
+
 char parse(int key);
 
 void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
@@ -300,7 +304,13 @@ int main(){
     glfwWindowHint(GLFW_VERSION_MINOR,3);
     glfwWindowHint(GLFW_RESIZABLE,GL_FALSE);
 
-    window = glfwCreateWindow(width,height, "App", nullptr, nullptr );
+    GLFWmonitor* m = nullptr;
+    if(ctx.fullscreen){
+        m = glfwGetPrimaryMonitor();
+        glfwGetMonitorWorkarea(m,nullptr,nullptr,&width,&height);
+    }
+
+    window = glfwCreateWindow(width,height, "App",m,nullptr);
     if (!window) error( "Failed to open GLFW window\n" );
 
     glfwSetErrorCallback(error);
@@ -310,8 +320,8 @@ int main(){
     glfwSwapInterval(0);
 
     double lasttime = glfwGetTime();
-    
-    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+
+    ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS | NVGcreateFlags::NVG_STENCIL_STROKES);
 
     while( !glfwWindowShouldClose(window) ){
 

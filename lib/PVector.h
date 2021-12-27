@@ -3,7 +3,6 @@
 
 #include <cmath>
 #include "Math.h"
-#include "PConstants.h"
 
 class PVector{
 public:
@@ -233,7 +232,7 @@ public:
         double v2mag = sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z);
         double amt = dot / (v1mag * v2mag);
         if (amt <= -1) {
-            return PConstants::PI;
+            return PI;
         } else if (amt >= 1) {
             return 0;
         }

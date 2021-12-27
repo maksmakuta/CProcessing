@@ -14,8 +14,7 @@ set(nvg
 set(processing_api
     lib/processing.h
     lib/PVector.h
-    lib/Math.h
-    lib/ArrayList.h)
+    lib/Math.h)
 
 
 set(CMAKE_CXX_STANDARD 11)
@@ -41,6 +40,8 @@ if (GLEW_FOUND)
     include_directories(${GLEW_INCLUDE_DIRS})
     link_libraries(     ${GLEW_LIBRARIES})
 endif()
+
+include_directories(lib)
 
 add_executable(processing++ ${nvg} ${processing_api} sketch.cpp)
 target_include_directories(processing++ PRIVATE lib)

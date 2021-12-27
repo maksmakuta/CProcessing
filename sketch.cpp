@@ -1,19 +1,12 @@
-#include "lib/processing.h"
-
-int b = 0;
+#include <processing.h>
 
 void setup() {
-  size(450,900);
+  size(400,500);
 }
 
 void draw(){
   background(0);
   fill(150,100,128);
-  circle(width/2,0-b,width/4);
-  if(_keyPressed){
-      if(keyCode == SPACE){
-          b -= 10;
-      }
-  }
+  circle(mouseX,mouseY,30);
 }
 
