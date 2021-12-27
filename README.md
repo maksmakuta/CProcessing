@@ -1,10 +1,17 @@
 # CProcessing
 
-Just processing, but in C/C++ <br>
+Just processing, but in C++ <br>
 Most sketches are compatible, but library not fully ported
 
-![Sketch from main page of processing](screenshots/1.png) <br>
-[Code](examples/001.cpp)
+## Works
+ - simple shapes (rect,circle,line)
+ - size(), colors
+ - simple math (map,norm,min/max)
+ - keyboard/mouse input (beta)
+## Todo
+ - gradients
+ - typography
+ - images
 
 ## Dependencies
  - GLFW - window creation
@@ -12,18 +19,8 @@ Most sketches are compatible, but library not fully ported
  - nanovg - 2d renderer
  - stb_image - uses for image loading (part of nanovg)
  - stb_truetype - uses for text rendering (part of nanovg)
-
-## Works
- - simple shapes (rect,circle,line)
- - size(), colors
- - simple math (map,norm,min/max)
-## Todo
-- gradients
-- typography
-- keyboard/mouse input
-- images
-
+ 
 # Author
   
-  Maks Makuta [ktpp] <br>
+  Maks Makuta ```<ktpp>``` <br>
   MIT Licence
