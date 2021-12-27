@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(processing++)
+project(cprocessing VERSION 1.1.8)
 
 set(nvg
     lib/ngl/fontstash.h
@@ -43,5 +43,8 @@ endif()
 
 include_directories(lib)
 
-add_executable(processing++ ${nvg} ${processing_api} sketch.cpp)
-target_include_directories(processing++ PRIVATE lib)
+add_library(cprocessing SHARED ${nvg} ${processing_api})
+
+add_executable(sketch sketch.cpp)
+target_link_libraries(sketch cprocessing)
+target_include_directories(sketch PUBLIC lib)

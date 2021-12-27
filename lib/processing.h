@@ -12,28 +12,60 @@
 #include "ngl/nanovg.h"
 #include "ngl/nanovg_gl.h"
 
+#include "PFont.h"
+#include "PVector.h"
+#include "color.h"
+
+typedef bool boolean; // add Java bool type
 
 struct Context{
     bool fill = true,fullscreen = false;
     NVGcontext* nvgctx;
     NVGcolor fillColor,strokeColor,bg;
     NVGpaint paint;
+    PFont font;
 } ctx;
 
 enum Key{
-    None    = 0                     ,
-    UP      = GLFW_KEY_UP           ,
-    DOWN    = GLFW_KEY_DOWN         ,
-    LEFT    = GLFW_KEY_LEFT         ,
-    RIGHT   = GLFW_KEY_RIGHT        ,
-    ENTER   = GLFW_KEY_ENTER        ,
-    ESC     = GLFW_KEY_ESCAPE       ,
-    SPACE   = GLFW_KEY_SPACE        ,
-    ALT     = GLFW_KEY_LEFT_ALT     ,
-    SHIFT   = GLFW_KEY_LEFT_SHIFT   ,
-    CTRL    = GLFW_KEY_LEFT_CONTROL ,
+    None  = 0                     ,
+    KEY_UP    = GLFW_KEY_UP           ,
+    KEY_DOWN  = GLFW_KEY_DOWN         ,
+    KEY_LEFT  = GLFW_KEY_LEFT         ,
+    KEY_RIGHT = GLFW_KEY_RIGHT        ,
+    KEY_ENTER = GLFW_KEY_ENTER        ,
+    KEY_ESC   = GLFW_KEY_ESCAPE       ,
+    KEY_SPACE = GLFW_KEY_SPACE        ,
+    KEY_ALT   = GLFW_KEY_LEFT_ALT     ,
+    KEY_SHIFT = GLFW_KEY_LEFT_SHIFT   ,
+    KEY_CTRL  = GLFW_KEY_LEFT_CONTROL ,
+
 
     KEY_A = GLFW_KEY_A,
+    KEY_B = GLFW_KEY_B,
+    KEY_C = GLFW_KEY_C,
+    KEY_D = GLFW_KEY_D,
+    KEY_E = GLFW_KEY_E,
+    KEY_F = GLFW_KEY_F,
+    KEY_G = GLFW_KEY_G,
+    KEY_H = GLFW_KEY_H,
+    KEY_I = GLFW_KEY_I,
+    KEY_J = GLFW_KEY_J,
+    KEY_K = GLFW_KEY_K,
+    KEY_L = GLFW_KEY_L,
+    KEY_M = GLFW_KEY_M,
+    KEY_N = GLFW_KEY_N,
+    KEY_O = GLFW_KEY_O,
+    KEY_P = GLFW_KEY_P,
+    KEY_Q = GLFW_KEY_Q,
+    KEY_R = GLFW_KEY_R,
+    KEY_S = GLFW_KEY_S,
+    KEY_T = GLFW_KEY_T,
+    KEY_U = GLFW_KEY_U,
+    KEY_V = GLFW_KEY_V,
+    KEY_W = GLFW_KEY_W,
+    KEY_X = GLFW_KEY_X,
+    KEY_Y = GLFW_KEY_Y,
+    KEY_Z = GLFW_KEY_Z,
 };
 
 GLFWwindow* window = nullptr;
@@ -43,6 +75,7 @@ double framerate = 60;
 bool loop = true;
 unsigned long long frameCount = 0;
 bool _keyPressed = false;
+bool mousePressed = false;
 char key;
 int keyCode = None;
 
@@ -66,7 +99,13 @@ enum CursorType{
 // must be initialized
 void setup();
 void draw();
+#ifndef USE_KEY
 void keyPressed(){}
+#else
+void keyPressed();
+#endif
+
+void exit(); // uses for delele all pointers if any
 
 // API
 void size(int w,int h){
@@ -113,6 +152,10 @@ void frameRate(int fps){
     framerate = fps;
 }
 
+int millis(){
+    return (int) ( glfwGetTime()*1000.0 );
+}
+
 
 ///////////////////////////
 // colors
@@ -131,6 +174,10 @@ void fill(float r,float g,float b){
 
 void fill(float c){
     fill(c,c,c);
+}
+
+void fill(color c){
+    fill(c.r,c.g,c.b);
 }
 
 void stroke(float r,float g,float b){
@@ -245,21 +292,6 @@ void rotate(float a){
     nvgRotate(ctx.nvgctx,a);
 }
 
-////////////////////
-// Math
-
-template<class T> T map(T val,T rmin,T rmax,T min,T max){
-        T OldRange = rmax - rmin;
-        T NewRange = max - min;
-        return (((val - rmin) * NewRange) / OldRange) + min;
-}
-
-float norm(float val,float min,float max){
-    return map<float>(val,min,max,0.f,1.f);
-}
-
-////////////////////////////////////////////////////////////////
-
 void center(GLFWwindow* w,int _w,int _h){
   const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
@@ -274,11 +306,15 @@ void error(const char* terr){
     exit(EXIT_FAILURE);
 }
 
-void error(int a,const char* t){
-    fprintf(stderr,"%i -> %s\n",a,t);
-}
-
 char parse(int key);
+
+void onMouse(GLFWwindow* window, int button, int action, int mods){
+    if (action == GLFW_PRESS)
+        mousePressed = true;
+
+
+    mousePressed = false;
+}
 
 void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
     if(_action == GLFW_PRESS){
@@ -286,10 +322,9 @@ void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
         keyCode = _key;
         key = parse(_key);
         keyPressed();
-    }else
-        _keyPressed = false;
+    }
 
-
+    _keyPressed = false;
     keyCode = None;
     key = 0;
 }
@@ -313,8 +348,9 @@ int main(){
     window = glfwCreateWindow(width,height, "App",m,nullptr);
     if (!window) error( "Failed to open GLFW window\n" );
 
-    glfwSetErrorCallback(error);
+    //glfwSetErrorCallback(error);
     glfwSetKeyCallback(window,onKey);
+    glfwSetMouseButtonCallback(window, onMouse);
     glfwMakeContextCurrent(window);
     glewInit();
     glfwSwapInterval(0);
@@ -345,7 +381,7 @@ int main(){
         glfwPollEvents();
         frameCount++;
     }
-
+    exit();
     glfwTerminate();
     exit( EXIT_SUCCESS );
 

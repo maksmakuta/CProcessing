@@ -213,9 +213,9 @@ public:
      }
 
     PVector lerp(PVector v, float amt) {
-        x = Math::lerp(x, v.x, amt);
-        y = Math::lerp(y, v.y, amt);
-        z = Math::lerp(z, v.z, amt);
+        this->x = _lerp(this->x, v.x, amt);
+        this->y = _lerp(this->y, v.y, amt);
+        this->z = _lerp(this->z, v.z, amt);
         return *this;
       }
 

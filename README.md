@@ -8,10 +8,11 @@ Most sketches are compatible, but library not fully ported
  - size(), colors
  - simple math (map,norm,min/max)
  - keyboard/mouse input (beta)
+ Classes:
+ - PVector
 ## Todo
- - gradients
- - typography
- - images
+ - typography 
+ - images 
 
 ## Dependencies
  - GLFW - window creation
@@ -22,5 +23,5 @@ Most sketches are compatible, but library not fully ported
  
 # Author
   
-  Maks Makuta ```<ktpp>``` <br>
+  Maks Makuta ``` ktpp ``` <br>
   MIT Licence
