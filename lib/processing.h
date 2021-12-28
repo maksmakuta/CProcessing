@@ -18,12 +18,28 @@
 
 typedef bool boolean; // add Java bool type
 
+enum AlignX{
+    LEFT   = NVG_ALIGN_LEFT,
+    CENTER = NVG_ALIGN_CENTER,
+    RIGHT  = NVG_ALIGN_RIGHT
+};
+
+enum AlignY{
+    TOP      = NVG_ALIGN_TOP,
+    BOTTOM   = NVG_ALIGN_BOTTOM,
+    MIDDLE   = NVG_ALIGN_MIDDLE, // CENTER
+    BASELINE = NVG_ALIGN_BASELINE
+};
+
+
 struct Context{
     bool fill = true,fullscreen = false;
     NVGcontext* nvgctx;
-    NVGcolor fillColor,strokeColor,bg;
+    NVGcolor fillColor = nvgRGBAf(1,1,1,1),strokeColor  = nvgRGBAf(1,1,1,1),bg;
     NVGpaint paint;
-    PFont font;
+    AlignX alignX;
+    AlignY alignY;
+    PFont fnt;
 } ctx;
 
 enum Key{
@@ -104,9 +120,9 @@ void keyPressed(){}
 #else
 void keyPressed();
 #endif
-
+#ifdef GC
 void exit(); // uses for delele all pointers if any
-
+#endif
 // API
 void size(int w,int h){
     if(ctx.fullscreen == true){
@@ -156,7 +172,6 @@ int millis(){
     return (int) ( glfwGetTime()*1000.0 );
 }
 
-
 ///////////////////////////
 // colors
 
@@ -168,8 +183,12 @@ void background(float f){
    background(f,f,f);
 }
 
+void fill(int r,int g,int b,int a){
+    ctx.fillColor = nvgRGBA(r%256,g%256,b%256,a%256);
+}
+
 void fill(float r,float g,float b){
-    ctx.fillColor = nvgRGB(r,g,b);
+    fill(r,g,b,255);
 }
 
 void fill(float c){
@@ -177,20 +196,62 @@ void fill(float c){
 }
 
 void fill(color c){
-    fill(c.r,c.g,c.b);
+    fill(c.r,c.g,c.b,c.a);
+}
+
+void stroke(float r,float g,float b,float a){
+    ctx.strokeColor = nvgRGBA(r,g,b,a);
 }
 
 void stroke(float r,float g,float b){
-    ctx.strokeColor = nvgRGB(r,g,b);
+    stroke(r,g,b,255);
 }
 
 void stroke(float c){
     stroke(c,c,c);
 }
 
+void stroke(color c){
+    stroke(c.r,c.g,c.b);
+}
+
 void strokeCap(int c){
     nvgLineCap(ctx.nvgctx,c);
 }
+////////////////////////////
+// fonts
+
+PFont createFont(const std::string& n,float s){
+    int f = nvgCreateFont(ctx.nvgctx,"f",n.c_str());
+    return PFont(f,s);
+}
+
+void textFont(PFont f){
+    ctx.fnt = f;
+}
+
+void text(const std::string& c,float x,float y){
+    nvgTextAlign(ctx.nvgctx,(int) ctx.alignX | (int) ctx.alignY);
+    nvgFontFaceId(ctx.nvgctx,ctx.fnt.getFont());
+    nvgFontSize(ctx.nvgctx,ctx.fnt.getSize());
+    nvgText(ctx.nvgctx,x,y,c.c_str(),nullptr);
+    nvgFillColor(ctx.nvgctx,ctx.fillColor);
+}
+
+void textAlign(AlignX x,AlignY y){
+    ctx.alignX = x;
+    ctx.alignY = y;
+}
+
+void textAlign(AlignX x){
+    textAlign(x,MIDDLE);
+}
+
+void textSize(float s){
+    ctx.fnt.setSize(s);
+}
+
+
 
 ///////////////////////////
 // shapes
@@ -331,7 +392,6 @@ void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
 
 int main(){
     background(0);
-    setup();
 
     if(!glfwInit())error("Failed to initialize GLFW\n" );
 
@@ -345,7 +405,7 @@ int main(){
         glfwGetMonitorWorkarea(m,nullptr,nullptr,&width,&height);
     }
 
-    window = glfwCreateWindow(width,height, "App",m,nullptr);
+    window = glfwCreateWindow(1,1, "App",m,nullptr);
     if (!window) error( "Failed to open GLFW window\n" );
 
     //glfwSetErrorCallback(error);
@@ -359,6 +419,8 @@ int main(){
 
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS | NVGcreateFlags::NVG_STENCIL_STROKES);
 
+    setup();
+     glfwSetWindowSize(window,width,height);
     while( !glfwWindowShouldClose(window) ){
 
         while (glfwGetTime() < lasttime + 1.0/framerate) {
@@ -381,7 +443,10 @@ int main(){
         glfwPollEvents();
         frameCount++;
     }
-    exit();
+#ifdef GC
+       exit();
+#endif
+
     glfwTerminate();
     exit( EXIT_SUCCESS );
 

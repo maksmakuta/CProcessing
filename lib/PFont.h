@@ -3,7 +3,6 @@
 
 #include "ngl/nanovg.h"
 
-
 /**
  * @brief The PFont class
  *  simplified version of Processing PFont class
@@ -11,22 +10,29 @@
 class PFont{
 private:
     int fnt;
-    int size;
+    float size;
 public:
     PFont(){
-        this->fnt = 0;
-        this->size = 0;
+        this->fnt = -1;
+        this->size = 0.f;
     }
 
-    PFont(const std::string& name, int s){
-        this->fnt  = 0; //TODO this class
+    PFont(int f, float s){
+        this->fnt  = f; //TODO this class
         this->size = s;
     }
 
-    int getSize(){
+    float getSize(){
         return this->size;
     }
 
+    int getFont(){
+        return this->fnt;
+    }
+
+    void setSize(float s){
+        this->size = s;
+    }
 
 };
 
