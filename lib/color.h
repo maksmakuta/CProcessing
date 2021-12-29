@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstring>
+#include "Math.h"
 
 class color{
 public:
@@ -58,6 +59,10 @@ public:
      color operator=(const std::string &shex){
          this->hex(shex.c_str());
          return *this;
+     }
+
+     static color rand(){
+         return color(random(255),random(255),random(255));
      }
 
 float r,g,b,a;

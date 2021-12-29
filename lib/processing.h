@@ -121,7 +121,7 @@ void keyPressed(){}
 void keyPressed();
 #endif
 #ifdef GC
-void exit(); // uses for delele all pointers if any
+void gc(); // uses for delele all pointers if any
 #endif
 // API
 void size(int w,int h){
@@ -175,12 +175,16 @@ int millis(){
 ///////////////////////////
 // colors
 
-void background(float r,float g,float b){
-    ctx.bg = nvgRGB(r,g,b);
+void background(float r,float g,float b,float a){
+    ctx.bg = nvgRGBA(r,g,b,a);
 }
 
 void background(float f){
-   background(f,f,f);
+   background(f,f,f,255);
+}
+
+void background(float f,float a){
+   background(f,f,f,a);
 }
 
 void fill(int r,int g,int b,int a){
@@ -209,6 +213,9 @@ void stroke(float r,float g,float b){
 
 void stroke(float c){
     stroke(c,c,c);
+}
+void stroke(float c,float a){
+    stroke(c,c,c,a);
 }
 
 void stroke(color c){
@@ -390,6 +397,11 @@ void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
     key = 0;
 }
 
+void onResize(GLFWwindow*,int w,int h){
+    width = w;
+    height = h;
+}
+
 int main(){
     background(0);
 
@@ -397,20 +409,20 @@ int main(){
 
     glfwWindowHint(GLFW_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_RESIZABLE,GL_FALSE);
+    //glfwWindowHint(GLFW_RESIZABLE,GL_FALSE);
 
     GLFWmonitor* m = nullptr;
     if(ctx.fullscreen){
         m = glfwGetPrimaryMonitor();
         glfwGetMonitorWorkarea(m,nullptr,nullptr,&width,&height);
     }
-
     window = glfwCreateWindow(1,1, "App",m,nullptr);
     if (!window) error( "Failed to open GLFW window\n" );
 
     //glfwSetErrorCallback(error);
     glfwSetKeyCallback(window,onKey);
     glfwSetMouseButtonCallback(window, onMouse);
+    glfwSetWindowSizeCallback(window,onResize);
     glfwMakeContextCurrent(window);
     glewInit();
     glfwSwapInterval(0);
@@ -420,7 +432,12 @@ int main(){
     ctx.nvgctx = nvgCreateGL3(NVGcreateFlags::NVG_ANTIALIAS | NVGcreateFlags::NVG_STENCIL_STROKES);
 
     setup();
-     glfwSetWindowSize(window,width,height);
+    if(ctx.fullscreen){
+        m = glfwGetPrimaryMonitor();
+        glfwGetMonitorWorkarea(m,nullptr,nullptr,&width,&height);
+    }
+        glfwSetWindowSize(window,width,height);
+
     while( !glfwWindowShouldClose(window) ){
 
         while (glfwGetTime() < lasttime + 1.0/framerate) {
@@ -444,7 +461,7 @@ int main(){
         frameCount++;
     }
 #ifdef GC
-       exit();
+       gc();
 #endif
 
     glfwTerminate();

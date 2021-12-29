@@ -6,9 +6,7 @@
 
 class PVector{
 public:
-    PVector() : PVector(0,0,0){
-
-    }
+    PVector() : PVector(0,0,0){/* ... */}
 
     PVector(float _x,float _y,float _z){
         this->x = _x;
@@ -247,7 +245,21 @@ public:
       return array;
     }
 
+    static PVector random2D(){
+        PVector p(random<float>(-1,1),random<float>(-1,1));
+        return p.normalize();
+    }
+
     float x,y,z;
 };
+
+PVector createVector(float x,float y,float z){
+    return PVector(x,y,z);
+}
+
+PVector createVector(float x,float y){
+    return createVector(x,y,0);
+}
+
 
 #endif
