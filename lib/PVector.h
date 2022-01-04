@@ -20,6 +20,13 @@ public:
         this->z = 0.f;
     }
 
+    PVector set(float _x,float _y){
+        this->x = _x;
+        this->y = _y;
+        this->z = 0.f;
+        return *this;
+    }
+
     PVector set(float _x,float _y,float _z){
         this->x = _x;
         this->y = _y;

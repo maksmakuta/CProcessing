@@ -5,7 +5,6 @@
 
 /**
  * @brief The PFont class
- *  simplified version of Processing PFont class
  */
 class PFont{
 private:

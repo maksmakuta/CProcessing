@@ -15,22 +15,22 @@
 #define min(a,b) a < b ? a : b
 #define _lerp(start,stop,amt) (start + (stop-start) * amt)
 
-#define tmp template<class T>
+#define tmp(T) template<class T>
 
-tmp T rand(T min, T max){
+tmp(T) T rand(T min, T max){
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> distr(min, max);
     return static_cast<T>(distr(gen));
 }
 
-tmp T map(T val,T rmin,T rmax,T min,T max){
+tmp(T) T map(T val,T rmin,T rmax,T min,T max){
         T OldRange = rmax - rmin;
         T NewRange = max - min;
         return (((val - rmin) * NewRange) / OldRange) + min;
 }
 
-tmp T constrain(T val,T min,T max){
+tmp(T) T constrain(T val,T min,T max){
        if(val < min) return min;
        else if(val > max) return max;
        else return val;
@@ -40,8 +40,7 @@ float norm(float val,float min,float max){
     return map<float>(val,min,max,0.f,1.f);
 }
 
-tmp T random(T x)       { return rand<T>(0,x); }
-tmp T random(T x,T y)   { return rand<T>(x,y); }
-
+tmp(T) T random(T x)       { return rand<T>(0,x); }
+tmp(T) T random(T x,T y)   { return rand<T>(x,y); }
 
 #endif
