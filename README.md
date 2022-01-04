@@ -3,7 +3,9 @@
 Just processing, but in C++ <br>
 Most sketches are compatible, but library not fully ported
 
-## Works
+Currently move to own OpenGL renderer
+
+## Works (for processing_nvg.h)
  - simple shapes (rect,circle,line)
  - size(), colors
  - simple math (map,norm,min/max)

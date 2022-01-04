@@ -61,11 +61,11 @@ public:
          return *this;
      }
 
-     static color rand(){
-         return color(random(255),random(255),random(255));
-     }
+    static color rand(){
+        return color(random(255),random(255),random(255));
+    }
 
-float r,g,b,a;
+    float r,g,b,a;
 
 private:
         static int fHex(char _c){

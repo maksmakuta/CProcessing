@@ -4,15 +4,15 @@
 #include <GL/glew.h>
 #include <iostream>
 
-const char* vertex   = "#version 330 core"
+const char* vertex   =
+        "#version 330 core"
         "layout (location = 0) in vec3 aPos;"
-
         "void main(){"
         "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);"
         "}";
-const char* fragment = "#version 330 core"
+const char* fragment =
+        "#version 330 core"
         "out vec4 FragColor;"
-
         "void main(){"
         "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
         "}";
@@ -82,12 +82,21 @@ enum COMMANDS{
     WIND    = 5
 };
 
+enum GL_STATE{
+    P2D,
+    P3D,
+    DEFAULT = P2D
+};
+
 class pGL{
 private:
     pShader shader;
+    bool is3D;
 public:
-    pGL(){
+    pGL(GL_STATE s){
         shader = pShader();
+        init();
+        is3D = (bool)(s == P3D);
     }
 
     void init(){
@@ -95,6 +104,10 @@ public:
     }
 
     void perform(enum COMMANDS c,float x,float y){
+        if(is3D) return;
+    }
+
+    void perform(enum COMMANDS c,float x,float y,float z){
 
     }
 };
