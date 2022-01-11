@@ -35,7 +35,10 @@ enum AlignY{
 struct Context{
     bool fill = true,fullscreen = false;
     NVGcontext* nvgctx;
-    NVGcolor fillColor = nvgRGBAf(1,1,1,1),strokeColor  = nvgRGBAf(1,1,1,1),bg;
+    NVGcolor fillColor   = nvgRGBAf(1,1,1,1),
+             strokeColor = nvgRGBAf(1,1,1,1),
+             bg          = nvgRGBAf(1,1,1,1),
+             textColor   = nvgRGBAf(1,1,1,1);
     NVGpaint paint;
     AlignX alignX;
     AlignY alignY;
@@ -94,6 +97,8 @@ bool _keyPressed = false;
 bool mousePressed = false;
 char key;
 int keyCode = None;
+
+std::vector<PVector> shape;
 
 enum Cap{
     BUT     = NVGlineCap::NVG_BUTT,
@@ -272,6 +277,19 @@ void endShape(){
     nvgFill(ctx.nvgctx);
     nvgStrokeColor(ctx.nvgctx, ctx.strokeColor);
     nvgStroke(ctx.nvgctx);
+
+    if(!shape.empty()){
+        bool x = true;
+        for(PVector p : shape){
+                if(x){
+                    x = !x;
+                    nvgMoveTo(ctx.nvgctx,p.x,p.y);
+                }else{
+                    nvgLineTo(ctx.nvgctx,p.x,p.y);
+                }
+
+        }
+    }
 }
 
 void rect(float x,float y,float w, float h){
@@ -340,6 +358,10 @@ void quad(float x1,float y1,
   endShape();
 }
 
+void vertex(float x,float y){
+    shape.push_back(PVector(x,y));
+}
+
 ///////////////////
 // Matrix
 
@@ -377,7 +399,7 @@ void error(const char* terr){
 char parse(int key);
 
 void onMouse(GLFWwindow* window, int button, int action, int mods){
-    if (action == GLFW_PRESS)
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         mousePressed = true;
 
 
