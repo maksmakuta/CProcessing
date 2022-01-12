@@ -1,4 +1,4 @@
-#include <processing_nvg.h>
+#include <processing.h>
 
 class Planet{
 public:
@@ -32,15 +32,15 @@ Planet* sun;
 
 void setup(){
     size(600,600);
-    sun =    new Planet(20,0  ,color(250,250,0  ), 0.f);
-    sun->add(new Planet(5 ,30 ,color(50 ,70 ,190),6.f));
-    sun->add(new Planet(7 ,45 ,color(100,90 ,240),5.f));
+    sun =    new Planet(20,0  ,color(250,250,0  ), 0.f );
+    sun->add(new Planet(5 ,30 ,color(50 ,70 ,190),6.f ));
+    sun->add(new Planet(7 ,45 ,color(100,90 ,240),5.f ));
     sun->add(new Planet(8 ,60 ,color(200,160,100),4.5f));
-    sun->add(new Planet(10,80 ,color(200,100,0  ),4.f));
-    sun->add(new Planet(15,115,color(250,0  ,100),3.f));
+    sun->add(new Planet(10,80 ,color(200,100,0  ),4.f ));
+    sun->add(new Planet(15,115,color(250,0  ,100),3.f ));
     sun->add(new Planet(20,160,color(  0,200,200),2.5f));
-    sun->add(new Planet(25,200,color(255,0  ,0  ),2.f));
-    sun->add(new Planet(35,265,color(200, 70,255),1.f));
+    sun->add(new Planet(25,200,color(255,0  ,0  ),2.f ));
+    sun->add(new Planet(35,265,color(200, 70,255),1.f ));
 }
 
 void draw(){

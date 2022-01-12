@@ -1,4 +1,3 @@
-//#define USE_KEY
 #include <processing.h>
 
 float speed;

@@ -13,7 +13,11 @@ public:
     }
 
     bool intersept(Circle c){
-        return pos.dist(c.pos) >= radius + c.radius && !(pos.dist(c.pos) < radius);
+        return pos.dist(c.pos) >= radius + c.radius && !in(c.pos);
+    }
+
+    bool in(PVector p){
+        return pos.dist(p) < radius;
     }
 
     void draw(){
@@ -23,9 +27,14 @@ public:
 };
 
 std::vector<Circle> arr;
-float max = 50,min = 5;
+float max = 100,min = 5;
+PFont fnt;
+float tx,ty;
+
 void setup(){
     size(600,600);
+    fnt = createFont("/usr/share/fonts/TTF/JetBrainsMono-Regular.ttf",32);
+    textFont(fnt);
 }
 
 void draw(){
@@ -35,7 +44,7 @@ void draw(){
         c.draw();
     }
 
-    if(arr.size() < 300){
+    if(arr.size() < 200){
         float x = random(width);
         float y = random(height);
         float r = max;
@@ -51,16 +60,24 @@ void draw(){
                             break;
                         }
                         r -= 0.01f;
+
                     }else break;
                     if(!add) break;
                 }
             }
+        }else{
+            tx = x;
+            ty = y;
         }
         if(add) arr.push_back(Circle(x,y,r,col));
     }else{
-        background(255);
+        background(250,100,100,255);
     }
-    //printf("%li\n",arr.size());
+
+
+        fill(0);
+        textAlign(CENTER,MIDDLE);
+        text(std::to_string(arr.size()),tx,ty);
 }
 
 
