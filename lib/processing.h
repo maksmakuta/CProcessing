@@ -35,11 +35,10 @@ enum AlignY{
 struct Context{
     bool fill = true,fullscreen = false;
     NVGcontext* nvgctx;
-    NVGcolor fillColor   = nvgRGBAf(1,1,1,1),
-             strokeColor = nvgRGBAf(1,1,1,1),
-             bg          = nvgRGBAf(1,1,1,1),
-             textColor   = nvgRGBAf(1,1,1,1);
-    NVGpaint paint;
+    color fillColor   = color("#fff"),
+          strokeColor = color("#fff"),
+          bg          = color("#fff"),
+          textColor   = color("#fff");
     AlignX alignX;
     AlignY alignY;
     PFont fnt;
@@ -98,8 +97,6 @@ bool mousePressed = false;
 char key;
 int keyCode = None;
 
-std::vector<PVector> shape;
-
 enum Cap{
     BUT     = NVGlineCap::NVG_BUTT,
     ROUND   = NVGlineCap::NVG_ROUND,
@@ -125,9 +122,11 @@ void keyPressed(){}
 #else
 void keyPressed();
 #endif
+
 #ifdef GC
 void gc(); // uses for delele all pointers if any
 #endif
+
 // API
 void size(int w,int h){
     if(ctx.fullscreen == true){
@@ -168,11 +167,9 @@ void cursor(){
 void delay(int millis){
     usleep(millis * 1000);
 }
-
 void frameRate(int fps){
     framerate = fps;
 }
-
 int millis(){
     return (int) ( glfwGetTime()*1000.0 );
 }
@@ -181,54 +178,49 @@ int millis(){
 // colors
 
 void background(float r,float g,float b,float a){
-    ctx.bg = nvgRGBA(r,g,b,a);
+    ctx.bg = color(r,g,b,a);
 }
-
 void background(float f){
    background(f,f,f,255);
 }
-
 void background(float f,float a){
    background(f,f,f,a);
 }
 
 void fill(int r,int g,int b,int a){
-    ctx.fillColor = nvgRGBA(r%256,g%256,b%256,a%256);
+    ctx.fillColor = color(r%256,g%256,b%256,a%256);
 }
-
 void fill(float r,float g,float b){
     fill(r,g,b,255);
 }
-
 void fill(float c){
     fill(c,c,c);
 }
-
 void fill(color c){
     fill(c.r,c.g,c.b,c.a);
 }
 
 void stroke(float r,float g,float b,float a){
-    ctx.strokeColor = nvgRGBA(r,g,b,a);
+    ctx.strokeColor = color(r,g,b,a);
 }
-
 void stroke(float r,float g,float b){
     stroke(r,g,b,255);
 }
-
 void stroke(float c){
     stroke(c,c,c);
 }
 void stroke(float c,float a){
     stroke(c,c,c,a);
 }
-
 void stroke(color c){
     stroke(c.r,c.g,c.b);
 }
 
 void strokeCap(int c){
     nvgLineCap(ctx.nvgctx,c);
+}
+void strokeJoin(int j){
+    nvgLineJoin(ctx.nvgctx,j);
 }
 ////////////////////////////
 // fonts
@@ -247,7 +239,7 @@ void text(const std::string& c,float x,float y){
     nvgFontFaceId(ctx.nvgctx,ctx.fnt.getFont());
     nvgFontSize(ctx.nvgctx,ctx.fnt.getSize());
     nvgText(ctx.nvgctx,x,y,c.c_str(),nullptr);
-    nvgFillColor(ctx.nvgctx,ctx.strokeColor);
+    nvgFillColor(ctx.nvgctx,ctx.textColor.nvgColor());
 }
 
 void textAlign(AlignX x,AlignY y){
@@ -273,23 +265,10 @@ void beginShape(){
 }
 
 void endShape(){
-    nvgFillColor(ctx.nvgctx,ctx.fillColor);
+    nvgFillColor(ctx.nvgctx,ctx.fillColor.nvg());
     nvgFill(ctx.nvgctx);
-    nvgStrokeColor(ctx.nvgctx, ctx.strokeColor);
+    nvgStrokeColor(ctx.nvgctx, ctx.strokeColor.nvg());
     nvgStroke(ctx.nvgctx);
-
-    if(!shape.empty()){
-        bool x = true;
-        for(PVector p : shape){
-                if(x){
-                    x = !x;
-                    nvgMoveTo(ctx.nvgctx,p.x,p.y);
-                }else{
-                    nvgLineTo(ctx.nvgctx,p.x,p.y);
-                }
-
-        }
-    }
 }
 
 void rect(float x,float y,float w, float h){
@@ -358,10 +337,6 @@ void quad(float x1,float y1,
   endShape();
 }
 
-void vertex(float x,float y){
-    shape.push_back(PVector(x,y));
-}
-
 ///////////////////
 // Matrix
 
@@ -401,8 +376,6 @@ char parse(int key);
 void onMouse(GLFWwindow* window, int button, int action, int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
         mousePressed = true;
-
-
     mousePressed = false;
 }
 
@@ -413,7 +386,6 @@ void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
         key = parse(_key);
         keyPressed();
     }
-
     _keyPressed = false;
     keyCode = None;
     key = 0;

@@ -1,8 +1,6 @@
 #ifndef PFONT_H
 #define PFONT_H
 
-#include "ngl/nanovg.h"
-
 /**
  * @brief The PFont class
  */

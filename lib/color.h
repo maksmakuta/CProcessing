@@ -1,21 +1,32 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include "ngl/nanovg.h"
 #include <string>
 #include <cstring>
 #include "Math.h"
 
 class color{
 public:
-    color() : color(0){/* ... */}
+    color() : color(0.f){/* ... */}
     color(float a) : color(a,a,a){/* ... */}
-    color(float _r,float _g,float _b) : color(_r,_g,_b,1){/* ... */}
+    color(float _r,float _g,float _b) : color(_r,_g,_b,1.f){/* ... */}
     color(float _r,float _g,float _b,float _a){
         this->r = _r;
         this->g = _g;
         this->b = _b;
         this->a = _a;
     }
+
+    color(int a) : color(a,a,a){/* ... */}
+    color(int _r,int _g,int _b) : color(_r,_g,_b,1){/* ... */}
+    color(int _r,int _g,int _b,int _a){
+        this->r = _r / 255;
+        this->g = _g / 255;
+        this->b = _b / 255;
+        this->a = _a / 255;
+    }
+
     color(const std::string &h){
         hex(h.c_str());
     }
@@ -63,6 +74,10 @@ public:
 
     static color rand(){
         return color(random(255),random(255),random(255));
+    }
+
+    NVGcolor nvg(){
+        return nvgRGBAf(r,g,b,a);
     }
 
     float r,g,b,a;
