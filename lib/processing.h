@@ -15,6 +15,7 @@
 #include "PFont.h"
 #include "PVector.h"
 #include "color.h"
+using namespace Math;
 
 typedef bool boolean; // add Java bool type
 
@@ -177,27 +178,27 @@ int millis(){
 ///////////////////////////
 // colors
 
-void background(float r,float g,float b,float a){
+void background(int r,int g,int b,int a){
     ctx.bg = color(r,g,b,a);
 }
-void background(float f){
+void background(int f){
    background(f,f,f,255);
 }
-void background(float f,float a){
+void background(int f,int a){
    background(f,f,f,a);
 }
 
 void fill(int r,int g,int b,int a){
     ctx.fillColor = color(r%256,g%256,b%256,a%256);
 }
-void fill(float r,float g,float b){
+void fill(int r,int g,int b){
     fill(r,g,b,255);
 }
-void fill(float c){
+void fill(int c){
     fill(c,c,c);
 }
 void fill(color c){
-    fill(c.r,c.g,c.b,c.a);
+    ctx.fillColor = c;
 }
 
 void stroke(float r,float g,float b,float a){
@@ -213,7 +214,7 @@ void stroke(float c,float a){
     stroke(c,c,c,a);
 }
 void stroke(color c){
-    stroke(c.r,c.g,c.b);
+    ctx.strokeColor = c;
 }
 
 void strokeCap(int c){
@@ -239,7 +240,7 @@ void text(const std::string& c,float x,float y){
     nvgFontFaceId(ctx.nvgctx,ctx.fnt.getFont());
     nvgFontSize(ctx.nvgctx,ctx.fnt.getSize());
     nvgText(ctx.nvgctx,x,y,c.c_str(),nullptr);
-    nvgFillColor(ctx.nvgctx,ctx.textColor.nvgColor());
+    nvgFillColor(ctx.nvgctx,ctx.fillColor.nvg());
 }
 
 void textAlign(AlignX x,AlignY y){
@@ -357,14 +358,6 @@ void rotate(float a){
     nvgRotate(ctx.nvgctx,a);
 }
 
-void center(GLFWwindow* w,int _w,int _h){
-  const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-
-    int window_width = mode->width;
-    int window_height = mode->height;
-    glfwSetWindowPos(w,window_width/2 - _w/2,window_height/2 - _h/2);
-}
-
 void error(const char* terr){
     fprintf(stderr,"%s\n",terr);
     if(window != nullptr) glfwTerminate();
@@ -384,7 +377,9 @@ void onKey(GLFWwindow* window, int _key, int _scancode, int _action, int _mods){
         _keyPressed = true;
         keyCode = _key;
         key = parse(_key);
+#if defined(USE_KEY)
         keyPressed();
+#endif
     }
     _keyPressed = false;
     keyCode = None;
@@ -508,6 +503,20 @@ char parse(int key){
         case GLFW_KEY_Z: return b ? 'Z' : 'z';
     }
     return 0;
+}
+
+// ======== Utils =======
+
+tmp(T) T* array(int s){
+    return new T[s];
+}
+
+tmp(T) T** array2d(int w,int h){
+    T** arr = new T*[h];
+    for(int a = 0;a < h;a++){
+        arr[a] = array<T>(w);
+    }
+    return arr;
 }
 
 #endif

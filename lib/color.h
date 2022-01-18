@@ -8,23 +8,14 @@
 
 class color{
 public:
-    color() : color(0.f){/* ... */}
-    color(float a) : color(a,a,a){/* ... */}
-    color(float _r,float _g,float _b) : color(_r,_g,_b,1.f){/* ... */}
-    color(float _r,float _g,float _b,float _a){
-        this->r = _r;
-        this->g = _g;
-        this->b = _b;
-        this->a = _a;
-    }
-
+    color() : color(0){/* ... */}
     color(int a) : color(a,a,a){/* ... */}
     color(int _r,int _g,int _b) : color(_r,_g,_b,1){/* ... */}
     color(int _r,int _g,int _b,int _a){
-        this->r = _r / 255;
-        this->g = _g / 255;
-        this->b = _b / 255;
-        this->a = _a / 255;
+        this->r = (float)_r / 255.f;
+        this->g = (float)_g / 255.f;
+        this->b = (float)_b / 255.f;
+        this->a = (float)_a / 255.f;
     }
 
     color(const std::string &h){
@@ -73,7 +64,7 @@ public:
      }
 
     static color rand(){
-        return color(random(255),random(255),random(255));
+        return color(Math::random(255),Math::random(255),Math::random(255));
     }
 
     NVGcolor nvg(){

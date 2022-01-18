@@ -3,25 +3,18 @@
 Just processing, but in C++ <br>
 Most sketches are compatible, but library not fully ported
 
-Currently move to own OpenGL renderer
+# Dependencies
 
-## Works (for processing_nvg.h)
- - simple shapes (rect,circle,line)
- - size(), colors
- - simple math (map,norm,min/max)
- - keyboard/mouse input (beta)
- Classes:
- - PVector
-## Todo
- - typography 
- - images 
+ - OpenGL (GL/glew.h)
+ - GLFW (GLFW/glfw3.h)
+ - glm
 
-## Dependencies
- - GLFW - window creation
- - GLEW - OpenGL function wrapper
- - nanovg - 2d renderer
- - stb_image - uses for image loading (part of nanovg)
- - stb_truetype - uses for text rendering (part of nanovg)
+# Credits
+
+I use this repos for modernize my library
+
+  - https://github.com/whackashoe/cprocessing
+  - https://github.com/cchaine/processing-cpp
  
 # Author
   

@@ -218,9 +218,9 @@ public:
      }
 
     PVector lerp(PVector v, float amt) {
-        this->x = _lerp(this->x, v.x, amt);
-        this->y = _lerp(this->y, v.y, amt);
-        this->z = _lerp(this->z, v.z, amt);
+        this->x = Math::lerp(this->x, v.x, amt);
+        this->y = Math::lerp(this->y, v.y, amt);
+        this->z = Math::lerp(this->z, v.z, amt);
         return *this;
       }
 
@@ -253,7 +253,7 @@ public:
     }
 
     static PVector random2D(){
-        PVector p(random<float>(-1,1),random<float>(-1,1));
+        PVector p(Math::random<float>(-1,1),Math::random<float>(-1,1));
         return p.normalize();
     }
 
