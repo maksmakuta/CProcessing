@@ -144,11 +144,11 @@ void strokeWeight(float s){
     nvgStrokeWidth(ctx.nvgctx,s);
 }
 void noStroke(){
-    ctx.strokeColor = ctx.bg;
+    ctx.strokeColor = color("#0000");
     strokeWeight(1);
 }
 void noFill(){
-    ctx.fillColor = ctx.bg;
+    ctx.fillColor = color("#0000");
 }
 void noLoop(){
     loop = false;
