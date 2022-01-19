@@ -11,11 +11,11 @@ void setup(){
     h = ( t / (60 * 60) % 24 ) + 2;
 }
 
-void clock_line(int v,color c, float w,float t){
+void clock_line(int v,float r,float g,float b, float w,float t){
     strokeWeight(16);
     strokeCap(ROUND);
-    fill(c.r,c.g,c.b);
-    stroke(c.r,c.g,c.b);
+    fill(r,g,b);
+    stroke(b,g,r);
     float a = map<float>(v,0,t,TWO_PI,0) - PI;
     line(0,0,w * sin(a),w * cos(a));
 }
@@ -39,9 +39,9 @@ void draw(){
     circle(0,0,260);
 
     int _h = h % 12;
-    clock_line(s,color(200,100,200),250,60);
-    clock_line(m,color(100,200,100),200,60);
-    clock_line(_h,color(100,200,200),150,12);
+    clock_line(s ,200,100,200,250,60);
+    clock_line(m ,100,200,100,200,60);
+    clock_line(_h,100,200,200,150,12);
 
     for(int a = 0;a < 360;a++){
         float angle = radians(a);
@@ -57,7 +57,7 @@ void draw(){
     }
 
     strokeWeight(16);
-    stroke(200,200,100);
+    fill(200,200,100);
     point(0,0);
 
 }
