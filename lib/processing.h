@@ -13,7 +13,7 @@ typedef bool boolean;                   // Java boolean type
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 3
+ *  @version 1.3 beta 4
  *
  */
 
@@ -57,12 +57,16 @@ struct processing{
 // ==============================================
 
 void redraw()           {}
-void run()              {}
 void size(int w,int h)  {
     state.width  = w;
     state.height = h;
 }
 void background(int a)  {}
+
+// Returns the number of milliseconds (thousandths of a second) since starting an applet
+int millis(){
+    return (int)(glfwGetTime() * 1000);
+}
 
 int main(int argc, char** argv){
 
@@ -87,11 +91,6 @@ int main(int argc, char** argv){
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-
-    //glfwSetWindowSizeCallback(reshape);
-    //glfwSetKeyCallback(keyboard);
-    //glfwSetMousePosCallback(mousemotion);
-    //glfwSetMouseButtonCallback(mouse);
 
     glfwMakeContextCurrent(state.window);
     glfwSwapInterval(0);
