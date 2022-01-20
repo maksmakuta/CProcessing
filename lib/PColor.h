@@ -62,10 +62,6 @@ public:
          return *this;
      }
 
-    static color rand(){
-        return color(Math::random(255),Math::random(255),Math::random(255));
-    }
-
     float* array(){
         float *tmp = new float[4];
         tmp[0] = r;

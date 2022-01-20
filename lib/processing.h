@@ -13,7 +13,7 @@ typedef bool boolean;                   // Java boolean type
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 4
+ *  @version 1.3 beta 5
  *
  */
 

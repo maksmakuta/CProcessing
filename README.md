@@ -3,6 +3,8 @@
 Just processing, but in C++ <br>
 Most sketches are compatible, but library not fully ported
 
+Currently move to own OpenGL renderer
+
 # Dependencies
 
  - OpenGL (GL/glew.h)
