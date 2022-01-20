@@ -1,10 +1,9 @@
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "ngl/nanovg.h"
 #include <string>
 #include <cstring>
-#include "Math.h"
+#include "PMath.h"
 
 class color{
 public:
@@ -65,10 +64,6 @@ public:
 
     static color rand(){
         return color(Math::random(255),Math::random(255),Math::random(255));
-    }
-
-    NVGcolor nvg(){
-        return nvgRGBAf(r,g,b,a);
     }
 
     float* array(){

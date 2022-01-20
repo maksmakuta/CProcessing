@@ -7,6 +7,12 @@
  *
  */
 
+// ==============================================
+extern void setup();                    // setup function
+extern void draw();                     // draw  function
+
+// ==============================================
+
 
 void size(int w,int h){
 
