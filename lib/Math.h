@@ -3,9 +3,6 @@
 
 #include <random>
 
-namespace Math {
-
-
 #define PI          3.1415926
 #define HALF_PI     PI/2.0
 #define QUARTER_PI  PI/4.0
@@ -69,8 +66,6 @@ tmp(T) T mag(T x,T y){
 
 tmp(T) T sq(T val){
     return val * val;
-}
-
 }
 
 #endif

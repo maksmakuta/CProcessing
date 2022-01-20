@@ -71,6 +71,15 @@ public:
         return nvgRGBAf(r,g,b,a);
     }
 
+    float* array(){
+        float *tmp = new float[4];
+        tmp[0] = r;
+        tmp[1] = g;
+        tmp[2] = b;
+        tmp[3] = a;
+        return tmp;
+    }
+
     float r,g,b,a;
 
 private:
