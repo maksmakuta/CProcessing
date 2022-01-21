@@ -5,5 +5,9 @@ void setup() {
 }
 
 void draw() {
-  background(0);
+  background(100);
+  fill(255);
+  rect(0,0,100,100);
+  fill(200,0,0);
+  circle(100,100,50);
 }

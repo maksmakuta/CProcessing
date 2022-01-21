@@ -1,9 +1,9 @@
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef PCOLOR_H
+#define PCOLOR_H
 
-#include <string>
-#include <cstring>
 #include "PMath.h"
+#include <string>
+#include <vector>
 
 class color{
 public:
@@ -18,34 +18,30 @@ public:
     }
 
     color(const std::string &h){
-        hex(h.c_str());
-    }
-
-    void hex(const char *hex){
       int data[4];
 
       for(int & i : data)
           i = 255;
 
-      switch (std::strlen(hex) - 1) {
+      switch (h.size() - 1) {
           case 3: // #abc | #rgb
               for(int i = 0;i < 3;i++){
-                  data[i] = fHex(hex[i+1]) * 16 + 15;
+                  data[i] = fHex(h[i+1]) * 16 + 15;
               }
               break;
           case 4: // #abcd | #rgba
               for(int i = 0;i < 4;i++){
-                  data[i] = fHex( hex[i+1]) * 16 + 15;
+                  data[i] = fHex( h[i+1]) * 16 + 15;
               }
               break;
           case 6: // #123456 | #rrggbb
               for(int i = 0;i < 3;i++){
-                  data[i] = fHex(hex[2*i+1]) * 16 + fHex(hex[2*i+2]);
+                  data[i] = fHex(h[2*i+1]) * 16 + fHex(h[2*i+2]);
               }
               break;
           case 8: // #12345678 | #rrggbbaa
               for(int i = 0;i < 4;i++){
-                  data[i] = fHex(hex[2*i+1]) * 16 + fHex(hex[2*i+2]);
+                  data[i] = fHex(h[2*i+1]) * 16 + fHex(h[2*i+2]);
               }
               break;
         }
@@ -57,18 +53,17 @@ public:
     }
 
 
-     color operator=(const std::string &shex){
-         this->hex(shex.c_str());
-         return *this;
-     }
+    color operator = (const std::string &shex){
+        return color(shex.c_str());
+    }
 
-    float* array(){
-        float *tmp = new float[4];
-        tmp[0] = r;
-        tmp[1] = g;
-        tmp[2] = b;
-        tmp[3] = a;
-        return tmp;
+    std::vector<float> vector(){
+        std::vector<float> v;
+        v.push_back(r);
+        v.push_back(g);
+        v.push_back(b);
+        v.push_back(a);
+        return v;
     }
 
     float r,g,b,a;

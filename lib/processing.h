@@ -1,19 +1,17 @@
 #ifndef PROCESSING
 #define PROCESSING
 
-#include <string>
 #include <vector>
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
+#include <string>
+#include "PColor.h"
+#include "PGL.h"
 
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 5
+ *  @version 1.3 beta 6
  *
  */
 
@@ -61,7 +59,43 @@ void size(int w,int h)  {
     state.width  = w;
     state.height = h;
 }
-void background(int a)  {}
+void background(int a)  {
+    bg = color(a);
+}
+
+void fill(int r,int g,int b,int a){
+    fillFlag = true;
+    fillColor = color(r,g,b,a);
+}
+
+void fill(int r,int g,int b){
+    fill(r,g,b,255);
+}
+
+void fill(int v,int a){
+    fill(v,v,v,a);
+}
+
+void fill(int v){
+    fill(v,255);
+}
+
+void stroke(int r,int g,int b,int a){
+    fillFlag = false;
+    strokeColor = color(r,g,b,a);
+}
+
+void stroke(int r,int g,int b){
+    stroke(r,g,b,255);
+}
+
+void stroke(int v,int a){
+    stroke(v,v,v,a);
+}
+
+void stroke(int v){
+    stroke(v,255);
+}
 
 // Returns the number of milliseconds (thousandths of a second) since starting an applet
 int millis(){
@@ -83,8 +117,8 @@ int main(int argc, char** argv){
     }
 
     glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_VERSION_MINOR, 1);
+    //glfwWindowHint(GLFW_VERSION_MAJOR, 2);
+    //glfwWindowHint(GLFW_VERSION_MINOR, 1);
 
     state.window = glfwCreateWindow(state.width, state.height," ",NULL,NULL);
     if(!state.window){
@@ -103,8 +137,19 @@ int main(int argc, char** argv){
 
     while(!glfwWindowShouldClose(state.window)){
 
-        draw();
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(bg.r,bg.g,bg.b,bg.a);
 
+        int w,h;
+        glfwGetWindowSize(state.window,&w,&h);
+
+        glViewport(0,0,w,h);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0,w,h,0,0,1);
+        glMatrixMode(GL_MODELVIEW);
+
+        draw();
 
         glfwPollEvents();
         glfwSwapBuffers(state.window);
