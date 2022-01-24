@@ -39,4 +39,11 @@ int year(){
     return getTime().tm_year + 1900;
 }
 
+#include <GLFW/glfw3.h>
+
+// Returns the number of milliseconds (thousandths of a second) since starting an applet
+int millis(){
+    return (int)(glfwGetTime() * 1000);
+}
+
 #endif

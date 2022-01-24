@@ -3,6 +3,8 @@
 
 #include <random>
 
+namespace PMath{
+
     #define PI          3.14159265358979323846
     #define HALF_PI     PI/2.0
     #define QUARTER_PI  PI/4.0
@@ -12,11 +14,19 @@
     #define max(a,b) a > b ? a : b
     #define min(a,b) a < b ? a : b
 
+// normal_distribution<double>
+
     template<class T> T rand(T min, T max){
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> distr(min, max);
         return static_cast<T>(distr(gen));
+    }
+
+    double randomGaussian(){
+        std::default_random_engine gen;
+        std::normal_distribution<double> distr(0.0, 1.0);
+        return distr(gen);
     }
 
     template<class T> T map(T val,T rmin,T rmax,T min,T max){
@@ -64,5 +74,12 @@
         return val * val;
     }
 
+    template<class T> T deg(T val){
+        return val * (180.0/PI);
+    }
+    template<class T> T rad(T val){
+        return val * (PI/180.0);
+    }
+}
 
 #endif

@@ -11,6 +11,10 @@ Currently move to own OpenGL renderer
  - GLFW (GLFW/glfw3.h)
  - glm
 
+# Limitations
+
+ Sketch must have setup() and draw() functions 
+
 # Credits
 
 I use this repos for modernize my library

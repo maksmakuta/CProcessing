@@ -10,7 +10,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-color fillColor,strokeColor,bg;
+color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
 bool fillFlag = true;
 
 void applyColor(bool x){
@@ -22,7 +22,7 @@ void applyColor(bool x){
 void arc(float x,float y,float w,float h,float b,float e){
     applyColor(fillFlag);
     glBegin(fillFlag ? GL_TRIANGLE_STRIP: GL_LINE_LOOP);
-    for(float a = b; a <= e+0.1f;a+=0.1f){
+    for(float a = b; a <= e;a += PMath::rad(5.f)){
         float _x = x + w * sin(a);
         float _y = y + h * cos(a);
         glVertex2f(_x,_y);
@@ -52,7 +52,7 @@ void line(float x1,float y1,float x2,float y2){
     applyColor(fillFlag);
     glBegin(GL_LINES);
     glVertex2f(x1,y1);
-    glVertex2f(x1,y2);
+    glVertex2f(x2,y2);
     glEnd();
 }
 

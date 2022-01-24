@@ -5,16 +5,20 @@ void setup() {
 }
 
 void draw() {
+    /*
   background(0);
-  stroke(255,0,255);
-  bezier(100,100,200,200,500,0,500,500);
+  fill(200);
+  stroke(200);
+  glLineWidth(2);
+  rect(1,1,width/2,height/2);
+  line(0,0,width/2,height/2);
+  circle(width/4,height/4,width/4);
+  arc(width/2,height/4,width/4,width/4,0,PI);
+  */
 
-  fill(255);
-  circle(100,100,5);
-  fill(255);
-  circle(200,200,5);
-  fill(255);
-  circle(500,0,5);
-  fill(255);
-  circle(500,500,5);
+    for (int y = 0; y < 400; y++) {
+      float x = randomGaussian() * 60;
+      line(200, y, 200 + x, y);
+    }
+    noLoop();
 }

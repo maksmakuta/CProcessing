@@ -3,15 +3,24 @@
 
 #include <vector>
 #include <string>
+
 #include "PColor.h"
+#include "PFont.h"
 #include "PGL.h"
+#include "PImage.h"
+#include "PMath.h"
+#include "PShader.h"
+#include "PTime.h"
+#include "PVector.h"
 
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type
 
+using namespace PMath;
+
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 6
+ *  @version 1.3 beta 10
  *
  */
 
@@ -25,42 +34,48 @@ extern void keyPressed();               // key pressed function
 extern void keyReleased();              // key released function
 
 // ==============================================
-struct processing{
-    GLFWwindow* window = null;          // window pointer
-    std::vector<std::string> args;      // program arguments
-    int mouseX = 0;                     // Mouse x coordinate
-    int mouseY = 0;                     // Mouse y coordinate
-    int pmouseX = 0;                    // Previous mouse x coordinate
-    int pmouseY = 0;                    // Previous mouse y coordinate
-    bool mousePressed = false;          // Whether any mouse button is pressed
-    int mouseButton = 0;                // Which button is pressed
-    bool keyPressed = false;            // Whether a key was pressed
-    unsigned char key = 0;              // Which (ASCII) key was pressed
-    int keyCode = 0;                    // Code for the last pressed key
-    int width = 0;                      // window width
-    int height = 0;                     // window height
-    int screenWidth = 0;                // window width
-    int screenHeight = 0;               // window height
-    unsigned config = 0;                // configuration flags
-    int framerate = 30;                 // Frames per second
-    double framedelay = 0.0;            // Delay in seconds between frame
-    int frameCount = 0;                 // frames since start
-    //std::vector<Style> styles;        // Stack of styles
-    //PixelColorBuffer pixels;          // virtual array of pixels to get and put from (operated thru backbuffer)
-    //PImage screenBuffer;              // buffer of current window
-    bool looping = true;                // true makes display call itself
-    bool redrawflag = false;            // to draw next frame immediately
-    int initialized = false;            // glfw initialized yet
-} state{};
+
+GLFWwindow* window = null;          // window pointer
+std::vector<std::string> args;      // program arguments
+int mouseX = 0;                     // Mouse x coordinate
+int mouseY = 0;                     // Mouse y coordinate
+int pmouseX = 0;                    // Previous mouse x coordinate
+int pmouseY = 0;                    // Previous mouse y coordinate
+//bool mousePressed = false;          // Whether any mouse button is pressed
+//bool keyPressed = false;            // Whether a key was pressed
+int mouseButton = 0;                // Which button is pressed
+unsigned char key = 0;              // Which (ASCII) key was pressed
+int keyCode = 0;                    // Code for the last pressed key
+int width = 0;                      // window width
+int height = 0;                     // window height
+int screenWidth = 0;                // window width
+int screenHeight = 0;               // window height
+unsigned config = 0;                // configuration flags
+int framerate = 30;                 // Frames per second
+double framedelay = 0.0;            // Delay in seconds between frame
+int frameCount = 0;                 // frames since start
+//std::vector<Style> styles;        // Stack of styles
+//PixelColorBuffer pixels;          // virtual array of pixels to get and put from (operated thru backbuffer)
+//PImage screenBuffer;              // buffer of current window
+bool looping = true;                // true makes display call itself
+bool redrawflag = false;            // to draw next frame immediately
+int initialized = false;            // glfw initialized yet
 // ==============================================
 
-void redraw()           {}
 void size(int w,int h)  {
-    state.width  = w;
-    state.height = h;
+    width  = w;
+    height = h;
 }
 void background(int a)  {
     bg = color(a);
+}
+
+void noLoop(){
+    looping = false;
+}
+
+void noFill(){
+    fillColor = color(1,1,1,0);
 }
 
 void fill(int r,int g,int b,int a){
@@ -80,6 +95,10 @@ void fill(int v){
     fill(v,255);
 }
 
+void noStroke(){
+    strokeColor = color(1,1,1,0);
+}
+
 void stroke(int r,int g,int b,int a){
     fillFlag = false;
     strokeColor = color(r,g,b,a);
@@ -97,15 +116,10 @@ void stroke(int v){
     stroke(v,255);
 }
 
-// Returns the number of milliseconds (thousandths of a second) since starting an applet
-int millis(){
-    return (int)(glfwGetTime() * 1000);
-}
-
 int main(int argc, char** argv){
 
     for(int i = 0; i < argc; i++) {
-        state.args.push_back(std::string(argv[i]));
+        args.push_back(std::string(argv[i]));
     }
 
     setup();
@@ -116,17 +130,17 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_SAMPLES, 0);
     //glfwWindowHint(GLFW_VERSION_MAJOR, 2);
     //glfwWindowHint(GLFW_VERSION_MINOR, 1);
 
-    state.window = glfwCreateWindow(state.width, state.height," ",NULL,NULL);
-    if(!state.window){
+    window = glfwCreateWindow(width,height," ",NULL,NULL);
+    if(!window){
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwMakeContextCurrent(state.window);
+    glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
 
     glewExperimental = GL_TRUE;
@@ -135,13 +149,16 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    while(!glfwWindowShouldClose(state.window)){
+    while(!glfwWindowShouldClose(window)){
 
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(bg.r,bg.g,bg.b,bg.a);
 
         int w,h;
-        glfwGetWindowSize(state.window,&w,&h);
+        glfwGetWindowSize(window,&w,&h);
+        if(w < 128) w = 128;width  = w;
+        if(h < 128) h = 128;height = h;
+        glfwSetWindowSize(window,w,h);
 
         glViewport(0,0,w,h);
         glMatrixMode(GL_PROJECTION);
@@ -151,8 +168,8 @@ int main(int argc, char** argv){
 
         draw();
 
+        glfwSwapBuffers(window);
         glfwPollEvents();
-        glfwSwapBuffers(state.window);
     }
 
     return 0;
