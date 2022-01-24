@@ -130,21 +130,4 @@ void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float
     glEnd();
 }
 
-//Sets the resolution at which curves display
-void curveDetail(){}
-
-//Evaluates the curve at point t for points a, b, c, d
-void curvePoint(){
-
-}
-
-//Calculates the tangent of a point on a curve
-void curveTangent(){}
-
-//Modifies the quality of forms created with curve() and curveVertex()
-void curveTightness(){}
-
-//Draws a curved line on the screen
-void curve(){}
-
 #endif
