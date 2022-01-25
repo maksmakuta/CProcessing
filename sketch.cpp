@@ -1,24 +1,23 @@
 #include <processing.h>
 
 void setup() {
-  size(500, 500);
+  size(100, 100);
 }
 
 void draw() {
-    /*
   background(0);
   fill(200);
-  stroke(200);
-  glLineWidth(2);
-  rect(1,1,width/2,height/2);
-  line(0,0,width/2,height/2);
-  circle(width/4,height/4,width/4);
-  arc(width/2,height/4,width/4,width/4,0,PI);
-  */
+  point(1,1);
+  line(10,0,0,10);
+  rect(10,10,10,10);
+  triangle(0,20,0,30,10,20);
+  bezier(100,0,50,50,0,75,100,100);
 
-    for (int y = 0; y < 400; y++) {
-      float x = randomGaussian() * 60;
-      line(200, y, 200 + x, y);
-    }
-    noLoop();
+  circle(100,  0,5);
+  circle( 50, 50,5);
+  circle(  0, 75,5);
+  circle(100,100,5);
+
+  //circle(50,50,10);
+  //ellipse(25,75,10,20);
 }

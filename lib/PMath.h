@@ -25,7 +25,7 @@ namespace PMath{
 
     double randomGaussian(){
         std::default_random_engine gen;
-        std::normal_distribution<double> distr(0.0, 1.0);
+        std::normal_distribution<double> distr;
         return distr(gen);
     }
 

@@ -130,7 +130,7 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 0);
+    glfwWindowHint(GLFW_SAMPLES, 16);
     //glfwWindowHint(GLFW_VERSION_MAJOR, 2);
     //glfwWindowHint(GLFW_VERSION_MINOR, 1);
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv){
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1); // force 60 fps
 
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK) {
@@ -160,17 +160,19 @@ int main(int argc, char** argv){
         if(h < 128) h = 128;height = h;
         glfwSetWindowSize(window,w,h);
 
-        glViewport(0,0,w,h);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glOrtho(0,w,h,0,0,1);
-        glMatrixMode(GL_MODELVIEW);
-
-        draw();
+        begin(w,h);
+        {
+            draw();
+        }
+        end();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    shapes.clear();
+    args.clear();
+    glfwTerminate();
 
     return 0;
 }
