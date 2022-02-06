@@ -33,7 +33,6 @@ endif()
 #############################################################
 
 add_library(cprocessing SHARED
-    ArrayList.h
     PColor.h
     PFont.h
     PImage.h

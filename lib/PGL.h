@@ -1,6 +1,15 @@
 #ifndef PGL_H
 #define PGL_H
 
+/*
+ *  This is source for OpenGL renderer
+ *  Now we move to "modern" OpenGL (3.3 or newer)
+ *  so for compatibility and testing we save Legacy OpenGL renderer and make new
+ *  (later when modern renderer will be finished legacy renderer will be removed)
+ *  GL_LEGACY for legacy renderer
+ *  GL3 for "modern"
+ */
+
 #include <vector>
 #include "PShader.h"
 #include "PShape.h"
