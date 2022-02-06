@@ -1,15 +1,15 @@
 # CProcessing
 
-Just processing, but in C++ <br>
-Most sketches are compatible, but library not fully ported
-
-Currently move to own OpenGL renderer
+Just processing, but in C++   
+Most sketches are compatible, but library not fully ported   
+Uses own OpenGL 3.3 renderer (beta)  
+Write and test in QtCreator  
 
 # Dependencies
 
  - OpenGL (GL/glew.h)
- - GLFW (GLFW/glfw3.h)
- - glm
+ - GLFW   (GLFW/glfw3.h)
+ - glm    (glm/glm.hpp)
 
 # Limitations
 
@@ -24,5 +24,5 @@ I use this repos for modernize my library
  
 # Author
   
-  Maks Makuta ``` maksmakuta ``` <br>
-  MIT Licence
+  Maks Makuta ``` maksmakuta ```  2022 (C)     
+  MIT Licence   

@@ -1,52 +1,31 @@
 #include <processing.h>
-// taken from https://processing.org/examples/sinewave.html
-int xspacing = 16;      // How far apart should each horizontal location be spaced
-int w;                  // Width of entire wave
 
-float theta = 0.0;      // Start angle at 0
-float amplitude = 75.0; // Height of wave
-float period = 500.0;   // How many pixels before the wave repeats
-float dx;               // Value for incrementing X, a function of period and xspacing
-float* yvalues;         // Using an array to store height values for the wave
-
-void calcWave();
-void renderWave();
-
-
-int x = 0;
+float l = 0.f;
+float a = 0.f;
+bool x = true;
 void setup() {
-  size(640, 360);
-  w = width+16;
-  dx = (TWO_PI / period) * xspacing;
-  yvalues = new float[w/xspacing];
+  size(500, 500);
 }
 
 void draw() {
-  background(0);
-  calcWave();
-  renderWave();
-  if(x >= 5)
-    noLoop();
-  x++;
-}
+    glLineWidth(10);
+  background(127);
+  noFill();
+  stroke(190);
 
-void calcWave() {
-  // Increment theta (try different values for 'angular velocity' here
-  theta += 0.02;
+  translate(width/2,height/2);
+  rotate(-a);
+  arc(0,0,200,200,0,l);
 
-  // For every x value, calculate a y value with sine function
-  float x = theta;
-  for (int i = 0; i < w/xspacing; i++) {
-    yvalues[i] = sin(x)*amplitude;
-    x+=dx;
+  if(x){
+      l += 0.1f;
+  }else{
+      l -= 0.1f;
   }
-}
 
-void renderWave() {
-  noStroke();
-  fill(255);
-  // A simple way to draw the wave with an ellipse at each location
-  for (int x = 0; x < w/xspacing; x++) {
-    ellipse(x*xspacing, height/2+yvalues[x], 8, 8);
-  }
+  if(l > TWO_PI | l <= 0.0f) x = !x;
+
+  if(a > TWO_PI) a = 0.f;
+  a += 0.2f;
+
 }

@@ -8,6 +8,7 @@
 enum SHAPE_TYPE{
     POINTS          = GL_POINTS         ,
     LINES           = GL_LINES          ,
+    LINE_LOOP       = GL_LINE_LOOP      ,
     TRIANGLES       = GL_TRIANGLES      ,
     TRIANGLE_FAN    = GL_TRIANGLE_FAN   ,
     TRIANGLE_STRIP  = GL_TRIANGLE_STRIP ,

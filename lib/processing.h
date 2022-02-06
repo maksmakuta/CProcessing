@@ -1,6 +1,11 @@
 #ifndef PROCESSING
 #define PROCESSING
 
+/**
+ *  ==== CProcessing ====
+ *  @version 1.3 beta 15
+ */
+
 #include <vector>
 #include <string>
 
@@ -18,12 +23,6 @@ typedef bool boolean;                   // Java boolean type
 
 using namespace PMath;
 
-/**
- *  ==== CProcessing ====
- *  @version 1.3 beta 14
- *
- */
-
 extern void setup();                    // setup function
 extern void draw();                     // draw  function
 extern void mousePressed();             // mouse pressed function
@@ -37,10 +36,10 @@ extern void keyReleased();              // key released function
 
 GLFWwindow* window = null;          // window pointer
 std::vector<std::string> args;      // program arguments
-int mouseX = 0;                     // Mouse x coordinate
-int mouseY = 0;                     // Mouse y coordinate
-int pmouseX = 0;                    // Previous mouse x coordinate
-int pmouseY = 0;                    // Previous mouse y coordinate
+double mouseX = 0;                     // Mouse x coordinate
+double mouseY = 0;                     // Mouse y coordinate
+double pmouseX = 0;                    // Previous mouse x coordinate
+double pmouseY = 0;                    // Previous mouse y coordinate
 //bool mousePressed = false;          // Whether any mouse button is pressed
 //bool keyPressed = false;            // Whether a key was pressed
 int mouseButton = 0;                // Which button is pressed
@@ -60,6 +59,7 @@ int frameCount = 0;                 // frames since start
 bool looping = true;                // true makes display call itself
 bool redrawflag = false;            // to draw next frame immediately
 int initialized = false;            // glfw initialized yet
+
 // ==============================================
 
 void size(int w,int h)  {
@@ -125,6 +125,8 @@ int main(int argc, char** argv){
         args.push_back(std::string(argv[i]));
     }
 
+    setup();
+
     if(!glfwInit()){
         fprintf(stderr, "Failed to initialize GLFW\n");
         exit(EXIT_FAILURE);
@@ -134,8 +136,6 @@ int main(int argc, char** argv){
     glfwInitHint(GLFW_VERSION_MAJOR, 3);
     glfwInitHint(GLFW_VERSION_MINOR, 3);
     glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
-
-    setup();
 
     window = glfwCreateWindow(width,height," ",NULL,NULL);
     if(!window){
@@ -152,13 +152,16 @@ int main(int argc, char** argv){
         fprintf(stderr, "Failed to initialize GLEW\n");
         exit(EXIT_FAILURE);
     }
+    glEnable(GL_MULTISAMPLE);
 
     initialized = true;
 
     while(!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(bg.r,bg.g,bg.b,bg.a);
-
+        pmouseX = mouseX;
+        pmouseY = mouseY;
+        glfwGetCursorPos(window,&mouseX,&mouseX);
         int w,h;
         glfwGetWindowSize(window,&w,&h);
         if(w < 128) w = 128;width  = w;

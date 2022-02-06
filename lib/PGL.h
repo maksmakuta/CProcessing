@@ -15,7 +15,8 @@
 color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
 bool fillFlag = true;
 PShape* tmp = NULL;
-std::vector<PShape*> shapes;
+std::vector< PShape* > shapes;
+std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
 
 struct vertex{
@@ -27,9 +28,6 @@ glm::vec4 vec(const color& c){
 }
 
 void draw(PShape* s){
-    std::vector<vertex> vertData;
-    for(PVector v : s->vertex)
-        vertData.push_back({v.x,v.y,v.z});
     PShader sh = PShader::files("../Processing++/lib/glsl/def.vert","../Processing++/lib/glsl/def.frag");
     glUseProgram(sh.programID());
     unsigned int VBO, VAO;
@@ -37,20 +35,20 @@ void draw(PShape* s){
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * vertData.size(), vertData.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s->vertex.size(), s->vertex.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     sh.mat4("matrix",matrix);
     sh.vec4("color",fillFlag ? vec(fillColor) : vec(strokeColor));
-    glDrawArrays(s->type, 0, vertData.size());
+    glDrawArrays(s->type, 0, s->vertex.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
 void begin(float w,float h){
     glViewport(0,0,w,h);
-    matrix = glm::ortho(0.f,w,h,0.f);
+    matrix = glm::ortho(0.f,w,h,0.f,-1.f,1.f);
 }
 
 void end(){
@@ -77,17 +75,16 @@ void endShape(){
 
 // Draws an arc in the display window
 void arc(float x,float y,float w,float h,float b,float e){
-    beginShape(fillFlag ? TRIANGLE_STRIP: LINES);
-    for(float a = b; a <= e;a += PMath::rad(5.f)){
+    beginShape(fillFlag ? TRIANGLE_STRIP : LINES);
+    float d = PMath::rad(5.f);
+    for(float a = b; a <= e;a += d){
         float _x = x + w * sin(a);
         float _y = y + h * cos(a);
         vertex(_x,_y);
-        if(fillFlag){
-            _x = x + w * sin(a+0.05f);
-            _y = y + h * cos(a+0.05f);
-            vertex(_x,_y);
-            vertex(x,y);
-        }
+        _x = x + w * sin(a+d+0.05f);
+        _y = y + h * cos(a+d+0.05f);
+        vertex(_x,_y);
+        if(fillFlag) vertex(x,y);
     }
     endShape();
 }
@@ -171,6 +168,29 @@ void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float
         vertex(_x1,_y1);
     }
     endShape();
+}
+
+// ================================================================================
+
+void pushMatrix(){
+    matrices.push_back(matrix);
+}
+
+void popMatrix(){
+    if(matrices.size() > 0){
+        matrix = matrices[matrices.size() - 1];
+        matrices.pop_back();
+    }else{
+        matrix = glm::mat4{0.f};
+    }
+}
+
+void translate(float x,float y,float z = 0.0f){
+    matrix = glm::translate(matrix,glm::vec3{x,y,z});
+}
+
+void rotate(float a){
+    matrix = glm::rotate(matrix,a,glm::vec3{0.f,0.f,1.f});
 }
 
 #endif
