@@ -24,5 +24,5 @@ I use this repos for modernize my library
  
 # Author
   
-  Maks Makuta ``` ktpp ``` <br>
+  Maks Makuta ``` maksmakuta ``` <br>
   MIT Licence
