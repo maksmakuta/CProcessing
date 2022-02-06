@@ -17,9 +17,6 @@ enum SHAPE_TYPE{
 };
 
 class PShape{
-private:
-    std::vector<PVector> vertex;
-    SHAPE_TYPE type;
 public:
     PShape(SHAPE_TYPE st){
         this->type = st;
@@ -29,18 +26,12 @@ public:
         vertex.push_back(PVector(a,b,c));
     }
 
-    //@old
-    void draw(){
-        glBegin(type);
-        for(PVector v : vertex){
-            glVertex3f(v.x,v.y,v.z);
-        }
-        glEnd();
-    }
-
     ~PShape(){
         vertex.clear();
     }
+
+    SHAPE_TYPE type;
+    std::vector<PVector> vertex;
 };
 
 #endif

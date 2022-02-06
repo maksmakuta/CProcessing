@@ -22,12 +22,19 @@ public:
 
     GLuint programID() const {return this->programS;}
 
+    GLuint loc(const std::string& name){
+        return glGetUniformLocation(programID(), name.c_str());
+    }
+    GLuint attrLoc(const std::string& name){
+        return glGetAttribLocation(programID(),name.c_str());
+    }
+
     void mat4(const std::string& name,const glm::mat4& matrix){
-        glUniformMatrix4fv(glGetUniformLocation(programID(), name.c_str()),1, GL_FALSE, glm::value_ptr(matrix));
+        glUniformMatrix4fv(loc(name),1, GL_FALSE, glm::value_ptr(matrix));
     }
 
     void vec4(const std::string& name,const glm::vec4& vec){
-        glUniform4fv(glGetUniformLocation(programID(), name.c_str()),1,glm::value_ptr(vec));
+        glUniform4fv(loc(name),1,glm::value_ptr(vec));
     }
 
     void loadCode(const std::string& vertex,const std::string& fragment){

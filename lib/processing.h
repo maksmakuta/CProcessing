@@ -20,7 +20,7 @@ using namespace PMath;
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 10
+ *  @version 1.3 beta 14
  *
  */
 
@@ -116,14 +116,14 @@ void stroke(int v){
     stroke(v,255);
 }
 
-int main(int argc, char** argv){
+void err(int a,const char* b){
+    printf("GLFW Error %i: \n%s",a,b);
+}
 
+int main(int argc, char** argv){
     for(int i = 0; i < argc; i++) {
         args.push_back(std::string(argv[i]));
     }
-
-    setup();
-
 
     if(!glfwInit()){
         fprintf(stderr, "Failed to initialize GLFW\n");
@@ -131,8 +131,11 @@ int main(int argc, char** argv){
     }
 
     glfwWindowHint(GLFW_SAMPLES, 4);
-    //glfwWindowHint(GLFW_VERSION_MAJOR, 2);
-    //glfwWindowHint(GLFW_VERSION_MINOR, 1);
+    glfwInitHint(GLFW_VERSION_MAJOR, 3);
+    glfwInitHint(GLFW_VERSION_MINOR, 3);
+    glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+
+    setup();
 
     window = glfwCreateWindow(width,height," ",NULL,NULL);
     if(!window){
@@ -141,6 +144,7 @@ int main(int argc, char** argv){
     }
 
     glfwMakeContextCurrent(window);
+    glfwSetErrorCallback(err);
     glfwSwapInterval(1); // force 60 fps
 
     glewExperimental = GL_TRUE;
@@ -149,8 +153,9 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    while(!glfwWindowShouldClose(window)){
+    initialized = true;
 
+    while(!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(bg.r,bg.g,bg.b,bg.a);
 
@@ -159,14 +164,14 @@ int main(int argc, char** argv){
         if(w < 128) w = 128;width  = w;
         if(h < 128) h = 128;height = h;
         glfwSetWindowSize(window,w,h);
-
-        begin(w,h);
-        {
-            draw();
+        if(looping){
+            begin(w,h);
+            {
+                draw();
+            }
+            end();
+            glfwSwapBuffers(window);
         }
-        end();
-
-        glfwSwapBuffers(window);
         glfwPollEvents();
     }
 

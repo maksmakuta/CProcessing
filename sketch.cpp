@@ -12,6 +12,8 @@ float* yvalues;         // Using an array to store height values for the wave
 void calcWave();
 void renderWave();
 
+
+int x = 0;
 void setup() {
   size(640, 360);
   w = width+16;
@@ -23,6 +25,9 @@ void draw() {
   background(0);
   calcWave();
   renderWave();
+  if(x >= 5)
+    noLoop();
+  x++;
 }
 
 void calcWave() {
