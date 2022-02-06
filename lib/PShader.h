@@ -26,6 +26,10 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(programID(), name.c_str()),1, GL_FALSE, glm::value_ptr(matrix));
     }
 
+    void vec4(const std::string& name,const glm::vec4& vec){
+        glUniform4fv(glGetUniformLocation(programID(), name.c_str()),1,glm::value_ptr(vec));
+    }
+
     void loadCode(const std::string& vertex,const std::string& fragment){
         this->vertS = makeShader(GL_VERTEX_SHADER  ,  vertex.c_str());
         this->fragS = makeShader(GL_FRAGMENT_SHADER,fragment.c_str());

@@ -29,6 +29,7 @@ public:
         vertex.push_back(PVector(a,b,c));
     }
 
+    //@old
     void draw(){
         glBegin(type);
         for(PVector v : vertex){

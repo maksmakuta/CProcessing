@@ -130,7 +130,7 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 16);
+    glfwWindowHint(GLFW_SAMPLES, 4);
     //glfwWindowHint(GLFW_VERSION_MAJOR, 2);
     //glfwWindowHint(GLFW_VERSION_MINOR, 1);
 
