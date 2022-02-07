@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 16
+ *  @version 1.3 beta 17
  */
 
 #include <vector>
@@ -23,23 +23,23 @@ typedef bool boolean;                   // Java boolean type
 
 using namespace PMath;
 
-extern void setup();                    // setup function
-extern void draw();                     // draw  function
-extern void mousePressed();             // mouse pressed function
-extern void mouseReleased();            // mouse released function
-extern void mouseMoved();               // mouse moved function
-extern void mouseDragged();             // mouse dragged function
-extern void keyPressed();               // key pressed function
-extern void keyReleased();              // key released function
+extern void setup();                // setup function
+extern void draw();                 // draw  function
+extern void mousePressed();         // mouse pressed function
+extern void mouseReleased();        // mouse released function
+extern void mouseMoved();           // mouse moved function
+extern void mouseDragged();         // mouse dragged function
+extern void keyPressed();           // key pressed function
+extern void keyReleased();          // key released function
 
 // ==============================================
 
 GLFWwindow* window = null;          // window pointer
 std::vector<std::string> args;      // program arguments
-double mouseX = 0;                     // Mouse x coordinate
-double mouseY = 0;                     // Mouse y coordinate
-double pmouseX = 0;                    // Previous mouse x coordinate
-double pmouseY = 0;                    // Previous mouse y coordinate
+double mouseX = 0;                  // Mouse x coordinate
+double mouseY = 0;                  // Mouse y coordinate
+double pmouseX = 0;                 // Previous mouse x coordinate
+double pmouseY = 0;                 // Previous mouse y coordinate
 //bool mousePressed = false;          // Whether any mouse button is pressed
 //bool keyPressed = false;            // Whether a key was pressed
 int mouseButton = 0;                // Which button is pressed
@@ -62,6 +62,10 @@ int initialized = false;            // glfw initialized yet
 
 // ==============================================
 
+void frameRate(int fr){
+    framerate = fr;
+}
+
 void size(int w,int h)  {
     width  = w;
     height = h;
@@ -75,6 +79,7 @@ void noLoop(){
 }
 
 void noFill(){
+    fillFlag = false;
     fillColor = color(1,1,1,0);
 }
 
@@ -96,6 +101,7 @@ void fill(int v){
 }
 
 void noStroke(){
+    fillFlag = true;
     strokeColor = color(1,1,1,0);
 }
 

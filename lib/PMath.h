@@ -74,10 +74,10 @@ namespace PMath{
         return val * val;
     }
 
-    template<class T> T deg(T val){
+    template<class T> T degrees(T val){
         return val * (180.0/PI);
     }
-    template<class T> T rad(T val){
+    template<class T> T radians(T val){
         return val * (PI/180.0);
     }
 }

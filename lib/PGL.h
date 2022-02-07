@@ -78,6 +78,7 @@ void vertex(float x,float y,float z = 0.0f){
 }
 
 void endShape(){
+    draw(tmp);
     tmp = NULL;
 }
 
@@ -116,7 +117,7 @@ PShape* strokify(PShape path,float w,int cap, int join,bool loop){
 
 // Draws an arc in the display window
 void arc(float x,float y,float w,float h,float b,float e){
-    float d = PMath::rad(5.f);
+    float d = PMath::radians(5.f);
     if(!fillFlag){
         PShape sh(TRIANGLES);
         for(float a = b; a <= e;a += d){
@@ -138,7 +139,6 @@ void arc(float x,float y,float w,float h,float b,float e){
             if(fillFlag) vertex(x,y);
         }
         endShape();
-        draw(tmp);
     }
 }
 // Draws a circle to the screen
