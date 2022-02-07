@@ -1,31 +1,21 @@
 #include <processing.h>
 
-float l = 0.f;
-float a = 0.f;
-bool x = true;
 void setup() {
   size(500, 500);
 }
 
 void draw() {
-    glLineWidth(10);
   background(127);
   noFill();
-  stroke(190);
+  pushMatrix();
+    stroke(255,200,0);
+    strokeWeigth(50);
+    translate(width/2,height/2);
+    rotate(-HALF_PI);
+    arc(0,0,200,200,QUARTER_PI,TWO_PI - QUARTER_PI);
+  popMatrix();
 
-  translate(width/2,height/2);
-  rotate(-a);
-  arc(0,0,200,200,0,l);
-
-  if(x){
-      l += 0.1f;
-  }else{
-      l -= 0.1f;
-  }
-
-  if(l > TWO_PI | l <= 0.0f) x = !x;
-
-  if(a > TWO_PI) a = 0.f;
-  a += 0.2f;
-
+  strokeWeigth(10);
+  stroke(255);
+  bezier(0,0,0,500,500,0,500,500);
 }

@@ -33,6 +33,9 @@ endif()
 #############################################################
 
 add_library(cprocessing SHARED
+    PolyLine2D/Vec2.h
+    PolyLine2D/LineSegment.h
+    PolyLine2D/Polyline2D.h
     PColor.h
     PFont.h
     PGL.h

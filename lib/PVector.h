@@ -257,6 +257,12 @@ public:
         return p.normalize();
     }
 
+    bool operator == (const PVector& v){
+        return this->x == v.x &&
+               this->y == v.y &&
+               this->z == v.z;
+    }
+
     float x,y,z;
 };
 

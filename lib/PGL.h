@@ -10,14 +10,15 @@
 #include "PShader.h"
 #include "PShape.h"
 #include "PColor.h"
-
+#include "PolyLine2D/Polyline2D.h"
 
 color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
 bool fillFlag = true;
 PShape* tmp = NULL;
-std::vector< PShape* > shapes;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
+float strokeWidth = 1.0f;
+int cap = 0,join = 0;
 
 struct vertex{
     float x,y,z;
@@ -46,16 +47,24 @@ void draw(PShape* s){
     glBindVertexArray(0);
 }
 
+void strokeWeigth(float w){
+    strokeWidth = w;
+}
+
+void strokeJoin(int j){
+    join = j;
+}
+
+void strokeCap(int c){
+    cap = c;
+}
+
 void begin(float w,float h){
     glViewport(0,0,w,h);
     matrix = glm::ortho(0.f,w,h,0.f,-1.f,1.f);
 }
 
-void end(){
-    for(PShape* s : shapes)
-        draw(s);
-    shapes.clear();
-}
+void end(){ /* ... */ }
 
 void beginShape(SHAPE_TYPE t = DEFAULT){
     tmp = new PShape(t);
@@ -69,24 +78,68 @@ void vertex(float x,float y,float z = 0.0f){
 }
 
 void endShape(){
-     shapes.push_back(tmp);
-     tmp = NULL;
+    tmp = NULL;
 }
+
+PShape* strokify(PShape path,float w,int cap, int join,bool loop){
+    using namespace crushedpixel;
+
+    Polyline2D::JointStyle _join;
+    switch(join){
+        case 0 : _join = Polyline2D::JointStyle::MITER; break;
+        case 1 : _join = Polyline2D::JointStyle::BEVEL; break;
+        case 2 : _join = Polyline2D::JointStyle::ROUND; break;
+        default: _join = Polyline2D::JointStyle::MITER; break;
+    }
+
+    Polyline2D::EndCapStyle _cap;
+    if(loop)
+        _cap = Polyline2D::EndCapStyle::JOINT;
+    else{
+        switch(join){
+            case 0 : _cap = Polyline2D::EndCapStyle::ROUND;  break;
+            case 1 : _cap = Polyline2D::EndCapStyle::SQUARE; break;
+            case 2 : _cap = Polyline2D::EndCapStyle::BUTT;   break;
+            default: _cap = Polyline2D::EndCapStyle::ROUND;  break;
+        }
+    }
+    PShape *tmp = new PShape(TRIANGLES);
+    tmp->vertex = Polyline2D::create(path.vertex, w, _join,_cap);
+    return tmp;
+}
+
+#define MITER   0
+#define BEVEL   1
+#define ROUND   2
+#define SQUARE  1
+#define PROJECT 2
 
 // Draws an arc in the display window
 void arc(float x,float y,float w,float h,float b,float e){
-    beginShape(fillFlag ? TRIANGLE_STRIP : LINES);
     float d = PMath::rad(5.f);
-    for(float a = b; a <= e;a += d){
-        float _x = x + w * sin(a);
-        float _y = y + h * cos(a);
-        vertex(_x,_y);
-        _x = x + w * sin(a+d+0.05f);
-        _y = y + h * cos(a+d+0.05f);
-        vertex(_x,_y);
-        if(fillFlag) vertex(x,y);
+    if(!fillFlag){
+        PShape sh(TRIANGLES);
+        for(float a = b; a <= e;a += d){
+            float _x = x + w * sin(a);
+            float _y = y + h * cos(a);
+            sh.push(_x,_y,0.f);
+        }
+        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
+        draw(strokify(sh,strokeWidth,cap,join,loop));
+    }else{
+        beginShape(TRIANGLE_STRIP);
+        for(float a = b; a <= e;a += d){
+            float _x = x + w * sin(a);
+            float _y = y + h * cos(a);
+            vertex(_x,_y);
+            _x = x + w * sin(a+d);
+            _y = y + h * cos(a+d);
+            vertex(_x,_y);
+            if(fillFlag) vertex(x,y);
+        }
+        endShape();
+        draw(tmp);
     }
-    endShape();
 }
 // Draws a circle to the screen
 void circle(float x,float y,float r){
@@ -100,37 +153,48 @@ void ellipse(float x,float y,float w,float h){
 
 // Draws a line (a direct path between two points) to the screen
 void line(float x1,float y1,float x2,float y2){
-    beginShape(LINES);
-    vertex(x1,y1);
-    vertex(x2,y2);
-    endShape();
+    PShape sh(TRIANGLES);
+    sh.push(x1,y1,0.f);
+    sh.push(x2,y2,0.f);
+    draw(strokify(sh,strokeWidth,cap,join,false));
 }
 
 // Draws a point, a coordinate in space at the dimension of one pixel
 void point(float x,float y){
-    beginShape(POINTS);
-    vertex(x,y);
-    endShape();
+    PShape sh(TRIANGLES);
+    sh.push(x,y,0.f);
+    draw(strokify(sh,strokeWidth,cap,join,false));
 }
 
 // A quad is a quadrilateral, a four sided polygon
 void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
-    beginShape(fillFlag ? QUADS : LINES);
-    vertex(x1,y1);
-    vertex(x2,y2);
-    vertex(x3,y3);
-    vertex(x4,y4);
-    endShape();
+    if(fillFlag){
+        beginShape(QUADS);
+        vertex(x1,y1);
+        vertex(x2,y2);
+        vertex(x3,y3);
+        vertex(x4,y4);
+        endShape();
+        draw(tmp);
+    }else{
+        PShape sh(TRIANGLES);
+        sh.push(x1,y1,0.f);
+        sh.push(x2,y2,0.f);
+        sh.push(x3,y3,0.f);
+        sh.push(x4,y4,0.f);
+        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
+        draw(strokify(sh,strokeWidth,cap,join,loop));
+    }
 }
 
 // Draws a rectangle to the screen
 void rect(float x,float y,float w,float h){
-    beginShape(fillFlag ? QUADS : LINES);
-    vertex(x  ,y+h);
-    vertex(x  ,y  );
-    vertex(x+w,y  );
-    vertex(x+w,y+h);
-    endShape();
+    quad(
+        x  ,y+h,
+        x  ,y  ,
+        x+w,y  ,
+        x+w,y+h
+    );
 }
 
 // Draws a square to the screen
@@ -140,11 +204,21 @@ void square(float x,float y,float r){
 
 // A triangle is a plane created by connecting three points
 void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
-    beginShape(fillFlag ? TRIANGLES : LINES);
-    vertex(x1,y1);
-    vertex(x2,y2);
-    vertex(x3,y3);
-    endShape();
+    if(fillFlag){
+        beginShape(TRIANGLES);
+        vertex(x1,y1);
+        vertex(x2,y2);
+        vertex(x3,y3);
+        endShape();
+        draw(tmp);
+    }else{
+        PShape sh(TRIANGLES);
+        sh.push(x1,y1,0.f);
+        sh.push(x2,y2,0.f);
+        sh.push(x3,y3,0.f);
+        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
+        draw(strokify(sh,strokeWidth,cap,join,loop));
+    }
 }
 
 //Evaluates the Bezier at point t for points a, b, c, d
@@ -157,17 +231,17 @@ float bezierPoint(float a,float b,float c,float d,float t){
 
 //Draws a Bezier curve on the screen
 void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
-    beginShape(LINES);
-    float dt = 0.05f;
+    PShape sh(LINES);
+    float dt = 0.01f;
     for(float t = 0.0;t < 1.0f;t += dt){
         float _x1 = bezierPoint(x1,x2,x3,x4,t);
         float _y1 = bezierPoint(y1,y2,y3,y4,t);
-        vertex(_x1,_y1);
+        sh.push(_x1,_y1,0.f);
         _x1 = bezierPoint(x1,x2,x3,x4,t+dt);
         _y1 = bezierPoint(y1,y2,y3,y4,t+dt);
-        vertex(_x1,_y1);
+        sh.push(_x1,_y1,0.f);
     }
-    endShape();
+    draw(strokify(sh,strokeWidth,cap,join,false));
 }
 
 // ================================================================================
