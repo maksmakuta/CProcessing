@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 17
+ *  @version 1.3 beta 18
  */
 
 #include <vector>
@@ -20,7 +20,7 @@
 
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type
-
+#define length(x) sizeof(x)/sizeof(x[0])
 using namespace PMath;
 
 extern void setup();                // setup function
@@ -161,13 +161,13 @@ int main(int argc, char** argv){
     //glEnable(GL_MULTISAMPLE);
 
     initialized = true;
-
+    initGL();
     while(!glfwWindowShouldClose(window)){
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(bg.r,bg.g,bg.b,bg.a);
         pmouseX = mouseX;
         pmouseY = mouseY;
-        glfwGetCursorPos(window,&mouseX,&mouseX);
+        glfwGetCursorPos(window,&mouseX,&mouseY);
         int w,h;
         glfwGetWindowSize(window,&w,&h);
         if(w < 128) w = 128;width  = w;

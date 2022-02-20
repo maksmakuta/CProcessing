@@ -91,18 +91,18 @@ public:
 		return vertices;
 	}
 
-	template<typename Vec2, typename InputCollection>
-	static size_t create(std::vector<Vec2> &vertices, const InputCollection &points, float thickness,
-	                     JointStyle jointStyle = JointStyle::MITER,
-	                     EndCapStyle endCapStyle = EndCapStyle::BUTT,
-	                     bool allowOverlap = false) {
-		auto numVerticesBefore = vertices.size();
+    template<typename Vec2, typename InputCollection>
+    static size_t create(std::vector<Vec2> &vertices, const InputCollection &points, float thickness,
+                         JointStyle jointStyle = JointStyle::MITER,
+                         EndCapStyle endCapStyle = EndCapStyle::BUTT,
+                         bool allowOverlap = false) {
+        auto numVerticesBefore = vertices.size();
 
-		create<Vec2, InputCollection>(std::back_inserter(vertices), points, thickness,
-		                              jointStyle, endCapStyle, allowOverlap);
+        create<Vec2, InputCollection>(std::back_inserter(vertices), points, thickness,
+                                      jointStyle, endCapStyle, allowOverlap);
 
-		return vertices.size() - numVerticesBefore;
-	}
+        return vertices.size() - numVerticesBefore;
+    }
 
 	template<typename Vec2, typename InputCollection, typename OutputIterator>
 	static OutputIterator create(OutputIterator vertices, const InputCollection &points, float thickness,

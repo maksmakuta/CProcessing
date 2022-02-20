@@ -19,6 +19,7 @@ enum SHAPE_TYPE{
 
 class PShape{
 public:
+    PShape() : PShape(DEFAULT){ }
     PShape(SHAPE_TYPE st){
         this->type = st;
     }
@@ -28,6 +29,14 @@ public:
     }
 
     ~PShape(){
+        this->clear();
+    }
+
+    bool loop(){
+        return !equal(vertex[0],vertex[vertex.size() - 1]);
+    }
+
+    void clear(){
         vertex.clear();
     }
 

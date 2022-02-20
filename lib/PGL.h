@@ -14,11 +14,13 @@
 
 color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
 bool fillFlag = true;
-PShape* tmp = NULL;
+PShape tmp;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
 float strokeWidth = 1.0f;
 int cap = 0,join = 0;
+
+PShader sh;
 
 struct vertex{
     float x,y,z;
@@ -28,23 +30,27 @@ glm::vec4 vec(const color& c){
     return {c.r,c.g,c.b,c.a};
 }
 
-void draw(PShape* s){
-    PShader sh = PShader::files("../Processing++/lib/glsl/def.vert","../Processing++/lib/glsl/def.frag");
+void initGL(){
+    sh = PShader::files("../Processing++/lib/glsl/def.vert","../Processing++/lib/glsl/def.frag");
+}
+
+void draw(PShape s){
     glUseProgram(sh.programID());
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s->vertex.size(), s->vertex.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s.vertex.size(), s.vertex.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     sh.mat4("matrix",matrix);
     sh.vec4("color",fillFlag ? vec(fillColor) : vec(strokeColor));
-    glDrawArrays(s->type, 0, s->vertex.size());
+    glDrawArrays(s.type, 0, s.vertex.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    s.clear();
 }
 
 void strokeWeigth(float w){
@@ -67,24 +73,23 @@ void begin(float w,float h){
 void end(){ /* ... */ }
 
 void beginShape(SHAPE_TYPE t = DEFAULT){
-    tmp = new PShape(t);
+    tmp = PShape(t);
 }
 
 void vertex(float x,float y,float z = 0.0f){
-    if(tmp != NULL)
-        tmp->push(x,y,z);
+    if(!tmp.vertex.empty())
+        tmp.push(x,y,z);
     else
         std::cerr << "vertex() must be inside shapeBegin() and shapeEnd() functions\n";
 }
 
 void endShape(){
     draw(tmp);
-    tmp = NULL;
+    tmp.clear();
 }
 
-PShape* strokify(PShape path,float w,int cap, int join,bool loop){
+PShape strokify(PShape &path,float w,int cap, int join){
     using namespace crushedpixel;
-
     Polyline2D::JointStyle _join;
     switch(join){
         case 0 : _join = Polyline2D::JointStyle::MITER; break;
@@ -92,9 +97,8 @@ PShape* strokify(PShape path,float w,int cap, int join,bool loop){
         case 2 : _join = Polyline2D::JointStyle::ROUND; break;
         default: _join = Polyline2D::JointStyle::MITER; break;
     }
-
     Polyline2D::EndCapStyle _cap;
-    if(loop)
+    if(path.loop())
         _cap = Polyline2D::EndCapStyle::JOINT;
     else{
         switch(join){
@@ -104,9 +108,8 @@ PShape* strokify(PShape path,float w,int cap, int join,bool loop){
             default: _cap = Polyline2D::EndCapStyle::ROUND;  break;
         }
     }
-    PShape *tmp = new PShape(TRIANGLES);
-    tmp->vertex = Polyline2D::create(path.vertex, w, _join,_cap);
-    return tmp;
+    path.vertex = Polyline2D::create(path.vertex, w, _join,_cap);
+    return path;
 }
 
 #define MITER   0
@@ -125,8 +128,7 @@ void arc(float x,float y,float w,float h,float b,float e){
             float _y = y + h * cos(a);
             sh.push(_x,_y,0.f);
         }
-        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
-        draw(strokify(sh,strokeWidth,cap,join,loop));
+        draw(strokify(sh,strokeWidth,cap,join));
     }else{
         beginShape(TRIANGLE_STRIP);
         for(float a = b; a <= e;a += d){
@@ -156,14 +158,14 @@ void line(float x1,float y1,float x2,float y2){
     PShape sh(TRIANGLES);
     sh.push(x1,y1,0.f);
     sh.push(x2,y2,0.f);
-    draw(strokify(sh,strokeWidth,cap,join,false));
+    draw(strokify(sh,strokeWidth,cap,join));
 }
 
 // Draws a point, a coordinate in space at the dimension of one pixel
 void point(float x,float y){
     PShape sh(TRIANGLES);
     sh.push(x,y,0.f);
-    draw(strokify(sh,strokeWidth,cap,join,false));
+    draw(strokify(sh,strokeWidth,cap,join));
 }
 
 // A quad is a quadrilateral, a four sided polygon
@@ -175,15 +177,13 @@ void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y
         vertex(x3,y3);
         vertex(x4,y4);
         endShape();
-        draw(tmp);
     }else{
         PShape sh(TRIANGLES);
         sh.push(x1,y1,0.f);
         sh.push(x2,y2,0.f);
         sh.push(x3,y3,0.f);
         sh.push(x4,y4,0.f);
-        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
-        draw(strokify(sh,strokeWidth,cap,join,loop));
+        draw(strokify(sh,strokeWidth,cap,join));
     }
 }
 
@@ -210,14 +210,12 @@ void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
         vertex(x2,y2);
         vertex(x3,y3);
         endShape();
-        draw(tmp);
     }else{
         PShape sh(TRIANGLES);
         sh.push(x1,y1,0.f);
         sh.push(x2,y2,0.f);
         sh.push(x3,y3,0.f);
-        bool loop = sh.vertex[0] == sh.vertex[sh.vertex.size() - 1];
-        draw(strokify(sh,strokeWidth,cap,join,loop));
+        draw(strokify(sh,strokeWidth,cap,join));
     }
 }
 
@@ -241,7 +239,8 @@ void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float
         _y1 = bezierPoint(y1,y2,y3,y4,t+dt);
         sh.push(_x1,_y1,0.f);
     }
-    draw(strokify(sh,strokeWidth,cap,join,false));
+    draw(strokify(sh,strokeWidth,cap,join));
+    sh.clear();
 }
 
 // ================================================================================

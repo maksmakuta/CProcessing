@@ -257,12 +257,6 @@ public:
         return p.normalize();
     }
 
-    bool operator == (const PVector& v){
-        return this->x == v.x &&
-               this->y == v.y &&
-               this->z == v.z;
-    }
-
     float x,y,z;
 };
 
@@ -272,6 +266,10 @@ PVector createVector(float x,float y,float z){
 
 PVector createVector(float x,float y){
     return createVector(x,y,0);
+}
+
+bool equal(const PVector& a,const PVector& b){
+    return a.x == b.x && a.y == b.y && a.z == b.z;
 }
 
 
