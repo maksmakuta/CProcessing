@@ -13,7 +13,7 @@
 #include "PolyLine2D/Polyline2D.h"
 
 color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
-bool fillFlag = true;
+bool fillFlag = true,builder = false;
 PShape tmp;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
@@ -21,10 +21,6 @@ float strokeWidth = 1.0f;
 int cap = 0,join = 0;
 
 PShader sh;
-
-struct vertex{
-    float x,y,z;
-};
 
 glm::vec4 vec(const color& c){
     return {c.r,c.g,c.b,c.a};
@@ -42,7 +38,7 @@ void draw(PShape s){
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s.vertex.size(), s.vertex.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+    glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(PVector), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     sh.mat4("matrix",matrix);
@@ -73,17 +69,19 @@ void begin(float w,float h){
 void end(){ /* ... */ }
 
 void beginShape(SHAPE_TYPE t = DEFAULT){
+    builder = true;
     tmp = PShape(t);
 }
 
 void vertex(float x,float y,float z = 0.0f){
-    if(!tmp.vertex.empty())
+    if(builder)
         tmp.push(x,y,z);
     else
         std::cerr << "vertex() must be inside shapeBegin() and shapeEnd() functions\n";
 }
 
 void endShape(){
+    builder = false;
     draw(tmp);
     tmp.clear();
 }
