@@ -55,6 +55,32 @@ public:
         return s;
     }
 
+    void done(){
+        glDeleteShader(fragS);
+        glDeleteShader(vertS);
+        glDeleteProgram(programS);
+    }
+
+    static PShader P5(){
+
+        static const std::string frag =
+                "#version 330 core\n"
+                "uniform vec4 color = vec4(1.0f);\n"
+                "out vec4 fColor;\n"
+                "void main(void){\n"
+                "    fColor = color;\n"
+                "}\n";
+        static const std::string vert =
+                "#version 330 core\n"
+                "in vec3 ver;\n"
+                "uniform mat4 matrix;\n"
+                "void main(void){\n"
+                "    gl_Position = matrix * vec4(ver,1.0f);\n"
+                "}\n";
+
+        return PShader::code(vert,frag);
+    }
+
 private:
     bool isShaderOK(GLuint shader){
         int  success; char infoLog[512];

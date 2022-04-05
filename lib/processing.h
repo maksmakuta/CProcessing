@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 18
+ *  @version 1.3 beta 19
  */
 
 #include <vector>
@@ -138,7 +138,7 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_SAMPLES, 8);
     glfwInitHint(GLFW_VERSION_MAJOR, 3);
     glfwInitHint(GLFW_VERSION_MINOR, 3);
     glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
@@ -158,7 +158,6 @@ int main(int argc, char** argv){
         fprintf(stderr, "Failed to initialize GLEW\n");
         exit(EXIT_FAILURE);
     }
-    //glEnable(GL_MULTISAMPLE);
 
     initialized = true;
     initGL();
@@ -183,10 +182,10 @@ int main(int argc, char** argv){
         }
         glfwPollEvents();
     }
-    matrices.clear();
+    doneGL();
     args.clear();
-    glfwTerminate();
 
+    glfwTerminate();
     return 0;
 }
 

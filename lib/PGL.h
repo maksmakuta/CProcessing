@@ -12,14 +12,14 @@
 #include "PColor.h"
 #include "PolyLine2D/Polyline2D.h"
 
-color fillColor = color(255),strokeColor  = color(255),bg  = color(150);
-bool fillFlag = true,builder = false;
+
+color fillColor,strokeColor,bg;
+bool fillFlag,builder;
 PShape tmp;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
-float strokeWidth = 1.0f;
-int cap = 0,join = 0;
-
+float strokeWidth;
+int cap,join;
 PShader sh;
 
 glm::vec4 vec(const color& c){
@@ -27,26 +27,37 @@ glm::vec4 vec(const color& c){
 }
 
 void initGL(){
-    sh = PShader::files("../Processing++/lib/glsl/def.vert","../Processing++/lib/glsl/def.frag");
+    fillColor = color(255);strokeColor  = color(255);bg  = color(150);
+    fillFlag = true;builder = false;
+    strokeWidth = 1.0f;
+    cap = 0;join = 0;
+    sh = PShader::P5();
 }
 
-void draw(PShape s){
+void doneGL(){
+    matrices.clear();
+    sh.done();
+}
+
+void draw(const PShape& s){
     glUseProgram(sh.programID());
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s.vertex.size(), s.vertex.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s.size(), s.data().data(), GL_STATIC_DRAW);
     glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(PVector), (void*)0);
     glEnableVertexAttribArray(0);
     glBindVertexArray(VAO);
     sh.mat4("matrix",matrix);
     sh.vec4("color",fillFlag ? vec(fillColor) : vec(strokeColor));
-    glDrawArrays(s.type, 0, s.vertex.size());
+    glDrawArrays(s.type(), 0, s.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-    s.clear();
+    glDeleteBuffers(1,&VBO);
+    glDeleteVertexArrays(1,&VAO);
+    //s.done();
 }
 
 void strokeWeigth(float w){
@@ -83,10 +94,10 @@ void vertex(float x,float y,float z = 0.0f){
 void endShape(){
     builder = false;
     draw(tmp);
-    tmp.clear();
+    tmp.done();
 }
 
-PShape strokify(PShape &path,float w,int cap, int join){
+PShape strokify(PShape path,float w,int cap, int join){
     using namespace crushedpixel;
     Polyline2D::JointStyle _join;
     switch(join){
@@ -106,7 +117,7 @@ PShape strokify(PShape &path,float w,int cap, int join){
             default: _cap = Polyline2D::EndCapStyle::ROUND;  break;
         }
     }
-    path.vertex = Polyline2D::create(path.vertex, w, _join,_cap);
+    path.data(Polyline2D::create(path.data(), w, _join,_cap));
     return path;
 }
 
@@ -120,13 +131,13 @@ PShape strokify(PShape &path,float w,int cap, int join){
 void arc(float x,float y,float w,float h,float b,float e){
     float d = PMath::radians(5.f);
     if(!fillFlag){
-        PShape sh(TRIANGLES);
+        tmp = PShape(TRIANGLES);
         for(float a = b; a <= e;a += d){
             float _x = x + w * sin(a);
             float _y = y + h * cos(a);
-            sh.push(_x,_y,0.f);
+            tmp.push(_x,_y,0.f);
         }
-        draw(strokify(sh,strokeWidth,cap,join));
+        draw(strokify(tmp,strokeWidth,cap,join));
     }else{
         beginShape(TRIANGLE_STRIP);
         for(float a = b; a <= e;a += d){
@@ -153,17 +164,19 @@ void ellipse(float x,float y,float w,float h){
 
 // Draws a line (a direct path between two points) to the screen
 void line(float x1,float y1,float x2,float y2){
-    PShape sh(TRIANGLES);
-    sh.push(x1,y1,0.f);
-    sh.push(x2,y2,0.f);
-    draw(strokify(sh,strokeWidth,cap,join));
+    tmp = PShape(TRIANGLES);
+    tmp.push(x1,y1,0.f);
+    tmp.push(x2,y2,0.f);
+    draw(strokify(tmp,strokeWidth,cap,join));
+    //delete tmp;
 }
 
 // Draws a point, a coordinate in space at the dimension of one pixel
 void point(float x,float y){
-    PShape sh(TRIANGLES);
-    sh.push(x,y,0.f);
-    draw(strokify(sh,strokeWidth,cap,join));
+    tmp = PShape(TRIANGLES);
+    tmp.push(x,y,0.f);
+    draw(strokify(tmp,strokeWidth,cap,join));
+    //delete tmp;
 }
 
 // A quad is a quadrilateral, a four sided polygon
@@ -176,12 +189,12 @@ void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y
         vertex(x4,y4);
         endShape();
     }else{
-        PShape sh(TRIANGLES);
-        sh.push(x1,y1,0.f);
-        sh.push(x2,y2,0.f);
-        sh.push(x3,y3,0.f);
-        sh.push(x4,y4,0.f);
-        draw(strokify(sh,strokeWidth,cap,join));
+        tmp = PShape(TRIANGLES);
+        tmp.push(x1,y1,0.f);
+        tmp.push(x2,y2,0.f);
+        tmp.push(x3,y3,0.f);
+        tmp.push(x4,y4,0.f);
+        draw(strokify(tmp,strokeWidth,cap,join));
     }
 }
 
@@ -209,11 +222,12 @@ void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
         vertex(x3,y3);
         endShape();
     }else{
-        PShape sh(TRIANGLES);
-        sh.push(x1,y1,0.f);
-        sh.push(x2,y2,0.f);
-        sh.push(x3,y3,0.f);
-        draw(strokify(sh,strokeWidth,cap,join));
+        tmp = PShape(TRIANGLES);
+        tmp.push(x1,y1,0.f);
+        tmp.push(x2,y2,0.f);
+        tmp.push(x3,y3,0.f);
+        draw(strokify(tmp,strokeWidth,cap,join));
+        //delete tmp;
     }
 }
 
@@ -227,18 +241,18 @@ float bezierPoint(float a,float b,float c,float d,float t){
 
 //Draws a Bezier curve on the screen
 void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
-    PShape sh(LINES);
+    tmp = PShape(LINES);
     float dt = 0.01f;
     for(float t = 0.0;t < 1.0f;t += dt){
         float _x1 = bezierPoint(x1,x2,x3,x4,t);
         float _y1 = bezierPoint(y1,y2,y3,y4,t);
-        sh.push(_x1,_y1,0.f);
+        tmp.push(_x1,_y1,0.f);
         _x1 = bezierPoint(x1,x2,x3,x4,t+dt);
         _y1 = bezierPoint(y1,y2,y3,y4,t+dt);
-        sh.push(_x1,_y1,0.f);
+        tmp.push(_x1,_y1,0.f);
     }
-    draw(strokify(sh,strokeWidth,cap,join));
-    sh.clear();
+    draw(strokify(tmp,strokeWidth,cap,join));
+    //delete tmp;
 }
 
 // ================================================================================

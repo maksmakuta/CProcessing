@@ -18,30 +18,42 @@ enum SHAPE_TYPE{
 };
 
 class PShape{
+private:
+    SHAPE_TYPE stype;
+    std::vector<PVector> vertex;
 public:
     PShape() : PShape(DEFAULT){ }
     PShape(SHAPE_TYPE st){
-        this->type = st;
+        this->stype = st;
     }
 
     void push(float a,float b,float c){
         vertex.push_back(PVector(a,b,c));
     }
 
-    ~PShape(){
-        this->clear();
+    int size() const{
+        return vertex.size();
+    }
+
+    SHAPE_TYPE type() const{
+        return stype;
+    }
+
+    std::vector<PVector> data() const{
+        return vertex;
+    }
+
+    void data(const std::vector<PVector>& d) {
+        this->vertex = d;
     }
 
     bool loop(){
-        return !equal(vertex[0],vertex[vertex.size() - 1]);
+        return !PVector::equal(vertex[0],vertex[vertex.size() - 1]);
     }
 
-    void clear(){
+    void done(){
         vertex.clear();
     }
-
-    SHAPE_TYPE type;
-    std::vector<PVector> vertex;
 };
 
 #endif
