@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 19
+ *  @version 1.3 beta 23
  */
 
 #include <vector>
@@ -33,7 +33,7 @@ extern void keyPressed();           // key pressed function
 extern void keyReleased();          // key released function
 
 // ==============================================
-
+std::string windowT = "";
 GLFWwindow* window = null;          // window pointer
 std::vector<std::string> args;      // program arguments
 double mouseX = 0;                  // Mouse x coordinate
@@ -50,7 +50,7 @@ int height = 0;                     // window height
 int screenWidth = 0;                // window width
 int screenHeight = 0;               // window height
 unsigned config = 0;                // configuration flags
-int framerate = 30;                 // Frames per second
+double framerate = 0;                 // Frames per second
 double framedelay = 0.0;            // Delay in seconds between frame
 int frameCount = 0;                 // frames since start
 //std::vector<Style> styles;        // Stack of styles
@@ -63,7 +63,14 @@ int initialized = false;            // glfw initialized yet
 // ==============================================
 
 void frameRate(int fr){
-    framerate = fr;
+    if(fr != 0)
+        framerate = 1.0/fr;
+    else
+        frameRate(30);
+}
+
+void title(const std::string& t){
+    windowT = t;
 }
 
 void size(int w,int h)  {
@@ -130,7 +137,8 @@ int main(int argc, char** argv){
     for(int i = 0; i < argc; i++) {
         args.push_back(std::string(argv[i]));
     }
-
+    title(" ");
+    frameRate(60);
     setup();
 
     if(!glfwInit()){
@@ -143,7 +151,7 @@ int main(int argc, char** argv){
     glfwInitHint(GLFW_VERSION_MINOR, 3);
     glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(width,height," ",NULL,NULL);
+    window = glfwCreateWindow(width,height,windowT.c_str(),NULL,NULL);
     if(!window){
         glfwTerminate();
         exit(EXIT_FAILURE);
@@ -161,7 +169,9 @@ int main(int argc, char** argv){
 
     initialized = true;
     initGL();
+    double lasttime = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
+        double now = glfwGetTime();
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(bg.r,bg.g,bg.b,bg.a);
         pmouseX = mouseX;
@@ -172,13 +182,16 @@ int main(int argc, char** argv){
         if(w < 128) w = 128;width  = w;
         if(h < 128) h = 128;height = h;
         glfwSetWindowSize(window,w,h);
+
         if(looping){
-            begin(w,h);
-            {
-                draw();
-            }
-            end();
-            glfwSwapBuffers(window);
+                begin(w,h);
+                {
+                    draw();
+                }
+                end();
+                glfwSwapBuffers(window);
+                while (glfwGetTime() < lasttime + framerate) {}
+                lasttime += framerate;
         }
         glfwPollEvents();
     }
