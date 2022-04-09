@@ -70,7 +70,10 @@ void frameRate(int fr){
 }
 
 void title(const std::string& t){
-    windowT = t;
+    if(window == nullptr)
+        windowT = t;
+    else
+        glfwSetWindowTitle(window,windowT.c_str());
 }
 
 void size(int w,int h)  {
