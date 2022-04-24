@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 23
+ *  @version 1.3 beta 24
  */
 
 #include <vector>
@@ -136,8 +136,14 @@ void err(int a,const char* b){
     printf("GLFW Error %i: \n%s",a,b);
 }
 
+void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
+    key = _key;
+
+    //keyPressed();
+}
+
 int main(int argc, char** argv){
-    for(int i = 0; i < argc; i++) {
+    for(int i = 1; i < argc; i++) {
         args.push_back(std::string(argv[i]));
     }
     title(" ");
@@ -162,7 +168,7 @@ int main(int argc, char** argv){
 
     glfwMakeContextCurrent(window);
     glfwSetErrorCallback(err);
-    glfwSwapInterval(1); // force 60 fps
+    glfwSetKeyCallback(window,onKey);
 
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK) {
@@ -187,15 +193,15 @@ int main(int argc, char** argv){
         glfwSetWindowSize(window,w,h);
 
         if(looping){
-                begin(w,h);
-                {
-                    draw();
-                }
-                end();
-                glfwSwapBuffers(window);
-                while (glfwGetTime() < lasttime + framerate) {}
-                lasttime += framerate;
+            begin(w,h);
+            draw();
+            end();
+            while (glfwGetTime() < lasttime + framerate) {}
+            lasttime += framerate;
+            glfwSwapBuffers(window);
         }
+
+        key = 0;
         glfwPollEvents();
     }
     doneGL();
