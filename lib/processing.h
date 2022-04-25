@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 25
+ *  @version 1.3 beta 26
  */
 
 #include <vector>
@@ -17,6 +17,12 @@
 #include "PShader.h"
 #include "PTime.h"
 #include "PVector.h"
+
+#define MITER   0
+#define BEVEL   1
+#define ROUND   2
+#define SQUARE  1
+#define PROJECT 2
 
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type

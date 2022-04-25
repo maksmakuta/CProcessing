@@ -1,14 +1,12 @@
 #include <processing.h>
 
 void setup(){
-  size(200,200);
+    size(400, 400);
 }
+
 void draw(){
-  rectMode(CENTER);
-  rect(100,100,20,100);
-  ellipse(100,70,60,60);
-  ellipse(81,70,16,32);
-  ellipse(119,70,16,32);
-  line(90,150,80,160);
-  line(110,150,120,160);
+    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    rect(50,50,200,200,80,80,40,80);
+
+
 }
