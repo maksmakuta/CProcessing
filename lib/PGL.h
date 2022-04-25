@@ -66,7 +66,7 @@ void draw(const PShape& s){
     //s.done();
 }
 
-void strokeWeigth(float w){
+void strokeWeight(float w){
     strokeWidth = w;
 }
 
@@ -123,6 +123,7 @@ PShape strokify(PShape path,float w,int cap, int join){
             default: _cap = Polyline2D::EndCapStyle::ROUND;  break;
         }
     }
+    path.type(TRIANGLES);
     path.data(Polyline2D::create(path.data(), w, _join,_cap));
     return path;
 }
@@ -243,75 +244,22 @@ void arc(PShape& sh,float x,float y,float r, float b,float e){
     }
 }
 
-void rect(float x,float y,float w,float h,float r){
-    /*
-    switch(rMode){
-        case CORNER:
-            quad (x, y, x+a, y, x+a, y+b, x, y+b);
-        break;
-        case CENTER:
-            quad (x-a/2, y-b/2, x+a/2, y-b/2, x+a/2, y+b/2, x-a/2, y+b/2);
-        break;
-        case RADIUS:
-            quad (x-a, y-b, x+a, y-b, x+a, y+b, x-a, y+b);
-        break;
-        case CORNERS:
-            quad (x, y, a, y, a, b, x, b);
-        break;
-    }*/
-
-    //quad(
-    //     x,y,
-    //     x+w,y,
-    //     x+w,y+h,
-    //     x,y+h
-    //);
-
+void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
     tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
-    tmp.push(x+w/2,y+h/2,0.f);
-    arc(tmp,x+w-r ,y+h-r    ,r,0,PI/2);
-    arc(tmp,x+w-r ,y+r      ,r,PI/2,PI);
-    arc(tmp,x+r   ,y+r      ,r,PI,PI+PI/2);
-    arc(tmp,x+r   ,y+h-r    ,r,PI+PI/2,2*PI);
-    tmp.push(x+w-r ,y+h,0.f);
-
-    draw(strokify(tmp,strokeWidth,cap,join));
+    if(fillFlag) tmp.push(x+w/2,y+h/2,0.f);
+    arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
+    arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
+    arc(tmp,x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  ); //tl
+    arc(tmp,x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      ); //bl
+    tmp.push(x+w-rbr ,y+h,0.f);
+    if(fillFlag)
+        draw(tmp);
+    else
+        draw(strokify(tmp,strokeWidth,cap,join));
 }
 
-
-void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
-    /*
-    switch(rMode){
-        case CORNER:
-            quad (x, y, x+a, y, x+a, y+b, x, y+b);
-        break;
-        case CENTER:
-            quad (x-a/2, y-b/2, x+a/2, y-b/2, x+a/2, y+b/2, x-a/2, y+b/2);
-        break;
-        case RADIUS:
-            quad (x-a, y-b, x+a, y-b, x+a, y+b, x-a, y+b);
-        break;
-        case CORNERS:
-            quad (x, y, a, y, a, b, x, b);
-        break;
-    }*/
-
-    //quad(
-    //     x,y,
-    //     x+w,y,
-    //     x+w,y+h,
-    //     x,y+h
-    //);
-
-    tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
-    tmp.push(x+w/2,y+h/2,0.f);
-    arc(tmp,x+w-rbr ,y+h-rbr    ,rbr,0,PI/2);      //br
-    arc(tmp,x+w-rtr ,y+rtr      ,rtr,PI/2,PI);     //tr
-    arc(tmp,x+rtl   ,y+rtl      ,rtl,PI,PI+PI/2);  //tl
-    arc(tmp,x+rbl   ,y+h-rbl    ,rbl,PI+PI/2,2*PI);//bl
-    tmp.push(x+w-rbr ,y+h,0.f);
-
-    draw(strokify(tmp,strokeWidth,cap,join));
+void rect(float x,float y,float w,float h,float r){
+    rect(x,y,w,h,r,r,r,r);
 }
 
 // Draws a square to the screen

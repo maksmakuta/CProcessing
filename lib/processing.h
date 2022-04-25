@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 26
+ *  @version 1.3 beta 27
  */
 
 #include <vector>

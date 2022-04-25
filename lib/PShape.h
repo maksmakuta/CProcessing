@@ -38,6 +38,9 @@ public:
     SHAPE_TYPE type() const{
         return stype;
     }
+    void type(SHAPE_TYPE s){
+        stype = s;
+    }
 
     std::vector<PVector> data() const{
         return vertex;

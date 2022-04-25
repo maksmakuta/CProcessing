@@ -5,8 +5,8 @@ void setup(){
 }
 
 void draw(){
-    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+    background(0);
+    strokeWeight(10);
+    stroke(100);
     rect(50,50,200,200,80,80,40,80);
-
-
 }
