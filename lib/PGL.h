@@ -12,6 +12,10 @@
 #include "PColor.h"
 #include "PolyLine2D/Polyline2D.h"
 
+#define CENTER  0
+#define RADIUS  1
+#define CORNER  2
+#define CORNERS 3
 
 color fillColor,strokeColor,bg;
 bool fillFlag,builder;
@@ -19,7 +23,7 @@ PShape tmp;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
 float strokeWidth;
-int cap,join;
+int cap,join,rMode,eMode;
 PShader sh;
 
 glm::vec4 vec(const color& c){
@@ -157,6 +161,11 @@ void circle(float x,float y,float r){
     arc(x,y,r,r,0,TWO_PI);
 }
 
+void ellipseMode (unsigned mode) {
+    assert (mode == CENTER || mode == RADIUS || mode == CORNER || mode == CORNERS);
+    eMode = mode;
+}
+
 // Draws an ellipse (oval) in the display window
 void ellipse(float x,float y,float w,float h){
     arc(x,y,w,h,0,TWO_PI);
@@ -198,14 +207,27 @@ void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y
     }
 }
 
+void rectMode (unsigned mode){
+    assert (mode == CENTER || mode == RADIUS || mode == CORNER || mode == CORNERS);
+    rMode = mode;
+}
+
 // Draws a rectangle to the screen
-void rect(float x,float y,float w,float h){
-    quad(
-        x  ,y+h,
-        x  ,y  ,
-        x+w,y  ,
-        x+w,y+h
-    );
+void rect(float x,float y,float a,float b){
+    switch(rMode){
+        case CORNER:
+            quad (x, y, x+a, y, x+a, y+b, x, y+b);
+        break;
+        case CENTER:
+            quad (x-a/2, y-b/2, x+a/2, y-b/2, x+a/2, y+b/2, x-a/2, y+b/2);
+        break;
+        case RADIUS:
+            quad (x-a, y-b, x+a, y-b, x+a, y+b, x-a, y+b);
+        break;
+        case CORNERS:
+            quad (x, y, a, y, a, b, x, b);
+        break;
+    }
 }
 
 // Draws a square to the screen
