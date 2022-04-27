@@ -210,7 +210,14 @@ void rectMode (unsigned mode){
 }
 
 // Draws a rectangle to the screen
-void rect(float x,float y,float a,float b){
+void rect(float x,float y,float w,float h){
+
+    quad (x  , y  ,
+          x+w, y  ,
+          x+w, y+h,
+          x  , y+h);
+
+    /*
     switch(rMode){
         case CORNER:
             quad (x, y, x+a, y, x+a, y+b, x, y+b);
@@ -225,6 +232,7 @@ void rect(float x,float y,float a,float b){
             quad (x, y, a, y, a, b, x, b);
         break;
     }
+    */
 }
 
 void arc(PShape& sh,float x,float y,float r, float b,float e){

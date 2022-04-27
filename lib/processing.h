@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 27
+ *  @version 1.3 beta 28
  */
 
 #include <vector>
@@ -37,7 +37,6 @@ extern void mouseMoved();           // mouse moved function
 extern void mouseDragged();         // mouse dragged function
 extern void keyPressed();           // key pressed function
 extern void keyReleased();          // key released function
-
 // ==============================================
 std::string windowT = "";
 GLFWwindow* window = null;          // window pointer
@@ -46,17 +45,17 @@ double mouseX = 0;                  // Mouse x coordinate
 double mouseY = 0;                  // Mouse y coordinate
 double pmouseX = 0;                 // Previous mouse x coordinate
 double pmouseY = 0;                 // Previous mouse y coordinate
-//bool mousePressed = false;          // Whether any mouse button is pressed
-//bool keyPressed = false;            // Whether a key was pressed
+//bool mousePressed = false;        // Whether any mouse button is pressed
+//bool keyPressed = false;          // Whether a key was pressed
 int mouseButton = 0;                // Which button is pressed
 unsigned char key = 0;              // Which (ASCII) key was pressed
 int keyCode = 0;                    // Code for the last pressed key
-int width = 0;                      // window width
-int height = 0;                     // window height
+int width  = 128;                   // window width
+int height = 128;                   // window height
 int screenWidth = 0;                // window width
 int screenHeight = 0;               // window height
 unsigned config = 0;                // configuration flags
-double framerate = 0;                 // Frames per second
+double framerate = 0;               // Frames per second
 double framedelay = 0.0;            // Delay in seconds between frame
 int frameCount = 0;                 // frames since start
 //std::vector<Style> styles;        // Stack of styles
@@ -69,7 +68,7 @@ int initialized = false;            // glfw initialized yet
 // ==============================================
 
 void frameRate(int fr){
-    if(fr != 0)
+    if(fr != 0 || fr < 0)
         framerate = 1.0/fr;
     else
         frameRate(30);
@@ -80,6 +79,10 @@ void title(const std::string& t){
         windowT = t;
     else
         glfwSetWindowTitle(window,windowT.c_str());
+}
+
+void fullScreen(){
+    config = 1;
 }
 
 void size(int w,int h)  {
@@ -149,9 +152,9 @@ void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
 }
 
 int main(int argc, char** argv){
-    for(int i = 1; i < argc; i++) {
+    for(int i = 1; i < argc; i++)
         args.push_back(std::string(argv[i]));
-    }
+
     title(" ");
     frameRate(60);
     setup();
@@ -166,7 +169,11 @@ int main(int argc, char** argv){
     glfwInitHint(GLFW_VERSION_MINOR, 3);
     glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(width,height,windowT.c_str(),NULL,NULL);
+    if(config)
+        glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(),&screenWidth,&screenHeight,&width,&height);
+
+    window = glfwCreateWindow(width,height,windowT.c_str(),config ? glfwGetPrimaryMonitor() : NULL,NULL);
+
     if(!window){
         glfwTerminate();
         exit(EXIT_FAILURE);
