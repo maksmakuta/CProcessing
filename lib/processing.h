@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.3 beta 28
+ *  @version 1.4 beta 0
  */
 
 #include <vector>
@@ -24,6 +24,11 @@
 #define SQUARE  1
 #define PROJECT 2
 
+#define DOWN    GLFW_KEY_DOWN
+#define UP      GLFW_KEY_UP
+#define LEFT    GLFW_KEY_LEFT
+#define RIGHT   GLFW_KEY_RIGHT
+
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type
 #define length(x) sizeof(x)/sizeof(x[0])
@@ -35,7 +40,11 @@ extern void mousePressed();         // mouse pressed function
 extern void mouseReleased();        // mouse released function
 extern void mouseMoved();           // mouse moved function
 extern void mouseDragged();         // mouse dragged function
+#ifdef USE_KEYS
 extern void keyPressed();           // key pressed function
+#else
+extern void keyPressed(){}           // key pressed function
+#endif
 extern void keyReleased();          // key released function
 // ==============================================
 std::string windowT = "";
@@ -45,8 +54,8 @@ double mouseX = 0;                  // Mouse x coordinate
 double mouseY = 0;                  // Mouse y coordinate
 double pmouseX = 0;                 // Previous mouse x coordinate
 double pmouseY = 0;                 // Previous mouse y coordinate
-//bool mousePressed = false;        // Whether any mouse button is pressed
-//bool keyPressed = false;          // Whether a key was pressed
+bool mousepressed = false;          // Whether any mouse button is pressed
+bool keypressed = false;            // Whether a key was pressed
 int mouseButton = 0;                // Which button is pressed
 unsigned char key = 0;              // Which (ASCII) key was pressed
 int keyCode = 0;                    // Code for the last pressed key
@@ -148,7 +157,12 @@ void err(int a,const char* b){
 void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     key = _key;
 
-    //keyPressed();
+#ifdef USE_KEYS
+    keypressed = (bool)(_action == GLFW_PRESS);
+    keyCode = _key;
+    keyPressed();
+    keypressed = false;
+#endif
 }
 
 int main(int argc, char** argv){
