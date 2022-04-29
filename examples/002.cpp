@@ -1,3 +1,9 @@
+/**
+ *  Purple Rain
+ *  Author: Maks Makuta
+ *  URL: https://youtube.com/shorts/WTZ2FJUfHq0
+ */
+
 #include <processing.h>
 
 class Rain{

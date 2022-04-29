@@ -1,3 +1,8 @@
+/**
+ * Circle Filling Algorithm
+ * Author: Maks Makuta
+ * URL: https://www.youtube.com/watch?v=r1n2zNf4SQA
+ */
 #include <processing.h>
 
 class Circle{
@@ -21,20 +26,16 @@ public:
     }
 
     void draw(){
-        fill(c.r,c.g,c.b);
+        fill(c);
         circle(pos.x,pos.y,radius);
     }
 };
 
 std::vector<Circle> arr;
 float max = 100,min = 5;
-PFont fnt;
-float tx,ty;
 
 void setup(){
     size(600,600);
-    fnt = createFont("/usr/share/fonts/TTF/JetBrainsMono-Regular.ttf",32);
-    textFont(fnt);
 }
 
 void draw(){
@@ -48,7 +49,7 @@ void draw(){
         float x = random(width);
         float y = random(height);
         float r = max;
-        color col = color::rand();
+        color col = color(random(255),random(255),random(255));
         bool add = true;
         if(!arr.empty()){
             for(auto c : arr){
@@ -65,19 +66,9 @@ void draw(){
                     if(!add) break;
                 }
             }
-        }else{
-            tx = x;
-            ty = y;
         }
         if(add) arr.push_back(Circle(x,y,r,col));
     }else{
         background(250,100,100,255);
     }
-
-
-        fill(0);
-        textAlign(CENTER,MIDDLE);
-        text(std::to_string(arr.size()),tx,ty);
 }
-
-

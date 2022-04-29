@@ -1,3 +1,9 @@
+/**
+ *  Ukrainian Flag
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=8xdbqK7CO4E
+ */
+
 #include <processing.h>
 
 void setup() {

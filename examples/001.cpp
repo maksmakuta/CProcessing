@@ -1,3 +1,11 @@
+/**
+ *  Starfield Simulation
+ *  Author: Maks Makuta
+ *  URLs:
+ *      Part 1: https://youtube.com/shorts/Bk5O7-3xIfw
+ *      Part 2: https://youtube.com/shorts/IS6_apBewlI
+ */
+
 #include <processing.h>
 
 float speed;

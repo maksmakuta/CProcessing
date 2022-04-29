@@ -1,14 +1,24 @@
+/**
+ *  Planet Simulation 2D
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=5Fmtu_DVWss
+ */
+
 #include <processing.h>
 
 class Planet{
-public:
+private:
     std::vector<Planet*> planets;
     PVector p; color c;
     float r, s;
+public:
+    Planet() : Planet(20,0  ,color(100,200,0  ), 0.f ){}
 
     Planet(float _r,float _d, color _c,float _s){
-        p = PVector::mult(createVector(1,0), _d);
-        c = _c;r = _r;s = _s;
+        this->p = createVector(1.f,0.f).mult(_d);
+        this->c = _c;
+        this->r = _r;
+        this->s = _s;
     }
 
     void add(Planet* q){
@@ -21,18 +31,17 @@ public:
     }
 
     void draw(){
-        noStroke();
-        fill(c.r,c.g,c.b);
+        fill(c);
         circle(p.x,p.y,r);
         for(Planet* pl : planets) pl->draw();
     }
 };
 
-Planet* sun;
+Planet* sun = null;
 
 void setup(){
     size(600,600);
-    sun =    new Planet(20,0  ,color(250,250,0  ), 0.f );
+    sun = new Planet();
     sun->add(new Planet(5 ,30 ,color(50 ,70 ,190),6.f ));
     sun->add(new Planet(7 ,45 ,color(100,90 ,240),5.f ));
     sun->add(new Planet(8 ,60 ,color(200,160,100),4.5f));

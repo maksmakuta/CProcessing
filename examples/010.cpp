@@ -1,3 +1,9 @@
+/**
+ *  Particles Animation
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=l3QEZCp_C0Q
+ */
+
 #include <processing.h>
 #define SIZE 70
 #define R 50 

@@ -1,3 +1,9 @@
+/**
+ *  Matrix Simulation
+ *  Author: Maks Makuta
+ *  URL: https://youtube.com/shorts/cjLb8aGsUtM
+ */
+
 #include <processing.h>
 
 #define SIZE 36

@@ -1,3 +1,9 @@
+/**
+ *  Game Of Life
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=DHQ1FEeaT0A
+ */
+
 #include <processing.h>
 #define W 100
 #define H 100

@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 0
+ *  @version 1.4 beta 1
  */
 
 #include <vector>
@@ -98,62 +98,69 @@ void size(int w,int h)  {
     width  = w;
     height = h;
 }
-void background(int a)  {
-    bg = color(a);
+void background(color c){
+    bg = c;
 }
-
+void background(int r,int g,int b,int a){
+    bg = color(r,g,b,a);
+}
+void background(int r,int g,int b){
+    background(r,g,b,255);
+}
+void background(int v,int a){
+    background(v,v,v,a);
+}
+void background(int v){
+    background(v,255);
+}
 void noLoop(){
     looping = false;
 }
-
 void noFill(){
     fillFlag = false;
     fillColor = color(1,1,1,0);
 }
-
+void fill(color c){
+    fillFlag = true;
+    fillColor = c;
+}
 void fill(int r,int g,int b,int a){
     fillFlag = true;
     fillColor = color(r,g,b,a);
 }
-
 void fill(int r,int g,int b){
     fill(r,g,b,255);
 }
-
 void fill(int v,int a){
     fill(v,v,v,a);
 }
-
 void fill(int v){
     fill(v,255);
 }
-
 void noStroke(){
     fillFlag = true;
     strokeColor = color(1,1,1,0);
 }
-
+void stroke(color c){
+    fillFlag = false;
+    fillColor = c;
+}
 void stroke(int r,int g,int b,int a){
     fillFlag = false;
     strokeColor = color(r,g,b,a);
 }
-
 void stroke(int r,int g,int b){
     stroke(r,g,b,255);
 }
-
 void stroke(int v,int a){
     stroke(v,v,v,a);
 }
-
 void stroke(int v){
     stroke(v,255);
 }
-
 void err(int a,const char* b){
     printf("GLFW Error %i: \n%s",a,b);
 }
-
 void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     key = _key;
 
@@ -164,7 +171,6 @@ void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     keypressed = false;
 #endif
 }
-
 int main(int argc, char** argv){
     for(int i = 1; i < argc; i++)
         args.push_back(std::string(argv[i]));

@@ -1,3 +1,11 @@
+/**
+ *  Pong Game
+ *  Author: Maks Makuta
+ *  URL:
+ *      Part 1: https://youtube.com/shorts/4Kbj8MB6ic0
+ *      Part 2: https://youtube.com/shorts/SZuBMV7uCNI
+ */
+
 #include <processing.h>
 #define Q 30
 

@@ -1,3 +1,9 @@
+/**
+ * Clock
+ * Author: Maks Makuta
+ * URL: https://youtube.com/shorts/NMo2JOYTdFA
+ */
+
 #include <processing.h>
 
 time_t t;

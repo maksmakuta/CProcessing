@@ -1,3 +1,11 @@
+/**
+ *  Atom Simulation
+ *  Author: Maks Makuta
+ *  URL:
+ *      Part 1: https://youtube.com/shorts/6tgeQQATyB4
+ *      Part 2: https://youtube.com/shorts/A8IQgEsS4Xo
+ */
+
 #include <processing.h>
 #define SIZE 9
 

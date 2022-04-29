@@ -1,3 +1,9 @@
+/**
+ *  Bubble Sort Visualisation
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=DIOe6c3kgow
+ */
+
 #include <processing.h>
 #define SIZE 300
 
