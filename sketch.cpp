@@ -1,72 +1,41 @@
-
 #include <processing.h>
+#define NUM_LINES 20
 
-class Circle{
-public:
-    PVector pos;
-    float radius;
-    color c;
+float t = 0;
 
-    Circle(float x,float y,float r,color _c){
-        this->pos = createVector(x,y);
-        this->radius = r;
-        this->c = _c;
-    }
-
-    bool intersept(Circle c){
-        return pos.dist(c.pos) >= radius + c.radius && !in(c.pos);
-    }
-
-    bool in(PVector p){
-        return pos.dist(p) < radius;
-    }
-
-    void draw(){
-        fill(c);
-        circle(pos.x,pos.y,radius);
-    }
-};
-
-std::vector<Circle> arr;
-float max = 100,min = 5;
-
-void setup(){
-    size(600,600);
+void setup() {
+  size(400, 400);
 }
 
-void draw(){
-    background(0);
-
-    for(auto c : arr){
-        c.draw();
-    }
-
-    if(arr.size() < 200){
-        float x = random(width);
-        float y = random(height);
-        float r = max;
-        color col = color(random(255),random(255),random(255));
-        bool add = true;
-        if(!arr.empty()){
-            for(auto c : arr){
-                while(true){
-                    bool t = c.intersept(Circle(x,y,r,col));
-                    if(!t){
-                        if(r < min) {
-                            add = false;
-                            break;
-                        }
-                        r -= 0.01f;
-
-                    }else break;
-                    if(!add) break;
-                }
-            }
-        }
-        if(add) arr.push_back(Circle(x,y,r,col));
-    }else{
-        background(250,100,100,255);
-    }
+float x1(float t) {
+  return sin(t/10) * 100 + sin(t/646) * 81;
 }
 
+float y1(float t) {
+  return cos(t/ 538) * 142;
+}
+float x2(float t) {
+  return sin(t/-128) * 98 + sin(t/20) * 99;
+}
+
+float y2(float t) {
+  return cos(t/ 10) * 60;
+}
+
+void draw() {
+  background(20);
+  strokeWeight(4);
+  translate(width/2, height/2);
+  for ( int i= 0; i < NUM_LINES; i++) {
+    stroke(255, 0, 0, 100);
+    line(x1(t+i), y1(t+i), x2(t+i), y2(t+i));
+    stroke(0, 200, 0, 30);
+    line(x1(t+i+7), y1(t+i+7), x2(t+i+7), y2(t+i+7));
+    stroke(0, 0, 200, 100);
+    line(-x1(t+i), y1(t+i), -x2(t+i), y2(t+i));
+    stroke(0, 200, 0, 30);
+    line(-x1(t+i+7), y1(t+i+7), -x2(t+i+7), y2(t+i+7));
+    }
+  t += 0.7;
+}
 
