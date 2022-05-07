@@ -18,12 +18,6 @@
 #include "PTime.h"
 #include "PVector.h"
 
-#define MITER   0
-#define BEVEL   1
-#define ROUND   2
-#define SQUARE  1
-#define PROJECT 2
-
 #define DOWN    GLFW_KEY_DOWN
 #define UP      GLFW_KEY_UP
 #define LEFT    GLFW_KEY_LEFT

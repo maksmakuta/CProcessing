@@ -24,18 +24,9 @@ if (GLEW_FOUND)
     link_libraries(     ${GLEW_LIBRARIES})
 endif()
 
-find_package(glm REQUIRED)
-if (GLM_FOUND)
-    include_directories(${GLM_INCLUDE_DIRS})
-    link_libraries(     ${GLM_LIBRARIES})
-endif()
-
 #############################################################
 
 add_library(cprocessing SHARED
-    PolyLine2D/Vec2.h
-    PolyLine2D/LineSegment.h
-    PolyLine2D/Polyline2D.h
     PColor.h
     PFont.h
     PGL.h
@@ -43,6 +34,7 @@ add_library(cprocessing SHARED
     PMath.h
     PShader.h
     PShape.h
+    PStroker.h
     PTime.h
     PVector.h
     processing.h)

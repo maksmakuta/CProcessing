@@ -10,7 +10,7 @@
 #include "PShader.h"
 #include "PShape.h"
 #include "PColor.h"
-#include "PolyLine2D/Polyline2D.h"
+#include "PStroker.h"
 
 #define CENTER  0
 #define RADIUS  1
@@ -101,31 +101,6 @@ void endShape(){
     builder = false;
     draw(tmp);
     tmp.done();
-}
-
-PShape strokify(PShape path,float w,int cap, int join){
-    using namespace crushedpixel;
-    Polyline2D::JointStyle _join;
-    switch(join){
-        case 0 : _join = Polyline2D::JointStyle::MITER; break;
-        case 1 : _join = Polyline2D::JointStyle::BEVEL; break;
-        case 2 : _join = Polyline2D::JointStyle::ROUND; break;
-        default: _join = Polyline2D::JointStyle::MITER; break;
-    }
-    Polyline2D::EndCapStyle _cap;
-    if(path.loop())
-        _cap = Polyline2D::EndCapStyle::JOINT;
-    else{
-        switch(join){
-            case 0 : _cap = Polyline2D::EndCapStyle::ROUND;  break;
-            case 1 : _cap = Polyline2D::EndCapStyle::SQUARE; break;
-            case 2 : _cap = Polyline2D::EndCapStyle::BUTT;   break;
-            default: _cap = Polyline2D::EndCapStyle::ROUND;  break;
-        }
-    }
-    path.type(TRIANGLES);
-    path.data(Polyline2D::create(path.data(), w, _join,_cap));
-    return path;
 }
 
 // Draws an arc in the display window
