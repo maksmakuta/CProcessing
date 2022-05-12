@@ -103,12 +103,11 @@ void endShape(){
     tmp.done();
 }
 
-// Draws an arc in the display window
-void arc(float x,float y,float w,float h,float b,float e){
-    float d = PMath::radians(5.f);
+void arc(float x,float y,float w,float h,float b,float e,float step){
+    float d = PMath::radians(step);
     if(!fillFlag){
         tmp = PShape(TRIANGLES);
-        for(float a = b; a <= e;a += d){
+        for(float a = b; a <= e - d;a += d){
             float _x = x + w * sin(a);
             float _y = y + h * cos(a);
             tmp.push(_x,_y,0.f);
@@ -116,7 +115,7 @@ void arc(float x,float y,float w,float h,float b,float e){
         draw(strokify(tmp,strokeWidth,cap,join));
     }else{
         beginShape(TRIANGLE_STRIP);
-        for(float a = b; a <= e;a += d){
+        for(float a = b; a <= e - d;a += d){
             float _x = x + w * sin(a);
             float _y = y + h * cos(a);
             vertex(_x,_y);
@@ -127,6 +126,11 @@ void arc(float x,float y,float w,float h,float b,float e){
         }
         endShape();
     }
+}
+
+// Draws an arc in the display window
+void arc(float x,float y,float w,float h,float b,float e){
+    arc(x,y,w,h,b,e,5.f);
 }
 // Draws a circle to the screen
 void circle(float x,float y,float r){
@@ -145,7 +149,7 @@ void ellipse(float x,float y,float w,float h){
 
 // Draws a line (a direct path between two points) to the screen
 void line(float x1,float y1,float x2,float y2){
-    tmp = PShape(TRIANGLES);
+    tmp = PShape(LINES);
     tmp.push(x1,y1,0.f);
     tmp.push(x2,y2,0.f);
     draw(strokify(tmp,strokeWidth,cap,join));
@@ -186,28 +190,22 @@ void rectMode (unsigned mode){
 
 // Draws a rectangle to the screen
 void rect(float x,float y,float w,float h){
-
-    quad (x  , y  ,
-          x+w, y  ,
-          x+w, y+h,
-          x  , y+h);
-
-    /*
-    switch(rMode){
-        case CORNER:
-            quad (x, y, x+a, y, x+a, y+b, x, y+b);
-        break;
-        case CENTER:
-            quad (x-a/2, y-b/2, x+a/2, y-b/2, x+a/2, y+b/2, x-a/2, y+b/2);
-        break;
-        case RADIUS:
-            quad (x-a, y-b, x+a, y-b, x+a, y+b, x-a, y+b);
-        break;
-        case CORNERS:
-            quad (x, y, a, y, a, b, x, b);
-        break;
+    if(fillFlag){
+        beginShape(QUADS);
+        vertex(x,y);
+        vertex(x+w,y);
+        vertex(x+w,y+h);
+        vertex(x,y+h);
+        endShape();
+    }else{
+        tmp = PShape();
+        tmp.push(x,y,0.f);
+        tmp.push(x+w,y,0.f);
+        tmp.push(x+w,y+h,0.f);
+        tmp.push(x,y+h,0.f);
+        tmp.push(x,y,0.f);
+        draw(strokify(tmp,strokeWidth,cap,join));
     }
-    */
 }
 
 void arc(PShape& sh,float x,float y,float r, float b,float e){
@@ -228,17 +226,24 @@ void arc(PShape& sh,float x,float y,float r, float b,float e){
 }
 
 void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
-    tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
-    if(fillFlag) tmp.push(x+w/2,y+h/2,0.f);
-    arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
-    arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
-    arc(tmp,x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  ); //tl
-    arc(tmp,x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      ); //bl
-    tmp.push(x+w-rbr ,y+h,0.f);
-    if(fillFlag)
+    if(fillFlag){
+        tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
+        if(fillFlag) tmp.push(x+w/2,y+h/2,0.f);
+        arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
+        arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
+        arc(tmp,x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  ); //tl
+        arc(tmp,x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      ); //bl
+        tmp.push(x+w-rbr ,y+h,0.f);
         draw(tmp);
-    else
+    }else{
+        tmp = PShape(SHAPE_TYPE::TRIANGLES);
+        arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
+        arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
+        arc(tmp,x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  ); //tl
+        arc(tmp,x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      ); //bl
+        tmp.push(x+w-rbr ,y+h,0.f);
         draw(strokify(tmp,strokeWidth,cap,join));
+    }
 }
 
 void rect(float x,float y,float w,float h,float r){

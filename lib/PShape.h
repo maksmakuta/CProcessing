@@ -3,6 +3,8 @@
 
 #include <GL/glew.h>
 #include <vector>
+#include <iostream>
+#include <exception>
 #include "PVector.h"
 
 enum SHAPE_TYPE{
@@ -31,6 +33,26 @@ public:
         vertex.push_back(PVector(a,b,c));
     }
 
+    void push(const PVector& v){
+        vertex.push_back(v);
+    }
+
+    void add(const PShape& p){
+        std::vector<PVector> tmp = p.data();
+        if(!tmp.empty()){
+            vertex.insert(vertex.end(),tmp.begin(),tmp.end());
+        }
+    }
+
+    PVector at(int p){
+        if(p >= 0 && p < this->size())
+            return vertex[p];
+        else{
+            std::cerr << "Undefined position\n";
+            return PVector();
+        }
+    }
+
     int size() const{
         return vertex.size();
     }
@@ -51,7 +73,7 @@ public:
     }
 
     bool loop(){
-        return !PVector::equal(vertex[0],vertex[vertex.size() - 1]);
+        return PVector::equal(vertex[0],vertex[vertex.size() - 1]);
     }
 
     void done(){

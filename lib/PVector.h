@@ -166,7 +166,7 @@ public:
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
 
-    PVector cross(PVector a,PVector b){
+    static PVector cross(PVector a,PVector b){
         float crossX = a.y * b.z - b.y * a.z;
         float crossY = a.z * b.x - b.z * a.x;
         float crossZ = a.x * b.y - b.x * a.y;

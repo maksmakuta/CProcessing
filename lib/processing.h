@@ -3,7 +3,7 @@
 
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 1
+ *  @version 1.4 beta 3
  */
 
 #include <vector>
@@ -22,10 +22,12 @@
 #define UP      GLFW_KEY_UP
 #define LEFT    GLFW_KEY_LEFT
 #define RIGHT   GLFW_KEY_RIGHT
+#define ESC     GLFW_KEY_ESCAPE
 
 typedef bool boolean;                   // Java boolean type
 #define null nullptr;                   // Java null pointer type
-#define length(x) sizeof(x)/sizeof(x[0])
+//#define length(x) (sizeof(x)/sizeof(x[0]))
+//glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 using namespace PMath;
 
 extern void setup();                // setup function
@@ -160,8 +162,10 @@ void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
 
 #ifdef USE_KEYS
     keypressed = (bool)(_action == GLFW_PRESS);
-    keyCode = _key;
-    keyPressed();
+    if(keypressed){
+        keyCode = _key;
+        keyPressed();
+    }
     keypressed = false;
 #endif
 }

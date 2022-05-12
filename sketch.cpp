@@ -1,15 +1,9 @@
 #include <processing.h>
 
-void setup() {
-    size(400,400);
+void setup() { size(400, 400); }
+
+void draw(){
+  background(20);
+  fill(200);
+  rect(100,100,200,200,20);
 }
-
-
-void draw() {
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-    background(20);
-    stroke(200);
-    strokeWeight(10);
-    line(20,20,width-20,height - 20);
-}
-
