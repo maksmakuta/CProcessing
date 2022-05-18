@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <vector>
 #include <iostream>
-#include <exception>
+#include "PColor.h"
 #include "PVector.h"
 
 enum SHAPE_TYPE{
@@ -19,42 +19,57 @@ enum SHAPE_TYPE{
     DEFAULT         = GL_POLYGON
 };
 
+struct vertex{
+    float x,y,z;
+    float s,t;
+};
+
 class PShape{
 private:
     SHAPE_TYPE stype;
-    std::vector<PVector> vertex;
+    color c;
+    std::vector<vertex> verData;
 public:
     PShape() : PShape(DEFAULT){ }
+
     PShape(SHAPE_TYPE st){
         this->stype = st;
     }
 
     void push(float a,float b,float c){
-        vertex.push_back(PVector(a,b,c));
+        verData.push_back({a,b,c,0.f,0.f});
+    }
+
+    void setColor(const color& _c){
+        this->c = _c;
+    }
+
+    color getColor() const {
+        return this->c;
     }
 
     void push(const PVector& v){
-        vertex.push_back(v);
+        push(v.x,v.y,v.z);
     }
 
     void add(const PShape& p){
-        std::vector<PVector> tmp = p.data();
+        std::vector<vertex> tmp = p.data();
         if(!tmp.empty()){
-            vertex.insert(vertex.end(),tmp.begin(),tmp.end());
+            verData.insert(verData.end(),tmp.begin(),tmp.end());
         }
     }
 
-    PVector at(int p){
+    vertex at(int p){
         if(p >= 0 && p < this->size())
-            return vertex[p];
+            return verData[p];
         else{
             std::cerr << "Undefined position\n";
-            return PVector();
+            return {0,0,0,0,0};
         }
     }
 
     int size() const{
-        return vertex.size();
+        return verData.size();
     }
 
     SHAPE_TYPE type() const{
@@ -64,20 +79,25 @@ public:
         stype = s;
     }
 
-    std::vector<PVector> data() const{
-        return vertex;
+    std::vector<vertex> data() const{
+        return verData;
     }
 
-    void data(const std::vector<PVector>& d) {
-        this->vertex = d;
+    void data(const std::vector<vertex>& d) {
+        this->verData = d;
     }
 
     bool loop(){
-        return PVector::equal(vertex[0],vertex[vertex.size() - 1]);
+        auto a = createVector(verData[0].x,verData[0].y,verData[0].z);
+        auto b = createVector(  verData[verData.size() - 1].x,
+                                verData[verData.size() - 1].y,
+                                verData[verData.size() - 1].z
+                );
+        return PVector::equal(a,b);
     }
 
     void done(){
-        vertex.clear();
+        verData.clear();
     }
 };
 

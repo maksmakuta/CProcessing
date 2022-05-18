@@ -266,6 +266,7 @@ PShape createJoint( const PolySegment &segment1, const PolySegment &segment2,
 
 PShape strokify(PShape contour, float w, int cap, int join,bool allowOverlap = false){
     PShape data(TRIANGLES);
+    data.setColor(contour.getColor());
     bool loop = contour.loop();
     // operate on half the thickness to make our lives easier
     w /= 2;
@@ -276,10 +277,17 @@ PShape strokify(PShape contour, float w, int cap, int join,bool allowOverlap = f
         auto point1 = contour.at(i);
         auto point2 = contour.at(i + 1);
 
+        auto p1 = createVector(point1.x,
+                               point1.y,
+                               point1.z);
+        auto p2 = createVector(point2.x,
+                               point2.y,
+                               point2.z);
+
         // to avoid division-by-zero errors,
         // only create a line segment for non-identical points
-        if (!PVector::equal(point1, point2)) {
-            segments.emplace_back(LineSegment(point1, point2), w);
+        if (!PVector::equal(p1, p2)) {
+            segments.emplace_back(LineSegment(p1, p2), w);
         }
     }
 

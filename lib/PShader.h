@@ -28,13 +28,20 @@ public:
     GLuint attrLoc(const std::string& name){
         return glGetAttribLocation(programID(),name.c_str());
     }
-
-    void mat4(const std::string& name,const glm::mat4& matrix){
+    void umat4(const std::string& name,const glm::mat4& matrix){
         glUniformMatrix4fv(loc(name),1, GL_FALSE, glm::value_ptr(matrix));
     }
-
-    void vec4(const std::string& name,const glm::vec4& vec){
+    void uint(const std::string& name,int value){
+        glUniform1i(loc(name), value);
+    }
+    void uvec4(const std::string& name,const glm::vec4& vec){
         glUniform4fv(loc(name),1,glm::value_ptr(vec));
+    }
+    void uvec3(const std::string& name,const glm::vec3& vec){
+        glUniform3fv(loc(name),1,glm::value_ptr(vec));
+    }
+    void uvec2(const std::string& name,const glm::vec2& vec){
+        glUniform2fv(loc(name),1,glm::value_ptr(vec));
     }
 
     void loadCode(const std::string& vertex,const std::string& fragment){
@@ -62,22 +69,34 @@ public:
     }
 
     static PShader P5(){
-
         static const std::string frag =
                 "#version 330 core\n"
-                "uniform vec4 color = vec4(1.0f);\n"
+                "uniform int call;\n"
+                "uniform sampler2D texID;\n"
+                "uniform vec4 color;\n"
+                "in vec2 fTex;\n"
                 "out vec4 fColor;\n"
                 "void main(void){\n"
-                "    fColor = color;\n"
+                "   vec4 pColor;"
+                "   if(call == 0){\n"
+                "       pColor = color;\n"
+                "   } else if(call == 1){\n"
+                "       pColor = texture(texID,fTex);\n"
+                "   }else{"
+                "       pColor = vec4(0.1,0.5,0.7,1.0);\n"
+                "   }\n"
+                "   fColor = pColor;\n"
                 "}\n";
         static const std::string vert =
                 "#version 330 core\n"
-                "in vec3 ver;\n"
+                "layout (location = 0) in vec3 ver;\n"
+                "layout (location = 1) in vec2 tex;\n"
                 "uniform mat4 matrix;\n"
+                "out vec2 fTex;\n"
                 "void main(void){\n"
-                "    gl_Position = matrix * vec4(ver,1.0f);\n"
+                "   fTex = tex;\n"
+                "   gl_Position = matrix * vec4(ver,1.0f);\n"
                 "}\n";
-
         return PShader::code(vert,frag);
     }
 

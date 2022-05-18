@@ -18,12 +18,12 @@
 #define CORNERS 3
 
 color fillColor,strokeColor,bg;
-bool fillFlag,builder;
+bool fillFlag,strokeFlag,builder;
 PShape tmp;
 std::vector<glm::mat4> matrices;
 glm::mat4 matrix;
 float strokeWidth;
-int cap,join,rMode,eMode;
+int cap,join,rMode,eMode,call = 0;
 PShader sh;
 
 glm::vec4 vec(const color& c){
@@ -31,8 +31,12 @@ glm::vec4 vec(const color& c){
 }
 
 void initGL(){
-    fillColor = color(255);strokeColor  = color(255);bg  = color(150);
-    fillFlag = true;builder = false;
+    fillColor = color(255);
+    strokeColor  = color(255);
+    bg  = color(150);
+    fillFlag = false;
+    strokeFlag = false;
+    builder = false;
     strokeWidth = 1.0f;
     cap = 0;join = 0;
     sh = PShader::P5();
@@ -52,12 +56,15 @@ void draw(const PShape& s){
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(PVector) * s.size(), s.data().data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(sh.attrLoc("ver"), 3, GL_FLOAT, GL_FALSE, sizeof(PVector), (void*)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * s.size(), s.data().data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float)*5, (void*)(sizeof(float)*3));
+    glEnableVertexAttribArray(1);
     glBindVertexArray(VAO);
-    sh.mat4("matrix",matrix);
-    sh.vec4("color",fillFlag ? vec(fillColor) : vec(strokeColor));
+    sh.umat4("matrix",matrix);
+    sh.uvec4("color",vec(s.getColor()));
+    sh.uint ("call",call);
     glDrawArrays(s.type(), 0, s.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -105,26 +112,26 @@ void endShape(){
 
 void arc(float x,float y,float w,float h,float b,float e,float step){
     float d = PMath::radians(step);
-    if(!fillFlag){
+    if(fillFlag){
+        beginShape(TRIANGLE_FAN);
+        tmp.setColor(fillColor);
+        vertex(x,y);
+        for(float a = b; a <= e;a += d){
+            float _x = x + w * sin(a);
+            float _y = y + h * cos(a);
+            vertex(_x,_y);
+        }
+        endShape();
+    }
+    if(strokeFlag){
         tmp = PShape(TRIANGLES);
-        for(float a = b; a <= e - d;a += d){
+        tmp.setColor(strokeColor);
+        for(float a = b; a <= e;a += d){
             float _x = x + w * sin(a);
             float _y = y + h * cos(a);
             tmp.push(_x,_y,0.f);
         }
         draw(strokify(tmp,strokeWidth,cap,join));
-    }else{
-        beginShape(TRIANGLE_STRIP);
-        for(float a = b; a <= e - d;a += d){
-            float _x = x + w * sin(a);
-            float _y = y + h * cos(a);
-            vertex(_x,_y);
-            _x = x + w * sin(a+d);
-            _y = y + h * cos(a+d);
-            vertex(_x,_y);
-            if(fillFlag) vertex(x,y);
-        }
-        endShape();
     }
 }
 
@@ -150,6 +157,7 @@ void ellipse(float x,float y,float w,float h){
 // Draws a line (a direct path between two points) to the screen
 void line(float x1,float y1,float x2,float y2){
     tmp = PShape(LINES);
+    tmp.setColor(strokeColor);
     tmp.push(x1,y1,0.f);
     tmp.push(x2,y2,0.f);
     draw(strokify(tmp,strokeWidth,cap,join));
@@ -159,6 +167,7 @@ void line(float x1,float y1,float x2,float y2){
 // Draws a point, a coordinate in space at the dimension of one pixel
 void point(float x,float y){
     tmp = PShape(TRIANGLES);
+    tmp.setColor(strokeColor);
     tmp.push(x,y,0.f);
     draw(strokify(tmp,strokeWidth,cap,join));
     //delete tmp;
@@ -168,13 +177,16 @@ void point(float x,float y){
 void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
     if(fillFlag){
         beginShape(QUADS);
+        tmp.setColor(fillColor);
         vertex(x1,y1);
         vertex(x2,y2);
         vertex(x3,y3);
         vertex(x4,y4);
         endShape();
-    }else{
+    }
+    if(strokeFlag){
         tmp = PShape(TRIANGLES);
+        tmp.setColor(strokeColor);
         tmp.push(x1,y1,0.f);
         tmp.push(x2,y2,0.f);
         tmp.push(x3,y3,0.f);
@@ -192,13 +204,16 @@ void rectMode (unsigned mode){
 void rect(float x,float y,float w,float h){
     if(fillFlag){
         beginShape(QUADS);
+        tmp.setColor(fillColor);
         vertex(x,y);
         vertex(x+w,y);
         vertex(x+w,y+h);
         vertex(x,y+h);
         endShape();
-    }else{
+    }
+    if(strokeFlag){
         tmp = PShape();
+        tmp.setColor(strokeColor);
         tmp.push(x,y,0.f);
         tmp.push(x+w,y,0.f);
         tmp.push(x+w,y+h,0.f);
@@ -228,6 +243,7 @@ void arc(PShape& sh,float x,float y,float r, float b,float e){
 void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
     if(fillFlag){
         tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
+        tmp.setColor(fillColor);
         if(fillFlag) tmp.push(x+w/2,y+h/2,0.f);
         arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
         arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
@@ -235,8 +251,10 @@ void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rb
         arc(tmp,x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      ); //bl
         tmp.push(x+w-rbr ,y+h,0.f);
         draw(tmp);
-    }else{
+    }
+    if(strokeFlag){
         tmp = PShape(SHAPE_TYPE::TRIANGLES);
+        tmp.setColor(strokeColor);
         arc(tmp,x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      ); //br
         arc(tmp,x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        ); //tr
         arc(tmp,x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  ); //tl
@@ -259,12 +277,15 @@ void square(float x,float y,float r){
 void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
     if(fillFlag){
         beginShape(TRIANGLES);
+        tmp.setColor(fillColor);
         vertex(x1,y1);
         vertex(x2,y2);
         vertex(x3,y3);
         endShape();
-    }else{
+    }
+    if(strokeFlag){
         tmp = PShape(TRIANGLES);
+        tmp.setColor(strokeColor);
         tmp.push(x1,y1,0.f);
         tmp.push(x2,y2,0.f);
         tmp.push(x3,y3,0.f);
@@ -284,6 +305,7 @@ float bezierPoint(float a,float b,float c,float d,float t){
 //Draws a Bezier curve on the screen
 void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
     tmp = PShape(LINES);
+    tmp.setColor(strokeColor);
     float dt = 0.01f;
     for(float t = 0.0;t < 1.0f;t += dt){
         float _x1 = bezierPoint(x1,x2,x3,x4,t);
@@ -318,6 +340,64 @@ void translate(float x,float y,float z = 0.0f){
 
 void rotate(float a){
     matrix = glm::rotate(matrix,a,glm::vec3{0.f,0.f,1.f});
+}
+
+void background(color c){
+    bg = c;
+}
+void background(int r,int g,int b,int a){
+    bg = color(r,g,b,a);
+}
+void background(int r,int g,int b){
+    background(r,g,b,255);
+}
+void background(int v,int a){
+    background(v,v,v,a);
+}
+void background(int v){
+    background(v,255);
+}
+void noFill(){
+    fillFlag = false;
+    fillColor = color(0);
+}
+void fill(color c){
+    fillFlag = true;
+    fillColor = c;
+}
+void fill(int r,int g,int b,int a){
+    fillFlag = true;
+    fillColor = color(r,g,b,a);
+}
+void fill(int r,int g,int b){
+    fill(r,g,b,255);
+}
+void fill(int v,int a){
+    fill(v,v,v,a);
+}
+void fill(int v){
+    fill(v,255);
+}
+void noStroke(){
+    strokeFlag = false;
+    strokeColor = color(0);
+}
+void stroke(color c){
+    strokeFlag = true;
+    strokeColor = c;
+}
+void stroke(int r,int g,int b,int a){
+    strokeFlag = true;
+    strokeColor = color(r,g,b,a);
+}
+void stroke(int r,int g,int b){
+    stroke(r,g,b,255);
+}
+void stroke(int v,int a){
+    stroke(v,v,v,a);
+}
+void stroke(int v){
+    stroke(v,255);
 }
 
 #endif
