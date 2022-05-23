@@ -40,6 +40,10 @@ public:
         verData.push_back({a,b,c,0.f,0.f});
     }
 
+    void push(float x,float y,float a,float b){
+        verData.push_back({x,y,0,a,b});
+    }
+
     void setColor(const color& _c){
         this->c = _c;
     }
@@ -75,6 +79,7 @@ public:
     SHAPE_TYPE type() const{
         return stype;
     }
+
     void type(SHAPE_TYPE s){
         stype = s;
     }

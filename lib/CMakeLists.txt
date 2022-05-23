@@ -27,11 +27,13 @@ endif()
 #############################################################
 
 add_library(cprocessing SHARED
+    PArray.h
     PColor.h
     PFont.h
     PGL.h
     PImage.h
     PMath.h
+    PMatrix.h
     PShader.h
     PShape.h
     PStroker.h

@@ -100,7 +100,7 @@ void noLoop(){
 }
 
 void err(int a,const char* b){
-    printf("GLFW Error %i: \n%s",a,b);
+    printf("GLFW Error %i: \n%s\n",a,b);
 }
 void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     key = _key;
@@ -114,9 +114,13 @@ void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     keypressed = false;
 #endif
 }
+
 int main(int argc, char** argv){
     for(int i = 1; i < argc; i++)
         args.push_back(std::string(argv[i]));
+
+    for(auto s : args)
+        std::cout << s << "\n";
 
     title(" ");
     frameRate(60);
@@ -138,11 +142,13 @@ int main(int argc, char** argv){
     window = glfwCreateWindow(width,height,windowT.c_str(),config ? glfwGetPrimaryMonitor() : NULL,NULL);
 
     if(!window){
+        err(0,"Window = 0");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
     glfwSetErrorCallback(err);
     glfwSetKeyCallback(window,onKey);
 
@@ -154,6 +160,7 @@ int main(int argc, char** argv){
 
     initialized = true;
     initGL();
+    glActiveTexture(GL_TEXTURE0);
     double lasttime = glfwGetTime();
     while(!glfwWindowShouldClose(window)){
         double now = glfwGetTime();
@@ -184,6 +191,7 @@ int main(int argc, char** argv){
     args.clear();
 
     glfwTerminate();
+
     return 0;
 }
 

@@ -8,6 +8,7 @@
 #include <glm/matrix.hpp>
 #include <vector>
 #include "PShader.h"
+#include "PImage.h"
 #include "PShape.h"
 #include "PColor.h"
 #include "PStroker.h"
@@ -21,9 +22,11 @@ color fillColor,strokeColor,bg;
 bool fillFlag,strokeFlag,builder;
 PShape tmp;
 std::vector<glm::mat4> matrices;
+std::vector<PImage> textures;
 glm::mat4 matrix;
 float strokeWidth;
 int cap,join,rMode,eMode,call = 0;
+unsigned int textureID;
 PShader sh;
 
 glm::vec4 vec(const color& c){
@@ -65,12 +68,40 @@ void draw(const PShape& s){
     sh.umat4("matrix",matrix);
     sh.uvec4("color",vec(s.getColor()));
     sh.uint ("call",call);
+    sh.uint ("texID",textureID);
     glDrawArrays(s.type(), 0, s.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glDeleteBuffers(1,&VBO);
     glDeleteVertexArrays(1,&VAO);
     //s.done();
+    if(call != 0)
+        call = 0;
+}
+
+PImage find(const std::string& i){
+    bool found = false;
+    if(textures.empty()){
+        PImage img;
+        img.load(i);
+        textures.push_back(img);
+        return img;
+    }else{
+        for(int a = 0;a < textures.size();a++){
+            PImage img = textures[a];
+            if(img.getName() == i){
+                found = true;
+                if(img.isLoaded())
+                    return img;
+                else{
+                    img.load(img.getName());
+                    textures[a] = img;
+                    return img;
+                }
+            }
+        }
+    }
+    return PImage();
 }
 
 void strokeWeight(float w){
@@ -317,6 +348,17 @@ void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float
     }
     draw(strokify(tmp,strokeWidth,cap,join));
     //delete tmp;
+}
+
+void image(const PImage& img,float x,float y,float w,float h){
+    tmp = PShape(QUADS);
+    tmp.push(x  ,y  ,0,0);
+    tmp.push(x+w,y  ,1,0);
+    tmp.push(x+w,y+h,1,1);
+    tmp.push(x  ,y+h,0,1);
+    textureID = find(img.getName()).getID();
+    //call = 1;
+    draw(tmp);
 }
 
 // ================================================================================
