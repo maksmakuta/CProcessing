@@ -13,6 +13,7 @@
 #include "PFont.h"
 #include "PGL.h"
 #include "PImage.h"
+#include "PManager.h"
 #include "PMath.h"
 #include "PShader.h"
 #include "PTime.h"
@@ -69,6 +70,9 @@ int frameCount = 0;                 // frames since start
 bool looping = true;                // true makes display call itself
 bool redrawflag = false;            // to draw next frame immediately
 int initialized = false;            // glfw initialized yet
+// ==============================================
+
+Manager<PImage> *tex;
 
 // ==============================================
 
@@ -79,6 +83,11 @@ void frameRate(int fr){
         frameRate(30);
 }
 
+void antialiasing(boolean active){
+    if(active)
+        config |= 1 << 2;
+}
+
 void title(const std::string& t){
     if(window == nullptr)
         windowT = t;
@@ -87,7 +96,7 @@ void title(const std::string& t){
 }
 
 void fullScreen(){
-    config = 1;
+    config |= 1 << 1;
 }
 
 void size(int w,int h)  {
@@ -115,15 +124,24 @@ void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
 #endif
 }
 
+PImage loadImage(const std::string& name){
+    tex->add(PImage(name));
+    return tex->getLast();
+}
+
 int main(int argc, char** argv){
+
+    tex = new Manager<PImage>();
+
     for(int i = 1; i < argc; i++)
         args.push_back(std::string(argv[i]));
 
-    for(auto s : args)
+    for(std::string s : args)
         std::cout << s << "\n";
 
     title(" ");
     frameRate(60);
+    antialiasing(true);
     setup();
 
     if(!glfwInit()){
@@ -131,15 +149,17 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 8);
-    glfwInitHint(GLFW_VERSION_MAJOR, 3);
-    glfwInitHint(GLFW_VERSION_MINOR, 3);
-    glfwInitHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if(config)
+    if(config & (1 << 2))
+        glfwWindowHint(GLFW_SAMPLES,8);
+
+    if(config & (1 << 1))
         glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(),&screenWidth,&screenHeight,&width,&height);
 
-    window = glfwCreateWindow(width,height,windowT.c_str(),config ? glfwGetPrimaryMonitor() : NULL,NULL);
+    window = glfwCreateWindow(width,height,windowT.c_str(),config & (1 << 1) ? glfwGetPrimaryMonitor() : NULL,NULL);
 
     if(!window){
         err(0,"Window = 0");
@@ -148,7 +168,7 @@ int main(int argc, char** argv){
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
     glfwSetErrorCallback(err);
     glfwSetKeyCallback(window,onKey);
 
@@ -160,8 +180,11 @@ int main(int argc, char** argv){
 
     initialized = true;
     initGL();
+    glEnable(GL_TEXTURE);
+    glEnable(GL_SCISSOR_TEST);
     glActiveTexture(GL_TEXTURE0);
     double lasttime = glfwGetTime();
+    tex->load();
     while(!glfwWindowShouldClose(window)){
         double now = glfwGetTime();
         glClear(GL_COLOR_BUFFER_BIT);
@@ -174,6 +197,7 @@ int main(int argc, char** argv){
         if(w < 128) w = 128;width  = w;
         if(h < 128) h = 128;height = h;
         glfwSetWindowSize(window,w,h);
+        glScissor(0,0,w,h);
 
         if(looping){
             begin(w,h);
@@ -182,6 +206,11 @@ int main(int argc, char** argv){
             while (glfwGetTime() < lasttime + framerate) {}
             lasttime += framerate;
             glfwSwapBuffers(window);
+            frameCount++;
+            #ifdef FPS
+            std::cout << (float)frameCount/glfwGetTime() << " fps" << "\n";
+            std::flush(std::cout);
+            #endif
         }
 
         key = 0;
@@ -189,7 +218,7 @@ int main(int argc, char** argv){
     }
     doneGL();
     args.clear();
-
+    tex->done();
     glfwTerminate();
 
     return 0;

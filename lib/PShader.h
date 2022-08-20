@@ -71,21 +71,23 @@ public:
     static PShader P5(){
         static const std::string frag =
                 "#version 330 core\n"
+
                 "uniform int call;\n"
                 "uniform sampler2D texID;\n"
                 "uniform vec4 color;\n"
+
                 "in vec2 fTex;\n"
-                "out vec4 fColor;\n"
+
+                "out vec4 pColor;\n"
+
                 "void main(void){\n"
-                "   vec4 pColor;"
                 "   if(call == 0){\n"
                 "       pColor = color;\n"
                 "   } else if(call == 1){\n"
                 "       pColor = texture(texID,fTex);\n"
                 "   }else{"
-                "       pColor = vec4(0.1,0.5,0.7,1.0);\n"
+                "       pColor = vec4(0.1,0.0,0.0,1.0);\n"
                 "   }\n"
-                "   fColor = pColor;\n"
                 "}\n";
         static const std::string vert =
                 "#version 330 core\n"

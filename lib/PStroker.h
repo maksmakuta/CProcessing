@@ -266,7 +266,7 @@ PShape createJoint( const PolySegment &segment1, const PolySegment &segment2,
 
 PShape strokify(PShape contour, float w, int cap, int join,bool allowOverlap = false){
     PShape data(TRIANGLES);
-    data.setColor(contour.getColor());
+    data.setColorS(contour.getColorS());
     bool loop = contour.loop();
     // operate on half the thickness to make our lives easier
     w /= 2;

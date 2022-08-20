@@ -27,7 +27,8 @@ struct vertex{
 class PShape{
 private:
     SHAPE_TYPE stype;
-    color c;
+    color f,s;
+    bool isFill;
     std::vector<vertex> verData;
 public:
     PShape() : PShape(DEFAULT){ }
@@ -44,12 +45,26 @@ public:
         verData.push_back({x,y,0,a,b});
     }
 
-    void setColor(const color& _c){
-        this->c = _c;
+    void setColorF(const color& _c){
+        this->isFill = true;
+        this->f = _c;
     }
 
-    color getColor() const {
-        return this->c;
+    color getColorF() const {
+        return this->f;
+    }
+
+    void setColorS(const color& _c){
+        this->isFill = false;
+        this->s = _c;
+    }
+
+    color getColorS() const {
+        return this->s;
+    }
+
+    bool fill() const{
+        return isFill;
     }
 
     void push(const PVector& v){
