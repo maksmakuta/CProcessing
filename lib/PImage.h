@@ -27,7 +27,7 @@ public:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            stbi_set_flip_vertically_on_load(true);
+            //stbi_set_flip_vertically_on_load(true);
             auto data = stbi_load(fname.c_str(), &w, &h, &c, 0);
             if (data){
                 printf("ID -> %i\nc -> %i\n",textureID,c);

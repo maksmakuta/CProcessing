@@ -1,3 +1,5 @@
 build
 .git
 *.user
+
+*.idx

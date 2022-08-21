@@ -81,11 +81,13 @@ public:
                 "out vec4 pColor;\n"
 
                 "void main(void){\n"
-                "   if(call == 0){\n"
+                "   if(call == 0) {\n"
                 "       pColor = color;\n"
-                "   } else if(call == 1){\n"
+                "   } else if(call == 1) {\n"
                 "       pColor = texture(texID,fTex);\n"
-                "   }else{"
+                //"   } else if(call == 2) {\n"
+                //"       pColor = texture(texID,fTex) > 0.5 ? color : vec4(0,0,0,0);\n"
+                "   } else {"
                 "       pColor = vec4(0.1,0.0,0.0,1.0);\n"
                 "   }\n"
                 "}\n";

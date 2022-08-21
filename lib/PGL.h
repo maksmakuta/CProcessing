@@ -7,23 +7,29 @@
 #include <glm/glm.hpp>
 #include <glm/matrix.hpp>
 #include <vector>
+#include <stack>
 #include "PShader.h"
 #include "PImage.h"
 #include "PShape.h"
 #include "PColor.h"
 #include "PStroker.h"
+#include "PFont.h"
 
 #define CENTER  0
 #define RADIUS  1
 #define CORNER  2
 #define CORNERS 3
 
+int width  = 128;                   // window width
+int height = 128;                   // window height
+
 color fillColor,strokeColor,bg;
 bool fillFlag,strokeFlag,builder;
 PShape tmp;
-std::vector<glm::mat4> matrices;
+PFont curr;
+std::stack<glm::mat4> matrices;
 glm::mat4 matrix;
-float strokeWidth;
+float strokeWidth,defSize;
 int cap,join,rMode,eMode,call = 0;
 unsigned int textureID;
 PShader sh;
@@ -44,10 +50,13 @@ void initGL(){
     sh = PShader::P5();
     rMode = 0;
     eMode = 0;
+    curr = PFont();
 }
 
 void doneGL(){
-    matrices.clear();
+    while (!matrices.empty()) {
+          matrices.pop();
+    }
     sh.done();
 }
 
@@ -84,15 +93,20 @@ void draw(const PShape& s){/*
 }
 
 void pushMatrix(){
-    matrices.push_back(matrix);
+    matrices.push(matrix);
+ //   matrix = glm::ortho(0,width,height,0,-1,1);
+}
+
+void resetMatrix(){
+    matrix = glm::mat4(1.0f);
 }
 
 void popMatrix(){
     if(matrices.size() > 0){
-        matrix = matrices[matrices.size() - 1];
-        matrices.pop_back();
+        matrix = matrices.top();
+        matrices.pop();
     }else{
-        matrix = glm::mat4{0.f};
+        matrix = glm::ortho(0,width,height,0,-1,1);
     }
 }
 
@@ -102,6 +116,64 @@ void translate(float x,float y,float z = 0.0f){
 
 void rotate(float a){
     matrix = glm::rotate(matrix,a,glm::vec3{0.f,0.f,1.f});
+}
+
+void background(color c){
+    bg = c;
+}
+void background(int r,int g,int b,int a){
+    bg = color(r,g,b,a);
+}
+void background(int r,int g,int b){
+    background(r,g,b,255);
+}
+void background(int v,int a){
+    background(v,v,v,a);
+}
+void background(int v){
+    background(v,255);
+}
+void noFill(){
+    fillFlag = false;
+    fillColor = color(0);
+}
+void fill(color c){
+    fillFlag = true;
+    fillColor = c;
+}
+void fill(int r,int g,int b,int a){
+    fillFlag = true;
+    fillColor = color(r,g,b,a);
+}
+void fill(int r,int g,int b){
+    fill(r,g,b,255);
+}
+void fill(int v,int a){
+    fill(v,v,v,a);
+}
+void fill(int v){
+    fill(v,255);
+}
+void noStroke(){
+    strokeFlag = false;
+    strokeColor = color(0);
+}
+void stroke(color c){
+    strokeFlag = true;
+    strokeColor = c;
+}
+void stroke(int r,int g,int b,int a){
+    strokeFlag = true;
+    strokeColor = color(r,g,b,a);
+}
+void stroke(int r,int g,int b){
+    stroke(r,g,b,255);
+}
+void stroke(int v,int a){
+    stroke(v,v,v,a);
+}
+void stroke(int v){
+    stroke(v,255);
 }
 
 void strokeWeight(float w){
@@ -142,7 +214,6 @@ void endShape(){
     if(strokeFlag)
         tmp.setColorS(strokeColor);
     draw(tmp);
-    tmp.done();
 }
 
 void arc(float x,float y,float w,float h,float b,float e,float step){
@@ -412,63 +483,33 @@ void image(const PImage& img,float x,float y,float r){
 
 // ================================================================================
 
+void textFont(PFont fnt,float size = 16.f){
+    defSize = size;
+    curr = fnt;
+}
 
-void background(color c){
-    bg = c;
-}
-void background(int r,int g,int b,int a){
-    bg = color(r,g,b,a);
-}
-void background(int r,int g,int b){
-    background(r,g,b,255);
-}
-void background(int v,int a){
-    background(v,v,v,a);
-}
-void background(int v){
-    background(v,255);
-}
-void noFill(){
-    fillFlag = false;
-    fillColor = color(0);
-}
-void fill(color c){
-    fillFlag = true;
-    fillColor = c;
-}
-void fill(int r,int g,int b,int a){
-    fillFlag = true;
-    fillColor = color(r,g,b,a);
-}
-void fill(int r,int g,int b){
-    fill(r,g,b,255);
-}
-void fill(int v,int a){
-    fill(v,v,v,a);
-}
-void fill(int v){
-    fill(v,255);
-}
-void noStroke(){
-    strokeFlag = false;
-    strokeColor = color(0);
-}
-void stroke(color c){
-    strokeFlag = true;
-    strokeColor = c;
-}
-void stroke(int r,int g,int b,int a){
-    strokeFlag = true;
-    strokeColor = color(r,g,b,a);
-}
-void stroke(int r,int g,int b){
-    stroke(r,g,b,255);
-}
-void stroke(int v,int a){
-    stroke(v,v,v,a);
-}
-void stroke(int v){
-    stroke(v,255);
+void text(std::string& text,float x,float y){
+    curr.init(defSize);
+    //pushMatrix();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for(int a = 0;a < text.size();++a){
+        //printf("char -> %c\n",c);
+        stbtt_aligned_quad q;
+        stbtt_GetBakedQuad(curr.cdata, 512,512, text[a]-32, &x,&y,&q,1);
+        tmp = PShape(QUADS);
+        tmp.setColorF(fillColor);
+        tmp.push(q.x0,q.y0,q.s0,q.t0);
+        tmp.push(q.x1,q.y0,q.s1,q.t0);
+        tmp.push(q.x1,q.y1,q.s1,q.t1);
+        tmp.push(q.x0,q.y1,q.s0,q.t1);
+        printf("data(%f,%f,%f,%f)\n",q.x0,q.y0,q.s0,q.t0);
+        call = 2;
+        textureID = curr.ftex;
+        draw(tmp);
+    }
+    //popMatrix();
 }
 
 #endif

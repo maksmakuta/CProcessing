@@ -19,6 +19,8 @@
 #include "PTime.h"
 #include "PVector.h"
 
+#include <unistd.h>
+
 #define DOWN    GLFW_KEY_DOWN
 #define UP      GLFW_KEY_UP
 #define LEFT    GLFW_KEY_LEFT
@@ -56,8 +58,6 @@ bool keypressed = false;            // Whether a key was pressed
 int mouseButton = 0;                // Which button is pressed
 unsigned char key = 0;              // Which (ASCII) key was pressed
 int keyCode = 0;                    // Code for the last pressed key
-int width  = 128;                   // window width
-int height = 128;                   // window height
 int screenWidth = 0;                // window width
 int screenHeight = 0;               // window height
 unsigned config = 0;                // configuration flags
@@ -168,7 +168,8 @@ int main(int argc, char** argv){
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    glfwSwapInterval(0); //this takes 100% cpu | but get v-sync (when interval == 0)
+    //usleep(1 * 1000 * 1000);
     glfwSetErrorCallback(err);
     glfwSetKeyCallback(window,onKey);
 

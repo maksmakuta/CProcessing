@@ -24,6 +24,12 @@ if (GLEW_FOUND)
     link_libraries(     ${GLEW_LIBRARIES})
 endif()
 
+find_package(Freetype REQUIRED)
+if (FREETYPE_FOUND)
+    include_directories(${FREETYPE_INCLUDE_DIRS})
+    link_libraries(     ${FREETYPE_LIBRARIES})
+endif()
+
 #############################################################
 
 add_library(cprocessing SHARED
@@ -33,7 +39,6 @@ add_library(cprocessing SHARED
     PGL.h
     PImage.h
     PMath.h
-    PMatrix.h
     PShader.h
     PShape.h
     PStroker.h
