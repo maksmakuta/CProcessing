@@ -17,13 +17,13 @@ Write and test in QtCreator
  - [x] OpenGL making
  - [x] Drawing (partially)
    - [x] 2D
-     - [x] Simple shapes (lines,rectangle,circle,arc,ellipse)
-     - [x] Complex shapes (via beginShape()/endShape())  (partially)
+     - [x] Simple shapes 
+     - [x] Complex shapes (via beginShape()/endShape()) 
      - [x] Textures/Images
    - [ ] 3D
      - [ ] Simple 3D shapes (Box,Sphere)
      - [ ] Textures/Images
-   - [ ] Font Rendering 
+   - [x] Font Rendering (beta)
  - [x] Input  (partially)
    - [x] Mouse input (partially)
    - [x] Keyboard input (partially)

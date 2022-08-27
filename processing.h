@@ -1,6 +1,6 @@
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 8
+ *  @version 1.4 beta 9
  *  @author maksmakuta
  */
 
@@ -19,6 +19,7 @@
 #include <optional>
 #include <stack>
 #include <cmath>
+#include <map>
 #include <vector>
 #include <fstream>
 #include <iostream>
@@ -26,12 +27,11 @@
 #include <random>
 #include <string>
 
-#define STB_TRUETYPE_IMPLEMENTATION
-#include <stb/stb_truetype.h>
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #define DOWN    GLFW_KEY_DOWN
 #define UP      GLFW_KEY_UP
@@ -76,18 +76,18 @@ typedef bool boolean;                   // Java boolean type
 //#define length(x) (sizeof(x)/sizeof(x[0]))
 //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
-extern void setup();                // setup function
-extern void draw();                 // draw  function
-extern void mousePressed();         // mouse pressed function
-extern void mouseReleased();        // mouse released function
-extern void mouseMoved();           // mouse moved function
-extern void mouseDragged();         // mouse dragged function
+extern inline void setup();                // setup function
+extern inline void draw();                 // draw  function
+extern inline void mousePressed();         // mouse pressed function
+extern inline void mouseReleased();        // mouse released function
+extern inline void mouseMoved();           // mouse moved function
+extern inline void mouseDragged();         // mouse dragged function
 #ifdef USE_KEYS
-extern void keyPressed();           // key pressed function
+extern inline void keyPressed();           // key pressed function
 #else
-extern void keyPressed(){}           // key pressed function
+extern inline void keyPressed(){}           // key pressed function
 #endif
-extern void keyReleased();          // key released function
+extern inline void keyReleased();          // key released function
 // ==============================================
 std::string windowT = "";
 GLFWwindow* window = null;          // window pointer
@@ -210,16 +210,16 @@ template<class T> std::vector<T> append(const std::vector<T> arr,T obj){
     arr.push_back(obj);
     return arr;
 }
-template<class T> void arrayCopy(const std::vector<T>& src,int srcPosition,
+template<class T> inline void arrayCopy(const std::vector<T>& src,int srcPosition,
                                  const std::vector<T>& dst,int dstPosition,int length)	{
 
     std::copy(src.begin()+srcPosition,src.begin()+length,dst.begin() + dstPosition);
 
 }
-template<class T> void arrayCopy( const std::vector<T>&  src,const std::vector<T>&  dst, int length){
+template<class T> inline void arrayCopy( const std::vector<T>&  src,const std::vector<T>&  dst, int length){
     arrayCopy(src,0,dst,0,length);
 }
-template<class T> void arrayCopy(const std::vector<T>& src, const std::vector<T>&  dst){
+template<class T> inline void arrayCopy(const std::vector<T>& src, const std::vector<T>&  dst){
     arrayCopy(src,dst,src.size());
 }
 template<class T> std::vector<T> concat(const std::vector<T>& src, const std::vector<T>&  dst){
@@ -308,7 +308,7 @@ private:
     std::vector<T> images;
 public:
 
-    void add(T img){
+    inline void add(T img){
         images.push_back(img);
     }
 
@@ -320,13 +320,13 @@ public:
         return get(images.size() - 1);
     }
 
-    void load(){
+    inline void load(){
         for(T &img : images){
             img.load();
         }
     }
 
-    void done(){
+    inline void done(){
         images.clear();
     }
 };
@@ -694,15 +694,15 @@ public:
         this->stype = st;
     }
 
-    void push(float a,float b,float c){
+    inline void push(float a,float b,float c){
         verData.push_back({a,b,c,0.f,0.f});
     }
 
-    void push(float x,float y,float a,float b){
+    inline void push(float x,float y,float a,float b){
         verData.push_back({x,y,0,a,b});
     }
 
-    void setColorF(const color& _c){
+    inline void setColorF(const color& _c){
         this->isFill = true;
         this->f = _c;
     }
@@ -711,7 +711,7 @@ public:
         return this->f;
     }
 
-    void setColorS(const color& _c){
+    inline void setColorS(const color& _c){
         this->isFill = false;
         this->s = _c;
     }
@@ -724,11 +724,11 @@ public:
         return isFill;
     }
 
-    void push(const PVector& v){
+    inline void push(const PVector& v){
         push(v.x,v.y,v.z);
     }
 
-    void add(const PShape& p){
+    inline void add(const PShape& p){
         std::vector<vertex> tmp = p.data();
         if(!tmp.empty()){
             verData.insert(verData.end(),tmp.begin(),tmp.end());
@@ -752,7 +752,7 @@ public:
         return stype;
     }
 
-    void type(SHAPE_TYPE s){
+    inline void type(SHAPE_TYPE s){
         stype = s;
     }
 
@@ -760,7 +760,7 @@ public:
         return verData;
     }
 
-    void data(const std::vector<vertex>& d) {
+    inline void data(const std::vector<vertex>& d) {
         this->verData = d;
     }
 
@@ -773,7 +773,7 @@ public:
         return PVector::equal(a,b);
     }
 
-    void done(){
+    inline void done(){
         verData.clear();
     }
 };
@@ -834,7 +834,6 @@ struct PolySegment {
             edge2(center - PVector::mult(center.normal(), thickness)) {}
     LineSegment center, edge1, edge2;
 };
-
 PShape createTriangleFan(PVector connectTo, PVector origin,
                          PVector start, PVector end, bool clockwise) {
 
@@ -1033,7 +1032,7 @@ PShape strokify(PShape contour, float w, int cap, int join,bool allowOverlap = f
                                point2.y,
                                point2.z);
 
-        // to avoid division-by-zero errors,
+        // to ainline void division-by-zero errors,
         // only create a line segment for non-identical points
         if (!PVector::equal(p1, p2)) {
             segments.emplace_back(LineSegment(p1, p2), w);
@@ -1115,7 +1114,6 @@ PShape strokify(PShape contour, float w, int cap, int join,bool allowOverlap = f
 
     return data;
 }
-
 class PShader{
 private:
     GLuint programS;
@@ -1123,7 +1121,7 @@ private:
 public:
     PShader(){}
 
-    void loadFile(const std::string& vertex,const std::string& fragment){
+    inline void loadFile(const std::string& vertex,const std::string& fragment){
         this->loadCode(load(vertex),load(fragment));
     }
 
@@ -1135,23 +1133,23 @@ public:
     GLuint attrLoc(const std::string& name){
         return glGetAttribLocation(programID(),name.c_str());
     }
-    void umat4(const std::string& name,const glm::mat4& matrix){
+    inline void umat4(const std::string& name,const glm::mat4& matrix){
         glUniformMatrix4fv(loc(name),1, GL_FALSE, glm::value_ptr(matrix));
     }
-    void uint(const std::string& name,int value){
+    inline void uint(const std::string& name,int value){
         glUniform1i(loc(name), value);
     }
-    void uvec4(const std::string& name,const glm::vec4& vec){
+    inline void uvec4(const std::string& name,const glm::vec4& vec){
         glUniform4fv(loc(name),1,glm::value_ptr(vec));
     }
-    void uvec3(const std::string& name,const glm::vec3& vec){
+    inline void uvec3(const std::string& name,const glm::vec3& vec){
         glUniform3fv(loc(name),1,glm::value_ptr(vec));
     }
-    void uvec2(const std::string& name,const glm::vec2& vec){
+    inline void uvec2(const std::string& name,const glm::vec2& vec){
         glUniform2fv(loc(name),1,glm::value_ptr(vec));
     }
 
-    void loadCode(const std::string& vertex,const std::string& fragment){
+    inline void loadCode(const std::string& vertex,const std::string& fragment){
         this->vertS = makeShader(GL_VERTEX_SHADER  ,  vertex.c_str());
         this->fragS = makeShader(GL_FRAGMENT_SHADER,fragment.c_str());
         this->programS = makeProgram(vertS,fragS);
@@ -1169,7 +1167,7 @@ public:
         return s;
     }
 
-    void done(){
+    inline void done(){
         glDeleteShader(fragS);
         glDeleteShader(vertS);
         glDeleteProgram(programS);
@@ -1178,23 +1176,18 @@ public:
     static PShader P5(){
         static const std::string frag =
                 "#version 330 core\n"
-
                 "uniform int call;\n"
                 "uniform sampler2D texID;\n"
                 "uniform vec4 color;\n"
-
                 "in vec2 fTex;\n"
-
                 "out vec4 pColor;\n"
-
                 "void main(void){\n"
                 "   if(call == 0) {\n"
                 "       pColor = color;\n"
                 "   } else if(call == 1) {\n"
                 "       pColor = texture(texID,fTex);\n"
                 "   } else if(call == 2) {\n"
-                "       float a = texture(texID,fTex).a;"
-                "       pColor = vec4(a,0,0,1);\n"
+                "       pColor = vec4(color.r,color.g,color.b,texture(texID, fTex).r);"
                 "   } else {"
                 "       pColor = vec4(0.1,0.0,0.0,1.0);\n"
                 "   }\n"
@@ -1258,8 +1251,6 @@ private:
         return ss.str();
     }
 };
-
-
 class PImage{
 private:
     unsigned int textureID = 0;
@@ -1272,7 +1263,12 @@ public:
         this->fname = name;
     }
 
-    void load(){
+    PImage(unsigned int tex):PImage("lol"){
+        this->textureID = tex;
+        this->loaded = true;
+    }
+
+    inline void load(){
         if(loaded != true){
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -1295,7 +1291,7 @@ public:
         }
     }
 
-    void create(int w, int h, unsigned char* data,int img = GL_ALPHA){
+    inline void create(int w, int h, unsigned char* data,int img = GL_ALPHA){
         if(loaded != true){
             glGenTextures(1, &textureID);
             glBindTexture(GL_TEXTURE_2D, textureID);
@@ -1334,7 +1330,7 @@ public:
         return this->h;
     }
 
-    void done(){
+    inline void done(){
         glDeleteTextures(1,&textureID);
     }
 
@@ -1343,7 +1339,16 @@ public:
     }
 };
 
+struct Character {
+    unsigned int TextureID; // ID handle of the glyph texture
+    glm::ivec2   Size;      // Size of glyph
+    glm::ivec2   Bearing;   // Offset from baseline to left/top of glyph
+    unsigned int Advance;   // Horizontal offset to advance to next glyph
+};
+
 class PFont{
+private:
+    bool loaded = false;
 public:
     PFont() : PFont("/usr/share/fonts/TTF/OpenSans-Regular.ttf"){/* ... */}
 
@@ -1351,22 +1356,82 @@ public:
         this->fontName = fname;
     }
 
-    void init(float s){
-        if(!ftex.isLoaded()){
-            unsigned char *ttf_buffer = new unsigned char[1<<20];
-            unsigned char *temp_bitmap = new unsigned char[512*512];
-            fread(ttf_buffer, 1, 1<<20, fopen(fontName.c_str(), "rb"));
-            stbtt_BakeFontBitmap(ttf_buffer,0, s, temp_bitmap,512,512, 32,96, cdata); // no guarantee this fits!
-            delete []ttf_buffer;
-            ftex.create(512, 512, temp_bitmap);
-            delete []temp_bitmap;
+    inline void init(float s){
+        if(!loaded){
+            FT_Library ft;
+            if (FT_Init_FreeType(&ft)){
+                std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+                return;
+            }
+
+	        if (fontName.empty()){
+                std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+                return;
+            }else{
+                std::cout << fontName << std::endl;
+            }
+
+	        // load font as face
+            FT_Face face;
+            if (FT_New_Face(ft, fontName.c_str(), 0, &face)) {
+                std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+                return;
+            }else {
+                // set size to load glyphs as
+                FT_Set_Pixel_Sizes(face, 0, s);
+
+                // disable byte-alignment restriction
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+                // load first 128 - 32 = 96 characters of ASCII set
+                for (unsigned int c = 32; c < 700; c++)
+                {
+                    // Load character glyph 
+                    if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+                    {
+                        std::cout << "ERROR::FREETYTPE: Failed to load Glyph (" << c << ")" << std::endl;
+                        continue;
+                    }
+                    // generate texture
+                    unsigned int texture;
+                    glGenTextures(1, &texture);
+                    glBindTexture(GL_TEXTURE_2D, texture);
+                    glTexImage2D(
+                        GL_TEXTURE_2D,
+                        0,
+                        GL_RED,
+                        face->glyph->bitmap.width,
+                        face->glyph->bitmap.rows,
+                        0,
+                        GL_RED,
+                        GL_UNSIGNED_BYTE,
+                        face->glyph->bitmap.buffer
+                    );
+                    // set texture options
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    // now store character for later use
+                    Character character = {
+                        texture,
+                        glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                        glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                        static_cast<unsigned int>(face->glyph->advance.x)
+                    };
+                    Characters.insert(std::pair<char, Character>(c, character));
+                }
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            // destroy FreeType once we're finished
+            loaded = true;
+            FT_Done_Face(face);
+            FT_Done_FreeType(ft);
         }
     }
 
-
     std::string fontName;
-    stbtt_bakedchar cdata[96];
-    PImage ftex;
+    std::map<GLchar, Character> Characters;
 };
 // ==============================================
 
@@ -1387,11 +1452,11 @@ PShader sh;
 // ==============================================
 
 
-glm::vec4 vec(const color& c){
+inline glm::vec4 vec(const color& c){
     return {c.r,c.g,c.b,c.a};
 }
 
-void initGL(){
+inline void initGL(){
     fillColor = color(255);
     strokeColor  = color(255);
     bg  = color(150);
@@ -1406,14 +1471,14 @@ void initGL(){
     curr = PFont();
 }
 
-void doneGL(){
+inline void doneGL(){
     while (!matrices.empty()) {
           matrices.pop();
     }
     sh.done();
 }
 
-void draw(const PShape& s){/*
+inline void draw(const PShape& s){/*
     printf("call = %i\n",call);
     printf("texID = %i\n",textureID);*/
     unsigned int VBO, VAO;
@@ -1437,7 +1502,6 @@ void draw(const PShape& s){/*
     glBindVertexArray(0);
     glDeleteBuffers(1,&VBO);
     glDeleteVertexArrays(1,&VAO);
-    //s.done();
     if(call != 0)
         call = 0;
     if(textureID != 0)
@@ -1445,16 +1509,17 @@ void draw(const PShape& s){/*
     std::flush(std::cout);
 }
 
-void pushMatrix(){
-    matrices.push(matrix);
- //   matrix = glm::ortho(0,width,height,0,-1,1);
-}
-
-void resetMatrix(){
+inline void resetMatrix(){
     matrix = glm::mat4(1.0f);
 }
 
-void popMatrix(){
+inline void pushMatrix(){
+    matrices.push(matrix);
+    matrix = glm::ortho(0,width,height,0,-1,1);
+}
+
+
+inline void popMatrix(){
     if(matrices.size() > 0){
         matrix = matrices.top();
         matrices.pop();
@@ -1463,104 +1528,104 @@ void popMatrix(){
     }
 }
 
-void translate(float x,float y,float z = 0.0f){
+inline void translate(float x,float y,float z = 0.0f){
     matrix = glm::translate(matrix,glm::vec3{x,y,z});
 }
 
-void rotate(float a){
+inline void rotate(float a){
     matrix = glm::rotate(matrix,a,glm::vec3{0.f,0.f,1.f});
 }
 
-void background(color c){
+inline void background(color c){
     bg = c;
 }
-void background(int r,int g,int b,int a){
+inline void background(int r,int g,int b,int a){
     bg = color(r,g,b,a);
 }
-void background(int r,int g,int b){
+inline void background(int r,int g,int b){
     background(r,g,b,255);
 }
-void background(int v,int a){
+inline void background(int v,int a){
     background(v,v,v,a);
 }
-void background(int v){
+inline void background(int v){
     background(v,255);
 }
-void noFill(){
+inline void noFill(){
     fillFlag = false;
     fillColor = color(0);
 }
-void fill(color c){
+inline void fill(color c){
     fillFlag = true;
     fillColor = c;
 }
-void fill(int r,int g,int b,int a){
+inline void fill(int r,int g,int b,int a){
     fillFlag = true;
     fillColor = color(r,g,b,a);
 }
-void fill(int r,int g,int b){
+inline void fill(int r,int g,int b){
     fill(r,g,b,255);
 }
-void fill(int v,int a){
+inline void fill(int v,int a){
     fill(v,v,v,a);
 }
-void fill(int v){
+inline void fill(int v){
     fill(v,255);
 }
-void noStroke(){
+inline void noStroke(){
     strokeFlag = false;
     strokeColor = color(0);
 }
-void stroke(color c){
+inline void stroke(color c){
     strokeFlag = true;
     strokeColor = c;
 }
-void stroke(int r,int g,int b,int a){
+inline void stroke(int r,int g,int b,int a){
     strokeFlag = true;
     strokeColor = color(r,g,b,a);
 }
-void stroke(int r,int g,int b){
+inline void stroke(int r,int g,int b){
     stroke(r,g,b,255);
 }
-void stroke(int v,int a){
+inline void stroke(int v,int a){
     stroke(v,v,v,a);
 }
-void stroke(int v){
+inline void stroke(int v){
     stroke(v,255);
 }
 
-void strokeWeight(float w){
+inline void strokeWeight(float w){
     strokeWidth = w;
 }
 
-void strokeJoin(int j){
+inline void strokeJoin(int j){
     join = j;
 }
 
-void strokeCap(int c){
+inline void strokeCap(int c){
     cap = c;
 }
 
-void begin(float w,float h){
+inline void begin(float w,float h){
     glViewport(0,0,w,h);
     matrix = glm::ortho(0.f,w,h,0.f,-1.f,1.f);
 }
 
-void end(){ /* ... */ }
+inline void end(){ /* ... */ }
 
-void beginShape(SHAPE_TYPE t = DEFAULT){
+inline void beginShape(SHAPE_TYPE t = DEFAULT){
     builder = true;
     tmp = PShape(t);
 }
 
-void vertex(float x,float y,float z = 0.0f){
+inline void vertex(float x,float y,float z = 0.0f){
     if(builder)
         tmp.push(x,y,z);
     else
         std::cerr << "vertex() must be inside shapeBegin() and shapeEnd() functions\n";
 }
 
-void endShape(){
+inline void endShape(){
     builder = false;
     if(fillFlag)
         tmp.setColorF(fillColor);
@@ -1569,7 +1634,7 @@ void endShape(){
     draw(tmp);
 }
 
-void arc(float x,float y,float w,float h,float b,float e,float step){
+inline void arc(float x,float y,float w,float h,float b,float e,float step){
     float d = radians(step);
     if(fillFlag){
         tmp = PShape(TRIANGLE_FAN);
@@ -1595,26 +1660,26 @@ void arc(float x,float y,float w,float h,float b,float e,float step){
 }
 
 // Draws an arc in the display window
-void arc(float x,float y,float w,float h,float b,float e){
+inline void arc(float x,float y,float w,float h,float b,float e){
     arc(x,y,w,h,b,e,5.f);
 }
 // Draws a circle to the screen
-void circle(float x,float y,float r){
+inline void circle(float x,float y,float r){
     arc(x,y,r,r,0,TWO_PI);
 }
 
-void ellipseMode (unsigned mode) {
+inline void ellipseMode (unsigned mode) {
     assert (mode == CENTER || mode == RADIUS || mode == CORNER || mode == CORNERS);
     eMode = mode;
 }
 
 // Draws an ellipse (oval) in the display window
-void ellipse(float x,float y,float w,float h){
+inline void ellipse(float x,float y,float w,float h){
     arc(x,y,w,h,0,TWO_PI);
 }
 
 // Draws a line (a direct path between two points) to the screen
-void line(float x1,float y1,float x2,float y2){
+inline void line(float x1,float y1,float x2,float y2){
     tmp = PShape(LINES);
     tmp.setColorS(strokeColor);
     tmp.push(x1,y1,0.f);
@@ -1624,16 +1689,15 @@ void line(float x1,float y1,float x2,float y2){
 }
 
 // Draws a point, a coordinate in space at the dimension of one pixel
-void point(float x,float y){
-    tmp = PShape(TRIANGLES);
-    tmp.setColorS(strokeColor);
-    tmp.push(x,y,0.f);
-    draw(strokify(tmp,strokeWidth,cap,join));
-    //delete tmp;
+inline void point(float x,float y){
+    color tmp = fillColor;
+    fill(strokeColor);
+   circle(x, y, strokeWidth);
+    fill(tmp);
 }
 
 // A quad is a quadrilateral, a four sided polygon
-void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
+inline void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
     if(fillFlag){
         tmp = PShape(QUADS);
         tmp.setColorF(fillColor);
@@ -1654,13 +1718,13 @@ void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y
     }
 }
 
-void rectMode (unsigned mode){
+inline void rectMode (unsigned mode){
     assert (mode == CENTER || mode == RADIUS || mode == CORNER || mode == CORNERS);
     rMode = mode;
 }
 
 // Draws a rectangle to the screen
-void rect(float x,float y,float w,float h){
+inline void rect(float x,float y,float w,float h){
     if(fillFlag){
         tmp = PShape(TRIANGLE_STRIP);
         tmp.setColorF(fillColor);
@@ -1682,7 +1746,7 @@ void rect(float x,float y,float w,float h){
     }
 }
 
-void arc(PShape& sh,float x,float y,float r, float b,float e){
+inline void arc(PShape& sh,float x,float y,float r, float b,float e){
 
     float dr;
     if(r >= 0 && r <= 50)
@@ -1701,7 +1765,7 @@ void arc(PShape& sh,float x,float y,float r, float b,float e){
     }
 }
 
-void arc(PShape& sh,float x,float y,float w,float h,float r, float b,float e){
+inline void arc(PShape& sh,float x,float y,float w,float h,float r, float b,float e){
 
     float dr;
     if(r >= 0 && r <= 50)
@@ -1720,7 +1784,7 @@ void arc(PShape& sh,float x,float y,float w,float h,float r, float b,float e){
     }
 }
 
-void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
+inline void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
     if(fillFlag){
         tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
         tmp.setColorF(fillColor);
@@ -1744,17 +1808,17 @@ void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rb
     }
 }
 
-void rect(float x,float y,float w,float h,float r){
+inline void rect(float x,float y,float w,float h,float r){
     rect(x,y,w,h,r,r,r,r);
 }
 
 // Draws a square to the screen
-void square(float x,float y,float r){
+inline void square(float x,float y,float r){
     rect(x,y,r,r);
 }
 
 // A triangle is a plane created by connecting three points
-void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
+inline void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
     if(fillFlag){
         beginShape(TRIANGLES);
         tmp.setColorF(fillColor);
@@ -1783,7 +1847,7 @@ float bezierPoint(float a,float b,float c,float d,float t){
 }
 
 //Draws a Bezier curve on the screen
-void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
+inline void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
     tmp = PShape(LINES);
     tmp.setColorS(strokeColor);
     float dt = 0.01f;
@@ -1799,7 +1863,7 @@ void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float
     //delete tmp;
 }
 
-void image(const PImage& img,float x,float y,float w,float h){
+inline void image(const PImage& img,float x,float y,float w,float h){
     tmp = PShape(TRIANGLE_STRIP);
     tmp.push(x  ,y  ,0.f,0.f);
     tmp.push(x+w,y  ,1.f,0.f);
@@ -1810,7 +1874,7 @@ void image(const PImage& img,float x,float y,float w,float h){
     draw(tmp);
 }
 
-void image(const PImage& img,float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
+inline void image(const PImage& img,float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
     tmp = PShape(SHAPE_TYPE::TRIANGLE_FAN);
     tmp.push(w/2,h/2,0.5f,0.5f);
     arc(tmp,w-rbr ,h-rbr,w,h,rbr,0       ,PI/2    ); //br
@@ -1826,94 +1890,106 @@ void image(const PImage& img,float x,float y,float w,float h,float rtl,float rtr
     popMatrix();
 }
 
-void image(const PImage& img,float x,float y,float w,float h,float r){
+inline void image(const PImage& img,float x,float y,float w,float h,float r){
   image(img,x,y,w,h,r,r,r,r);
 }
 
-void image(const PImage& img,float x,float y,float r){
+inline void image(const PImage& img,float x,float y,float r){
     image(img,x-r,y-r,2*r,2*r,r);
 }
 
-void image(const PImage& img,float x,float y){
+inline void image(const PImage& img,float x,float y){
     image(img,x,y,img.getWidth(),img.getHeight());
 }
 
 // ================================================================================
 
-void textFont(PFont fnt,float size = 16.f){
+inline void textFont(PFont fnt,float size = 16.f){
     if(defSize != size)
         defSize = size;
     if(curr.fontName != fnt.fontName)
         curr = fnt;
 }
 
-void text(std::string& text,float x,float y){
+inline void text(char c,float x,float y){
     curr.init(defSize);
-    //pushMatrix();
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    for(int a = 0;a < text.size();++a){
-        //printf("char -> %c\n",c);
-        stbtt_aligned_quad q;
-        stbtt_GetBakedQuad(curr.cdata,curr.ftex.getWidth(),curr.ftex.getHeight(), text[a]-32, &x,&y,&q,1);
-        //tmp = PShape(QUADS);
-        //tmp.setColorF(fillColor);
-        //tmp.push(q.x0,q.y0,q.s0,q.t0);
-        //tmp.push(q.x1,q.y0,q.s1,q.t0);
-        //tmp.push(q.x1,q.y1,q.s1,q.t1);
-        //tmp.push(q.x0,q.y1,q.s0,q.t1);
-        //printf("data(%f,%f,%f,%f)\n",q.x0,q.y0,q.s0,q.t0);
-        call = 0;
-        //textureID = curr.ftex.getID();
-        //draw(tmp);
-        
-        quad(
-            q.x0,q.y0,
-            q.x1,q.y0,
-            q.x1,q.y1,
-            q.x0,q.y1
-        );
-    }
-    //popMatrix();
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float scale = 1.0f;
+    Character ch = curr.Characters[c];
+    float xpos = x + ch.Bearing.x * scale;
+    float ypos = y + (ch.Size.y - ch.Bearing.y) * scale;
+    float w = ch.Size.x * scale;
+    float h = ch.Size.y * scale;
+    tmp = PShape(TRIANGLE_STRIP);
+    tmp.setColorF(fillColor);
+    tmp.push(xpos  ,ypos  ,0.f,1.f);
+    tmp.push(xpos+w,ypos  ,1.f,1.f);
+    tmp.push(xpos  ,ypos-h,0.f,0.f);
+    tmp.push(xpos+w,ypos-h,1.f,0.f);
+    call = 2;
+    textureID = ch.TextureID;
+    draw(tmp);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
 }
 
-void frameRate(int fr){
+inline void text(std::string msg,float x,float y){
+    float scale = 1.0f;
+    for (int a = 0;a < msg.size();a++) {
+        Character ch = curr.Characters[msg[a]];
+        x += ch.Size.x * scale;
+        text(msg[a],x,y);
+        x += (ch.Advance >> 6) * scale;
+    }
+}
+
+inline void text(std::wstring msg,float x,float y){
+    float scale = 1.0f;
+    for (int a = 0;a < msg.size();a++) {
+        Character ch = curr.Characters[msg[a]];
+        text(msg[a],x,y);
+        x += (ch.Advance >> 6) * scale;
+    }
+}
+
+inline void frameRate(int fr){
     if(fr != 0 || fr < 0)
         framerate = 1.0/fr;
     else
         frameRate(30);
 }
 
-void antialiasing(boolean active){
+inline void antialiasing(boolean active){
     if(active)
         config |= (1 << 2);
 }
 
-void title(const std::string& t){
+inline void title(const std::string& t){
     if(window == nullptr)
         windowT = t;
     else
         glfwSetWindowTitle(window,windowT.c_str());
 }
 
-void fullScreen(){
+inline void fullScreen(){
     config |= 1 << 1;
 }
 
-void size(int w,int h)  {
+inline void size(int w,int h)  {
     width  = w;
     height = h;
 }
 
-void noLoop(){
+inline void noLoop(){
     looping = false;
 }
 
-void err(int a,const char* b){
+inline void err(int a,const char* b){
     printf("GLFW Error %i: \n%s\n",a,b);
 }
-void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
+inline void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods){
     key = _key;
 
 #ifdef USE_KEYS
