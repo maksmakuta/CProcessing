@@ -1,3 +1,10 @@
+/**
+ *  DVD screensaver
+ *  Author: Maks Makuta
+ *  CProcessing version : 1.4.7
+ *  URL: https://www.youtube.com/watch?v=lKL7twr-BcE
+ */
+
 #include <processing.h>
 
 PImage *img = new PImage[5];

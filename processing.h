@@ -1,6 +1,6 @@
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 9
+ *  @version 1.4 beta 10
  *  @author maksmakuta
  */
 
@@ -85,7 +85,7 @@ extern inline void mouseDragged();         // mouse dragged function
 #ifdef USE_KEYS
 extern inline void keyPressed();           // key pressed function
 #else
-extern inline void keyPressed(){}           // key pressed function
+extern inline void keyPressed(){}          // key pressed function
 #endif
 extern inline void keyReleased();          // key released function
 // ==============================================
@@ -1178,16 +1178,24 @@ public:
                 "#version 330 core\n"
                 "uniform int call;\n"
                 "uniform sampler2D texID;\n"
-                "uniform vec4 color;\n"
+                "uniform vec4 color1;\n"
+                "uniform vec4 color2;\n"
                 "in vec2 fTex;\n"
                 "out vec4 pColor;\n"
                 "void main(void){\n"
-                "   if(call == 0) {\n"
-                "       pColor = color;\n"
-                "   } else if(call == 1) {\n"
+                "   if(call == 0) {\n"          // color
+                "       pColor = color1;\n"
+                "   } else if(call == 1) {\n"   // texture
                 "       pColor = texture(texID,fTex);\n"
-                "   } else if(call == 2) {\n"
-                "       pColor = vec4(color.r,color.g,color.b,texture(texID, fTex).r);"
+                "   } else if(call == 2) {\n"   // text
+                "       pColor = vec4(color1.r,color1.g,color1.b,texture(texID, fTex).r);"
+                "   } else if(call == 3) {\n"   // linear gradient h
+                "       pColor = mix(color1,color2,smoothstep(0.0, 1.0, fTex.x));"
+                "   } else if(call == 4) {\n"   // linear gradient v
+                "       pColor = mix(color1,color2,smoothstep(0.0, 1.0, fTex.y));"
+                "   } else if(call == 5) {\n"   // radial gradient
+                "       float mixValue = length(fTex-vec2(0.5,0.5));"
+                "       pColor = mix(color1,color2,mixValue);"
                 "   } else {"
                 "       pColor = vec4(0.1,0.0,0.0,1.0);\n"
                 "   }\n"
@@ -1376,19 +1384,17 @@ public:
             if (FT_New_Face(ft, fontName.c_str(), 0, &face)) {
                 std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
                 return;
-            }else {
+            }else{
                 // set size to load glyphs as
                 FT_Set_Pixel_Sizes(face, 0, s);
 
                 // disable byte-alignment restriction
                 glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-                // load first 128 - 32 = 96 characters of ASCII set
-                for (unsigned int c = 32; c < 700; c++)
-                {
+                // load first 128 characters of ASCII set
+                for (unsigned int c = 0; c < 128; c++){
                     // Load character glyph 
-                    if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-                    {
+                    if (FT_Load_Char(face, c, FT_LOAD_RENDER)){
                         std::cout << "ERROR::FREETYTPE: Failed to load Glyph (" << c << ")" << std::endl;
                         continue;
                     }
@@ -1430,13 +1436,16 @@ public:
         }
     }
 
+    bool isLoaded() const {
+        return this->loaded;
+    }
+
     std::string fontName;
     std::map<GLchar, Character> Characters;
 };
 // ==============================================
 
 Manager<PImage> *tex;
-
 
 color fillColor,strokeColor,bg;
 bool fillFlag,strokeFlag,builder;
@@ -1495,7 +1504,8 @@ inline void draw(const PShape& s){/*
     glBindTexture(GL_TEXTURE_2D,textureID);
     glUseProgram(sh.programID());
     sh.umat4("matrix",matrix);
-    sh.uvec4("color",s.fill() ? vec(s.getColorF()) : vec(s.getColorS()));
+    sh.uvec4("color1",s.fill() ? vec(s.getColorF()) : vec(s.getColorS()));
+    sh.uvec4("color2",s.fill() ? vec(strokeColor) : vec(fillColor));
     sh.uint ("call",call);
     glDrawArrays(s.type(), 0, s.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1515,9 +1525,7 @@ inline void resetMatrix(){
 
 inline void pushMatrix(){
     matrices.push(matrix);
-    matrix = glm::ortho(0,width,height,0,-1,1);
 }
-
 
 inline void popMatrix(){
     if(matrices.size() > 0){
@@ -1909,49 +1917,45 @@ inline void textFont(PFont fnt,float size = 16.f){
         defSize = size;
     if(curr.fontName != fnt.fontName)
         curr = fnt;
+    if(!curr.isLoaded())
+        curr.init(defSize);
 }
 
-inline void text(char c,float x,float y){
+inline void text(std::string msg,float x,float y){
     curr.init(defSize);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     float scale = 1.0f;
-    Character ch = curr.Characters[c];
-    float xpos = x + ch.Bearing.x * scale;
-    float ypos = y + (ch.Size.y - ch.Bearing.y) * scale;
-    float w = ch.Size.x * scale;
-    float h = ch.Size.y * scale;
-    tmp = PShape(TRIANGLE_STRIP);
-    tmp.setColorF(fillColor);
-    tmp.push(xpos  ,ypos  ,0.f,1.f);
-    tmp.push(xpos+w,ypos  ,1.f,1.f);
-    tmp.push(xpos  ,ypos-h,0.f,0.f);
-    tmp.push(xpos+w,ypos-h,1.f,0.f);
-    call = 2;
-    textureID = ch.TextureID;
-    draw(tmp);
+    for(char c : msg){
+        Character ch = curr.Characters[c];
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y + (ch.Size.y - ch.Bearing.y) * scale;
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        tmp = PShape(TRIANGLE_STRIP);
+        tmp.setColorF(fillColor);
+        tmp.push(xpos  ,ypos  ,0.f,1.f);
+        tmp.push(xpos+w,ypos  ,1.f,1.f);
+        tmp.push(xpos  ,ypos-h,0.f,0.f);
+        tmp.push(xpos+w,ypos-h,1.f,0.f);
+        call = 2;
+        textureID = ch.TextureID;
+        draw(tmp);
+        x += (ch.Advance >> 6) * scale;
+    }
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 }
 
-inline void text(std::string msg,float x,float y){
+inline float textWidth(std::string& msg){
+    float s = 0.f;
     float scale = 1.0f;
-    for (int a = 0;a < msg.size();a++) {
-        Character ch = curr.Characters[msg[a]];
-        x += ch.Size.x * scale;
-        text(msg[a],x,y);
-        x += (ch.Advance >> 6) * scale;
+    for(char c : msg){
+        Character ch = curr.Characters[c];
+        s += ch.Size.x * scale + (ch.Advance >> 6) * scale;
     }
-}
-
-inline void text(std::wstring msg,float x,float y){
-    float scale = 1.0f;
-    for (int a = 0;a < msg.size();a++) {
-        Character ch = curr.Characters[msg[a]];
-        text(msg[a],x,y);
-        x += (ch.Advance >> 6) * scale;
-    }
+    return s;
 }
 
 inline void frameRate(int fr){
@@ -1978,8 +1982,12 @@ inline void fullScreen(){
 }
 
 inline void size(int w,int h)  {
-    width  = w;
-    height = h;
+    if(window == nullptr){
+        width  = w;
+        height = h;
+    }else{
+        glfwSetWindowSize(window,w,h);
+    }
 }
 
 inline void noLoop(){
@@ -2031,7 +2039,6 @@ int main(int argc, char** argv){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        
     if(config & (1 << 2)){
         glfwWindowHint(GLFW_SAMPLES,4);
         printf("Antialiasing : enabled\n");
@@ -2058,6 +2065,8 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
 
+    glfwSetWindowSize(window,width,height);
+
     if(config & (1 << 2))
         glEnable(GL_MULTISAMPLE);  
 
@@ -2067,8 +2076,10 @@ int main(int argc, char** argv){
     glEnable(GL_SCISSOR_TEST);
     double lasttime = glfwGetTime();
     tex->load();
+    #ifdef FPS
     int fps = 0;
     double fpsTime = 0.0;
+    #endif
     while(!glfwWindowShouldClose(window)){
         double now = glfwGetTime();
         glClear(GL_COLOR_BUFFER_BIT);
@@ -2091,7 +2102,7 @@ int main(int argc, char** argv){
             lasttime += framerate;
             glfwSwapBuffers(window);
             frameCount++;            
-            //#ifdef FPS
+            #ifdef FPS
             ++fps;
             if(glfwGetTime() - fpsTime >= 5.0){
                 printf("FPS : %f\n",(double)fps/5.0);
@@ -2099,14 +2110,15 @@ int main(int argc, char** argv){
                 fps = 0;
                 fpsTime = glfwGetTime();
             }
-
-            //#endif
+            #endif
         }
 
         key = 0;
         glfwPollEvents();
     }
     doneGL();
+    glDisable(GL_TEXTURE);
+    glDisable(GL_SCISSOR_TEST);
     args.clear();
     tex->done();
     glfwTerminate();
