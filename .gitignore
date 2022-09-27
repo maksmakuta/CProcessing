@@ -3,3 +3,5 @@ build
 *.user
 
 *.idx
+
+.vscode/

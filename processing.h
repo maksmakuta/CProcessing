@@ -118,6 +118,10 @@ int height = 128;                   // window height
 
 // ==============================================
 
+    template<typename T> std::string str(T obj){
+        return std::to_string(obj);
+    }
+
     template<class T> T rand(T min, T max){
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -1671,6 +1675,11 @@ inline void arc(float x,float y,float w,float h,float b,float e,float step){
 inline void arc(float x,float y,float w,float h,float b,float e){
     arc(x,y,w,h,b,e,5.f);
 }
+
+// Draws an arc in the display window
+inline void arc(float x,float y,float r,float b,float e){
+    arc(x,y,r,r,b,e,5.f);
+}
 // Draws a circle to the screen
 inline void circle(float x,float y,float r){
     arc(x,y,r,r,0,TWO_PI);
@@ -2055,7 +2064,7 @@ int main(int argc, char** argv){
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0); //this takes 100% cpu | but get v-sync (when interval == 0)
+    //glfwSwapInterval(0); //this takes 100% cpu | but get v-sync (when interval == 0)
     glfwSetErrorCallback(err);
     glfwSetKeyCallback(window,onKey);
 
