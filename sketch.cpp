@@ -17,14 +17,12 @@ void draw() {
   rect(100, 100, 100,100, 25);
 
   pushMatrix();
-    //resetMatrix();
-    rotate(radians(a));
     translate(mouseX,mouseY);
+    rotate(radians(a));
     fill(255,100,150);
     std::string str = "Hello World";
     float w = textWidth(str);
     text(str,-(w/2),0);
-    line(-(w/2),0,w/2,0);
   popMatrix();
 }
 

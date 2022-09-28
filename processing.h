@@ -1,6 +1,6 @@
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 10
+ *  @version 1.4 beta 12
  *  @author maksmakuta
  */
 
@@ -1534,7 +1534,7 @@ inline void pushMatrix(){
 inline void popMatrix(){
     if(matrices.size() > 0){
         matrix = matrices.top();
-        matrices.pop();
+        //matrices.pop();
     }else{
         matrix = glm::ortho(0,width,height,0,-1,1);
     }
