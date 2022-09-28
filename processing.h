@@ -1961,8 +1961,7 @@ inline float textWidth(std::string& msg){
     float s = 0.f;
     float scale = 1.0f;
     for(char c : msg){
-        Character ch = curr.Characters[c];
-        s += ch.Size.x * scale + (ch.Advance >> 6) * scale;
+        s += ( curr.Characters[c].Advance >> 6);
     }
     return s;
 }
