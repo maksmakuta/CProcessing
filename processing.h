@@ -106,7 +106,7 @@ int screenHeight = 0;               // window height
 unsigned config = 0;                // configuration flags
 double framerate = 0;               // Frames per second
 double framedelay = 0.0;            // Delay in seconds between frame
-int frameCount = 0;                 // frames since start
+long frameCount = 0;                 // frames since start
 //std::vector<Style> styles;        // Stack of styles
 //PixelColorBuffer pixels;          // virtual array of pixels to get and put from (operated thru backbuffer)
 //PImage screenBuffer;              // buffer of current window
@@ -1481,7 +1481,9 @@ inline void initGL(){
     sh = PShader::P5();
     rMode = 0;
     eMode = 0;
+    defSize = 16.f;
     curr = PFont();
+    curr.init(defSize);
 }
 
 inline void doneGL(){
@@ -2017,6 +2019,14 @@ inline void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods
     keypressed = false;
 #endif
 }
+double mouseTime = 0;
+void onMouse(GLFWwindow* window, int button, int action, int mods){
+    if (button == GLFW_MOUSE_BUTTON_LEFT){
+        mouseButton = button;
+        mouseTime = glfwGetTime();
+        mousepressed = action == GLFW_PRESS;
+    }
+}
 
 PImage loadImage(const std::string& name){
     tex->add(PImage(name));
@@ -2066,6 +2076,8 @@ int main(int argc, char** argv){
     //glfwSwapInterval(0); //this takes 100% cpu | but get v-sync (when interval == 0)
     glfwSetErrorCallback(err);
     glfwSetKeyCallback(window,onKey);
+    glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+    glfwSetMouseButtonCallback(window, onMouse);
 
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK) {
@@ -2122,7 +2134,12 @@ int main(int argc, char** argv){
         }
 
         key = 0;
+        if(mouseTime + 0.25 > glfwGetTime()){
+            mouseButton = 0;
+            mousepressed = false;
+        }
         glfwPollEvents();
+        
     }
     doneGL();
     glDisable(GL_TEXTURE);

@@ -3,13 +3,14 @@
 Just processing, but in C++   
 Most sketches are compatible, but library not fully ported   
 Uses own OpenGL 3.3 renderer (beta)  
-Write and test in QtCreator  
+Write and test in QtCreator, VIM, NeoVIM, VScode, Notepad and more...
 
 ### Dependencies
 
- - OpenGL (GL/glew.h)
- - GLFW   (GLFW/glfw3.h)
- - glm    (glm/glm.hpp)
+ - OpenGL     
+ - GLFW       
+ - glm        
+ - Freetype2  
 
 ### What's work
 
@@ -25,7 +26,7 @@ Write and test in QtCreator
      - [ ] Textures/Images
    - [x] Font Rendering (beta)
  - [x] Input  (partially)
-   - [x] Mouse input (partially)
+   - [x] Mouse input (almost DONE)
    - [x] Keyboard input (partially)
  - [ ] Output
    - [ ] print some data into stdout
