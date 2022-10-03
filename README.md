@@ -21,20 +21,26 @@ Write and test in QtCreator, VIM, NeoVIM, VScode, Notepad and more...
      - [x] Simple shapes 
      - [x] Complex shapes (via beginShape()/endShape()) 
      - [x] Textures/Images
-   - [ ] 3D
-     - [ ] Simple 3D shapes (Box,Sphere)
-     - [ ] Textures/Images
-   - [x] Font Rendering (beta)
+     - [x] Matrix functions 
+   - [x] Font Rendering (beta 2)
  - [x] Input  (partially)
    - [x] Mouse input (almost DONE)
    - [x] Keyboard input (partially)
- - [ ] Output
-   - [ ] print some data into stdout
-   
+ - [x] Output
+   - [x] print some data into stdout (beta)
+
+  # What's will not ported
+
+  - PDF rendering
+  - 3D rendering 
+  - most Processing libraries 
+  - JSON and XML parsers
 
 ### Limitations
 
  Sketch must have setup() and draw() functions 
+ For keyboard key listener need write ``` #define USE_KEYS ```  before CProcessing header and implement ``` void keyPressed(){} ``` function
+ For keyboard keycodes use GLFW keycodes
 
 ### Credits
 
@@ -42,6 +48,7 @@ I use this repos for modernize my library
 
   - https://github.com/whackashoe/cprocessing
   - https://github.com/cchaine/processing-cpp
+  - https://github.com/processing/processing4
  
 ## Author
   

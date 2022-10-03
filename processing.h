@@ -1,6 +1,6 @@
 /**
  *  ==== CProcessing ====
- *  @version 1.4 beta 12
+ *  @version 1.4 beta 14
  *  @author maksmakuta
  */
 
@@ -266,6 +266,29 @@ template<class T> std::vector<T> subset(const std::vector<T>& list,int start,int
     return std::vector<T>(list.begin() + start,count == 0 ? list.end() : list.begin()+ start + count);
 }
 
+void print(){}
+void println(){
+    std::cout << std::endl;
+}
+
+template<class T, class ... Args>
+void print(T f,Args ... args){
+   std::cout << f;
+   print(args...);
+}
+
+template<class T, class ... Args>
+void println(T f,Args ... args){
+   std::cout << f;
+   println(args...);
+}
+
+template<class T>
+void printArray(const std::vector<T>& arr){
+    for(int a = 0;a < arr.size();a++)
+        std::cout << "[" << a << "] " << arr[a] << std::endl;
+}
+
 tm getTime(){
    time_t tt;
    time( &tt );
@@ -339,7 +362,7 @@ class color{
 public:
     color() : color(0){/* ... */}
     color(int a) : color(a,a,a){/* ... */}
-    color(int _r,int _g,int _b) : color(_r,_g,_b,1){/* ... */}
+    color(int _r,int _g,int _b) : color(_r,_g,_b,255){/* ... */}
     color(int _r,int _g,int _b,int _a){
         this->r = (float)_r / 255.f;
         this->g = (float)_g / 255.f;
@@ -1361,6 +1384,7 @@ struct Character {
 class PFont{
 private:
     bool loaded = false;
+    unsigned int face = 0;
 public:
     PFont() : PFont("/usr/share/fonts/TTF/OpenSans-Regular.ttf"){/* ... */}
 
@@ -1368,8 +1392,9 @@ public:
         this->fontName = fname;
     }
 
-    inline void init(float s){
-        if(!loaded){
+    inline void init(int s){
+        if(face == 0 || face != s){
+            this->face = s;
             FT_Library ft;
             if (FT_Init_FreeType(&ft)){
                 std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
@@ -1399,7 +1424,7 @@ public:
                 for (unsigned int c = 0; c < 128; c++){
                     // Load character glyph 
                     if (FT_Load_Char(face, c, FT_LOAD_RENDER)){
-                        std::cout << "ERROR::FREETYTPE: Failed to load Glyph (" << c << ")" << std::endl;
+                        std::cout << "ERROR::FREETYTPE: Failed to load Glyph (" << (char)c << ")" << std::endl;
                         continue;
                     }
                     // generate texture
@@ -1444,6 +1469,15 @@ public:
         return this->loaded;
     }
 
+    float getFace(){
+        return this->face;
+    }
+
+    ~PFont(){
+        Characters.clear();
+        fontName.clear();
+    }
+
     std::string fontName;
     std::map<GLchar, Character> Characters;
 };
@@ -1457,7 +1491,7 @@ PShape tmp;
 PFont curr;
 std::stack<glm::mat4> matrices;
 glm::mat4 matrix;
-float strokeWidth,defSize;
+float strokeWidth;
 int cap,join,rMode,eMode,call = 0;
 unsigned int textureID;
 PShader sh;
@@ -1481,9 +1515,6 @@ inline void initGL(){
     sh = PShader::P5();
     rMode = 0;
     eMode = 0;
-    defSize = 16.f;
-    curr = PFont();
-    curr.init(defSize);
 }
 
 inline void doneGL(){
@@ -1536,7 +1567,7 @@ inline void pushMatrix(){
 inline void popMatrix(){
     if(matrices.size() > 0){
         matrix = matrices.top();
-        //matrices.pop();
+        matrices.pop();
     }else{
         matrix = glm::ortho(0,width,height,0,-1,1);
     }
@@ -1923,27 +1954,33 @@ inline void image(const PImage& img,float x,float y){
 
 // ================================================================================
 
-inline void textFont(PFont fnt,float size = 16.f){
-    if(defSize != size)
-        defSize = size;
-    if(curr.fontName != fnt.fontName)
+inline void textFont(PFont &fnt){
+    if(!fnt.isLoaded())
+        std::cout << "Font aren't loaded\n";
+    else
         curr = fnt;
-    if(!curr.isLoaded())
-        curr.init(defSize);
+}
+
+inline void textSize(float size){
+    curr.init(size);
+}
+
+inline PFont createFont(const std::string& path, int size = 122){
+    auto f = PFont(path);
+    f.init(size);
+    return f;
 }
 
 inline void text(std::string msg,float x,float y){
-    curr.init(defSize);
     glEnable(GL_CULL_FACE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    float scale = 1.0f;
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
     for(char c : msg){
         Character ch = curr.Characters[c];
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y + (ch.Size.y - ch.Bearing.y) * scale;
-        float w = ch.Size.x * scale;
-        float h = ch.Size.y * scale;
+        float xpos = x + ch.Bearing.x;
+        float ypos = y + (ch.Size.y - ch.Bearing.y );
+        float w = ch.Size.x;
+        float h = ch.Size.y;
         tmp = PShape(TRIANGLE_STRIP);
         tmp.setColorF(fillColor);
         tmp.push(xpos  ,ypos  ,0.f,1.f);
@@ -1953,7 +1990,7 @@ inline void text(std::string msg,float x,float y){
         call = 2;
         textureID = ch.TextureID;
         draw(tmp);
-        x += (ch.Advance >> 6) * scale;
+        x += (ch.Advance >> 6);
     }
     glDisable(GL_CULL_FACE);
     glDisable(GL_BLEND);
@@ -1961,7 +1998,6 @@ inline void text(std::string msg,float x,float y){
 
 inline float textWidth(std::string& msg){
     float s = 0.f;
-    float scale = 1.0f;
     for(char c : msg){
         s += ( curr.Characters[c].Advance >> 6);
     }
@@ -2021,7 +2057,7 @@ inline void onKey(GLFWwindow* w, int _key, int _scancode, int _action, int _mods
 }
 double mouseTime = 0;
 void onMouse(GLFWwindow* window, int button, int action, int mods){
-    if (button == GLFW_MOUSE_BUTTON_LEFT){
+    if (button == GLFW_MOUSE_BUTTON_LEFT || button == GLFW_MOUSE_BUTTON_RIGHT ){
         mouseButton = button;
         mouseTime = glfwGetTime();
         mousepressed = action == GLFW_PRESS;
@@ -2055,6 +2091,7 @@ int main(int argc, char** argv){
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     if(config & (1 << 2)){
