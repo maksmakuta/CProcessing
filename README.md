@@ -38,8 +38,8 @@ Write and test in QtCreator, VIM, NeoVIM, VScode, Notepad and more...
 
 ### Limitations
 
- Sketch must have setup() and draw() functions 
- For keyboard key listener need write ``` #define USE_KEYS ```  before CProcessing header and implement ``` void keyPressed(){} ``` function
+ Sketch must have setup() and draw() functions  
+ For keyboard key listener need write ``` #define USE_KEYS ```  before CProcessing header and implement ``` void keyPressed(){} ``` function  
  For keyboard keycodes use GLFW keycodes
 
 ### Credits
