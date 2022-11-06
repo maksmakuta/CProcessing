@@ -35,6 +35,8 @@ Write and test in QtCreator, VIM, NeoVIM, VScode, Notepad and more...
   - 3D rendering 
   - most Processing libraries 
   - JSON and XML parsers
+  - any composite types (use types from std)
+  - file management (std::fstream works very well)
 
 ### Limitations
 
