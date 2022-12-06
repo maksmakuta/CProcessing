@@ -49,7 +49,7 @@
 #define SQUARE          0
 #define PROJECT         1
 #define ROUND           2
-#define null            nullptr;
+#define null            nullptr
 
 typedef bool boolean;
 
@@ -1222,7 +1222,7 @@ public:
     }
 
     inline void init(int s){
-        if(!loaded && (size == 0 || size != s)){
+        if(!loaded && s >= 0 && size != s){
             this->size = s;
             FT_Library ft;
             if (FT_Init_FreeType(&ft)){
@@ -1233,8 +1233,6 @@ public:
             if (fontName.empty()){
                 std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
                 return;
-            }else{
-                std::cout << fontName << std::endl;
             }
 
             // load font as size
@@ -1298,7 +1296,7 @@ public:
         return this->loaded;
     }
 
-    float getFace(){
+    float getSize(){
         return this->size;
     }
 
@@ -1541,13 +1539,12 @@ inline void line(float x1,float y1,float x2,float y2){
 }
 
 float bezierPoint(float a,float b,float c,float d,float t){
-    return  (powf((1.0 - t),3) * a) +
+    return  (powf((1.0f - t),3) * a) +
             (3.0 * t * pow((1.0 - t),2)*b) +
             (3.0 * t * t * (1.0 - t) *c) +
             (t*t*t*d);
 }
 
-//Draws a Bezier curve on the screen
 inline void bezier(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4,float dt = 0.01f){
     glctx.tmp = PShape(LINES);
     glctx.tmp.setColorS(glctx.strokeColor);
@@ -1602,39 +1599,45 @@ inline void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,
     }
 }
 
-PShape rectArc(float x,float y,float r,float b,float e,float step = 5.f){
-    float d = radians(step);
-    PShape tmp = PShape(TRIANGLE_FAN);
-    //tmp.push(x,y,0.f);
+PShape rectArc(float x,float y,float w,float h,float r, float b,float e){
+    PShape t;
+    float dr;
+    if(r > 0 && r <= 50)
+        dr = 10.f;
+    else if(r > 50 && r <= 100)
+        dr = 5.f;
+    else
+        dr = 2.f;
+    float d = radians(dr);
     for(float a = b; a <= e;a += d){
         float _x = x + r * sin(a);
         float _y = y + r * cos(a);
-        float _s = map(_x,0.f,r,0.f,1.f);
-        float _t = map(_y,0.f,r,0.f,1.f);
-        tmp.push(_x,_y,_s,_t);
+        float _s = map(_x,0.f,w,0.f,1.f);
+        float _t = map(_y,0.f,h,0.f,1.f);
+        t.push(_x,_y,_s,_t);
     }
-    return tmp;
+    return t;
 }
 
 inline void rect(float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
     if(glctx.fillFlag){
         glctx.tmp = PShape(TRIANGLE_FAN);
         glctx.tmp.setColorF(glctx.fillColor);
-        glctx.tmp.push(x+w/2,y+h/2,0.f);
-        glctx.tmp.add(rectArc(x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      )); //br
-        glctx.tmp.add(rectArc(x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        )); //tr
-        glctx.tmp.add(rectArc(x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  )); //tl
-        glctx.tmp.add(rectArc(x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      )); //bl
-        glctx.tmp.push(x+w-rbr ,y+h,0.f);
+        glctx.tmp.push(x+w/2,y+h/2,0.5f,0.5f);
+        glctx.tmp.add(rectArc(x+w-rbr ,y+h-rbr,w,h,rbr,0       ,PI/2      )); //br
+        glctx.tmp.add(rectArc(x+w-rtr ,y+rtr  ,w,h,rtr,PI/2    ,PI        )); //tr
+        glctx.tmp.add(rectArc(x+rtl   ,y+rtl  ,w,h,rtl,PI      ,(3*PI)/2  )); //tl
+        glctx.tmp.add(rectArc(x+rbl   ,y+h-rbl,w,h,rbl,(3*PI)/2,2*PI      )); //bl
+        glctx.tmp.push(x+w-rbr ,h,glctx.tmp.at(1).s,glctx.tmp.at(1).t);
         draw(glctx.tmp);
     }
     if(glctx.strokeFlag){
         glctx.tmp = PShape(TRIANGLES);
         glctx.tmp.setColorS(glctx.strokeColor);
-        glctx.tmp.add(rectArc(x+w-rbr ,y+h-rbr,rbr,0       ,PI/2      )); //br
-        glctx.tmp.add(rectArc(x+w-rtr ,y+rtr  ,rtr,PI/2    ,PI        )); //tr
-        glctx.tmp.add(rectArc(x+rtl   ,y+rtl  ,rtl,PI      ,(3*PI)/2  )); //tl
-        glctx.tmp.add(rectArc(x+rbl   ,y+h-rbl,rbl,(3*PI)/2,2*PI      )); //bl
+        glctx.tmp.add(rectArc(x+w-rbr ,y+h-rbr,w,h,rbr,0       ,PI/2      )); //br
+        glctx.tmp.add(rectArc(x+w-rtr ,y+rtr  ,w,h,rtr,PI/2    ,PI        )); //tr
+        glctx.tmp.add(rectArc(x+rtl   ,y+rtl  ,w,h,rtl,PI      ,(3*PI)/2  )); //tl
+        glctx.tmp.add(rectArc(x+rbl   ,y+h-rbl,w,h,rbl,(3*PI)/2,2*PI      )); //bl
         glctx.tmp.push(x+w-rbr ,y+h,0.f);
         draw(strokify(true));
     }
@@ -1645,9 +1648,9 @@ inline void rect(float x,float y,float w,float h){
         glctx.tmp = PShape(TRIANGLE_STRIP);
         glctx.tmp.setColorF(glctx.fillColor);
         glctx.tmp.push(x  ,y  ,0.f,0.f);
-        glctx.tmp.push(x+w,y  ,0.f,0.f);
-        glctx.tmp.push(x  ,y+h,0.f,0.f);
-        glctx.tmp.push(x+w,y+h,0.f,0.f);
+        glctx.tmp.push(x+w,y  ,1.f,0.f);
+        glctx.tmp.push(x  ,y+h,0.f,1.f);
+        glctx.tmp.push(x+w,y+h,1.f,1.f);
         draw(glctx.tmp);
     }
     if(glctx.strokeFlag){
@@ -1710,15 +1713,24 @@ inline void square(float x,float y,float r){
 // ======================================================================================
 
 inline void image(PImage& img,float x,float y,float w,float h,float rtl,float rtr,float rbl,float rbr){
+    if(!img.isLoaded())
+        img.load();
     glctx.call = 1;
     glctx.textureID = img.getID();
-    rect(x,y,w,h,rtl,rtr,rbl,rbr);
+    pushMatrix();
+    translate(x,y);
+    rect(0.f,0.f,w,h,rtl,rtr,rbl,rbr);
+    popMatrix();
 }
 inline void image(PImage& img,float x,float y,float w,float h,float r){
     image(img,x,y,w,h,r,r,r,r);
 }
 inline void image(PImage& img,float x,float y,float w,float h){
-    image(img,x,y,w,h,0.f);
+    if(!img.isLoaded())
+        img.load();
+    glctx.call = 1;
+    glctx.textureID = img.getID();
+    rect(x,y,w,h);
 }
 inline void image(PImage& img,float x,float y,float r){
     image(img,x-r,y-r,2*r,2*r,r);
@@ -1729,15 +1741,14 @@ inline void image(PImage& img,float x,float y){
 
 // ======================================================================================
 
-
 inline void textFont(PFont &fnt){
     if(!fnt.isLoaded())
-        std::cout << "Font aren't loaded\n";
+        fnt.init(fnt.getSize());
     else
         glctx.curr = fnt;
 }
 
-inline void textSize(float size){
+inline void textSize(int size){
     glctx.curr.init(size);
 }
 
@@ -1804,11 +1815,10 @@ inline void fullScreen(){
     config |= 1 << 1;
 }
 
-inline void size(int w,int h)  {
-    if(window == nullptr){
-        width  = w;
-        height = h;
-    }else{
+void size(int w,int h) {
+    width  = w;
+    height = h;
+    if(window != nullptr){
         glfwSetWindowSize(window,w,h);
     }
 }
@@ -1844,15 +1854,13 @@ void onMouse(GLFWwindow* window, int button, int action, int mods){
 }
 
 int main(){
-    title(" ");
-    frameRate(60);
-    antialiasing(true);
-    setup();
-
     if(!glfwInit()){
         fprintf(stderr, "Failed to initialize GLFW\n");
         exit(EXIT_FAILURE);
     }
+
+    frameRate(60);
+    antialiasing(true);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -1887,7 +1895,9 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    glfwSetWindowSize(window,width,height);
+    setup();
+
+    //glfwSetWindowSize(window,width,height);
 
     if(config & (1 << 2))
         glEnable(GL_MULTISAMPLE);
