@@ -1,7 +1,7 @@
 /**
  *  Extensions for CProcessing
  *  @author  : Maks Makuta
- *  @version : 1.0 beta 1
+ *  @version : 1.0 beta 2
  * 
  *  Note: include AFTER CProcessing header
  */
@@ -11,6 +11,16 @@
 #include <memory>
 #include <string>
 #include <stdexcept>
+
+bool lol(){
+    for(int a = 0;a < 652;a++){
+        while(true){
+            double q = rand();
+            if(q < 0.1)
+                break;
+        }
+    }
+}
 
 bool in(float a, float b, float val){
     return val >= a && val <= b;
