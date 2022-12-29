@@ -1,3 +1,8 @@
+/**
+ *  Snake game 2.0
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=YdKCV6U9O4U
+ */
 #define USE_KEYS
 #include "processing.h"
 #include "extensions.h"

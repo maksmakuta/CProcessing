@@ -1,3 +1,8 @@
+/**
+ *  Rounded Rectangle collision
+ *  Author: Maks Makuta
+ *  URL: https://www.youtube.com/watch?v=g-YINzs6V-E
+ */
 #define USE_KEYS
 #include "processing.h"
 
