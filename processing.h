@@ -1875,6 +1875,7 @@ int main(int argc,char** argv) {
   double fpsTime = 0.0;
 #endif
   while (!glfwWindowShouldClose(window)) {
+    //glfwSetWindowSize(window, width, height);
     double now = glfwGetTime();
     glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(glctx.bg.r, glctx.bg.g, glctx.bg.b, glctx.bg.a);
@@ -1891,10 +1892,13 @@ int main(int argc,char** argv) {
     glfwGetWindowSize(window, &w, &h);
     if (w < 128)
       w = 128;
-    width = w;
     if (h < 128)
       h = 128;
+
+
+    width = w;
     height = h;
+
     glfwSetWindowSize(window, w, h);
     glScissor(0, 0, w, h);
 
