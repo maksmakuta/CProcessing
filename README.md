@@ -54,5 +54,5 @@ I use this repos for modernize my library
  
 ## Author
   
-  Maks Makuta ``` maksmakuta ```  2022 (C)     
+  Maks Makuta ``` maksmakuta ```  2023 (C)     
   MIT Licence   
