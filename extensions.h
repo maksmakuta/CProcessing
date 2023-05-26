@@ -6,11 +6,6 @@
  *  Note: include AFTER CProcessing header
  */
 
-#include <cstdio>
-#include <iostream>
-#include <stdexcept>
-#include <string>
-
 bool in(float a, float b, float val) { return val >= a && val <= b; }
 
 bool inRect(float x, float y, float w, float h, float a, float b) {

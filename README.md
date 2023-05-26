@@ -12,36 +12,6 @@ Write and test in QtCreator, VIM, NeoVIM, VScode, Notepad and more...
  - glm        
  - Freetype2  
 
-### How to run
-
- ```
- git clone https://github.com/maksmakuta/CProcessing.git
- cd CProcessing
- mkdir build
- cd build
- cmake ..
- make -j8 (or your number of cpus)
- ./sketch
- ```
- 
- or
- 
- ```
-  g++ sketch.cpp -o app -std=c++20 `pkg-config freetype2 --cflags --libs`  -lGL -lGLEW -lglfw
- ```
- 
-### How to install
-
- ```
- git clone https://github.com/maksmakuta/CProcessing.git
- cd CProcessing
- mkdir build
- cd build
- cmake ..
- sudo make install
- ```
-
-
 ### What's work
 
  - [x] Window making
@@ -84,5 +54,5 @@ I use this repos for modernize my library
  
 ## Author
   
-  Maks Makuta ``` maksmakuta ```  2023 (C)     
+  Maks Makuta ``` maksmakuta ```  2022 (C)     
   MIT Licence   

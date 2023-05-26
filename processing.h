@@ -2,7 +2,7 @@
 #define PROCESSING_H
 
 /*
- * CProcessing 1.5.2
+ * CProcessing 1.5.3
  * @author Maks Makuta (maksmakuta)
  */
 
@@ -27,6 +27,8 @@
 #include <string>
 #include <vector>
 #include FT_FREETYPE_H
+
+#define FONT_FILE "../assets/fonts/FreeSans.otf"
 
 #define DOWN GLFW_KEY_DOWN
 #define UP GLFW_KEY_UP
@@ -1180,7 +1182,7 @@ private:
   unsigned int size = 0;
 
 public:
-  PFont() : PFont("/usr/share/fonts/TTF/OpenSans-Regular.ttf") { /* ... */ }
+  PFont() : PFont(FONT_FILE) { /* ... */ }
 
   PFont(std::string fname) { this->fontName = fname; }
 
@@ -1847,7 +1849,7 @@ int main(int argc,char** argv) {
   }
 
   glfwMakeContextCurrent(window);
-  // glfwSwapInterval(0); //this takes 100% cpu | but get v-sync (when interval
+  glfwSwapInterval(1); //this takes 100% cpu | but get v-sync (when interval
   // == 0)
   glfwSetErrorCallback(err);
   glfwSetKeyCallback(window, onKey);
@@ -1861,6 +1863,7 @@ int main(int argc,char** argv) {
   }
 
   setup();
+  glfwSetWindowSize(window, width, height);
 
   if (config & (1 << 2))
     glEnable(GL_MULTISAMPLE);
