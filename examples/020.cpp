@@ -1,3 +1,10 @@
+
+/**
+ *  Simple Flappy Bird
+ *  Author: Maks Makuta
+ *  URL: https://youtu.be/BQt53tSyOrk
+ */
+
 #include "processing.h"
 
 #define G 3 // gravity

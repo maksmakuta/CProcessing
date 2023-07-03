@@ -2,7 +2,7 @@
 #define PROCESSING_H
 
 /*
- * CProcessing 1.5.3
+ * CProcessing 1.6.0
  * @author Maks Makuta (maksmakuta)
  */
 
@@ -30,11 +30,12 @@
 
 #define FONT_FILE "../assets/fonts/FreeSans.otf"
 
-#define DOWN GLFW_KEY_DOWN
-#define UP GLFW_KEY_UP
-#define LEFT GLFW_KEY_LEFT
-#define RIGHT GLFW_KEY_RIGHT
-#define ESC GLFW_KEY_ESCAPE
+#define DOWN    GLFW_KEY_DOWN
+#define UP      GLFW_KEY_UP
+#define LEFT    GLFW_KEY_LEFT
+#define RIGHT   GLFW_KEY_RIGHT
+#define ESC     GLFW_KEY_ESCAPE
+#define SPACE   GLFW_KEY_SPACE
 
 #define CENTER 0
 #define RADIUS 1
@@ -572,7 +573,7 @@ public:
       return verData[p];
     else {
       std::cerr << "Undefined position\n";
-      return {0, 0, 0, 0, 0};
+      return {0};
     }
   }
 
@@ -1275,6 +1276,9 @@ struct GLContext {
   unsigned int textureID = 0,textAlingH = -1,textAlingV = -1;
   PShader sh;
   unsigned int VBO, VAO;
+#if (GL_BATCH == true)
+  PShape batch;
+#endif
 } glctx;
 
 PShape strokify(bool s) {
@@ -1307,9 +1311,7 @@ inline void doneGL() {
   glctx.sh.done();
 }
 
-inline void draw(const PShape &s) {
-  // printf("call = %i\n",call);
-  // printf("texID = %i\n",textureID);
+inline void gl_draw(const PShape &s){
   if ((glctx.fillColor.a != 1.0 || glctx.strokeColor.a != 1.0) &&
       glctx.call == 0) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1320,7 +1322,7 @@ inline void draw(const PShape &s) {
   glBindVertexArray(glctx.VAO);
   glBindBuffer(GL_ARRAY_BUFFER, glctx.VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertex) * s.size(), s.data().data(),
-               GL_STATIC_DRAW);
+               GL_DYNAMIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void *)0);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5,
@@ -1348,6 +1350,16 @@ inline void draw(const PShape &s) {
       glctx.call == 0) {
     glDisable(GL_BLEND);
   }
+}
+
+inline void draw(const PShape &s) {
+  // printf("call = %i\n",call);
+  // printf("texID = %i\n",textureID);
+#if GL_BATCH == true
+  glctx.batch.add(s);
+#else
+    gl_draw(s);
+#endif
 }
 
 inline void resetMatrix() { glctx.matrix = glm::mat4(1.0f); }
@@ -1410,6 +1422,10 @@ inline void begin(float w, float h) {
   glctx.matrix = glm::ortho(0.f, w, h, 0.f, -1.f, 1.f);
 }
 inline void end() { /* ... */
+#if GL_BATCH == true
+  gl_draw(glctx.batch);
+  glctx.batch = PShape();
+#endif
 }
 
 inline void beginShape(SHAPE_TYPE t = DEFAULT) {
