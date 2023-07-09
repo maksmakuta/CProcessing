@@ -15,16 +15,16 @@ Now project are fully rewrited to provides full support of Processing API and su
 
  - [x] Window making
  - [x] OpenGL making
- - [ ] Drawing (partially)
+ - [ ] Drawing
    - [ ] 2D
      - [ ] Simple shapes 
      - [ ] Complex shapes (via beginShape()/endShape()) 
      - [ ] Textures/Images
-     - [ ] Matrix functions 
-   - [ ] Font Rendering (beta 2)
- - [ ] Input  (partially)
-   - [ ] Mouse input (almost DONE)
-   - [ ] Keyboard input (partially)
+     - [ ] Matrix functions
+   - [ ] Font Rendering
+ - [ ] Input
+   - [ ] Mouse input
+   - [ ] Keyboard input
  - [ ] Output
    - [ ] print some data into stdout (beta)
 

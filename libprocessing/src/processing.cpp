@@ -21,6 +21,14 @@ long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
 float _ppersisrtence = 0.5; // perlin persistance
 
+// variables taken from header
+
+int mouseX = -1;
+int mouseY = -1;
+int pmouseX = -1;
+int pmouseY = -1;
+bool isMousePressed = false;
+
 // =================== methods ======================
 
 void randomSeed(long seed){
@@ -485,22 +493,28 @@ PVector PVector::rotate(float theta){
 }
 
 PVector PVector::lerp(PVector& v,float amt){
-
+    return this->lerp(v.x,v.y,v.z,amt);
 }
 PVector PVector::lerp(PVector& v1, PVector& v2, float amt){
-
+    return v1.lerp(v2,amt);
 }
 PVector PVector::lerp(float x,float y,float z, float amt){
-
+    this->x = this->x + amt * (x - this->x);
+    this->y = this->y + amt * (y - this->y);
+    this->z = this->z + amt * (z - this->z);
+    return *this;
 }
-
-
-
-
-
-
-
+float PVector::angleBetween(PVector& v1,PVector& v2){
+    float m1 = v1.mag();
+    float m2 = v2.mag();
+    float dot = v1.dot(v2);
+    return acos(dot / (m1 * m2));
+}
+float* PVector::array(){
+    return new float[3]{this->x,this->y,this->z};
+}
 // ================== main driver ===================
+
 void ProcessInput(GLFWwindow* window){
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
