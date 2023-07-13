@@ -200,6 +200,8 @@ private:
 };
 
 class PShape : public PObject{
+private:
+    bool visibility = true;
 public:
     PShape();
 
@@ -379,6 +381,21 @@ float brightness(int what);
 
 int lerpColor(int c1, int c2, float amt);
 int lerpColor(int c1, int c2, float amt, int mode);
+
+void arc(float x, float y, float w, float h, float start, float stop);
+void arc(float x, float y, float w, float h, float start, float stop, int mode);
+void circle(float x, float y, float extent);
+void ellipse(float x, float y, float w, float h);
+void line(float x1, float y1, float x2, float y2);
+void line(float x1, float y1, float z1, float x2, float y2, float z2);
+void point(float x, float y);
+void point(float x, float y, float z);
+void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4);
+void rect(float x, float y, float w, float h);
+void rect(float x, float y, float w, float h, float r);
+void rect(float x, float y, float w, float h, float tl, float tr, float br, float bl);
+void square(float x,float y,float s);
+void triangle(float x1,float y1,float x2,float y2,float x3,float y3);
 
 // ================== public functions ===================
 

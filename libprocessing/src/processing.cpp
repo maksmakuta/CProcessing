@@ -29,7 +29,8 @@ long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
 float _ppersisrtence = 0.5; // perlin persistance
-char* title = "";
+std::string title;
+int smoothness = 4;
 
 int colMode = RGB;
 float colMaxR = 0xFF;
@@ -489,6 +490,19 @@ float brightness(int what){
     }
     return hsbColor[2] * colMaxB;
 }
+
+void smooth(int level){
+    smoothness = level;
+}
+
+void noSmooth(){
+    smoothness = -1;
+}
+
+void rect(float x, float y, float w, float h){
+
+}
+
 // ============== classes ======================
 
 PVector::PVector() : PVector(0.f,0.f,0.f){}
@@ -730,6 +744,9 @@ float PVector::angleBetween(PVector& v1,PVector& v2){
 float* PVector::array(){
     return new float[3]{this->x,this->y,this->z};
 }
+
+// =================================== PShader ===================================
+
 PShader::PShader() : PShader(vertexCode.c_str(),fragmentCode.c_str()){/* ... */}
 std::string readFile(const std::string& filename){
     std::stringstream ss;
@@ -748,26 +765,92 @@ void PShader::create(const char* vert,const char* frag){
     if(gl != null){
         int v = gl->compileShader(vert,SHADER_VERTEX);
         int f = gl->compileShader(frag,SHADER_FRAGMENT);
-        program = gl->bindProgram({v,f});
+        program = gl->linkProgram({v,f});
     }else{
         error("GL == NULL");
     }
 }
 PShader::PShader(const std::string& vert,const std::string& frag){
-    char *v = (char*)(readFile(vert).c_str());
-    char *f = (char*)(readFile(frag).c_str());
-    create(v,f);
-    delete v;
-    delete f;
+    create(readFile(vert).c_str(),readFile(frag).c_str());
 }
-
 PShader::PShader(const char* vert,const char* frag){
     this->create(vert,frag);
 }
-
-std::string PShader::toString(){
-    std::cout << "PShader(" << program << ")\n";
+void PShader::set(const std::string &name, int x){
+    gl->setUniform(program,name,x);
 }
+void PShader::set(const std::string &name, float x){
+    gl->setUniform(program,name,x);
+}
+void PShader::set(const std::string &name, bool x){
+    gl->setUniform(program,name,x);
+}
+void PShader::set(const std::string &name, int x, int y){
+    gl->setUniform(program,name,x,y);
+}
+void PShader::set(const std::string &name, float x, float y){
+    gl->setUniform(program,name,x,y);
+}
+void PShader::set(const std::string &name, bool x, bool y){
+    gl->setUniform(program,name,x,y);
+}
+void PShader::set(const std::string &name, int x, int y, int z){
+    gl->setUniform(program,name,x,y,z);
+}
+void PShader::set(const std::string &name, float x, float y, float z){
+    gl->setUniform(program,name,x,y,z);
+}
+void PShader::set(const std::string &name, bool x, bool y, bool z){
+    gl->setUniform(program,name,x,y,z);
+}
+void PShader::set(const std::string &name, int x, int y, int z, int w){
+    gl->setUniform(program,name,x,y,z,w);
+}
+void PShader::set(const std::string &name, float x, float y, float z, float w){
+    gl->setUniform(program,name,x,y,z,w);
+}
+void PShader::set(const std::string &name, bool x, bool y, bool z, bool w){
+    gl->setUniform(program,name,x,y,z,w);
+}
+void PShader::set(const std::string &name, int* vec){
+    gl->setUniform(program,name,vec);
+}
+void PShader::set(const std::string &name, float* vec){
+    gl->setUniform(program,name,vec);
+}
+void PShader::set(const std::string &name, bool* vec){
+    gl->setUniform(program,name,vec);
+}
+void PShader::set(const std::string &name, int* vec,int ncoords){
+    gl->setUniform(program,name,vec,ncoords);
+}
+void PShader::set(const std::string &name, float* vec,int ncoords){
+    gl->setUniform(program,name,vec,ncoords);
+}
+void PShader::set(const std::string &name, bool* vec,int ncoords){
+    gl->setUniform(program,name,vec,ncoords);
+}
+void PShader::set(const std::string &name, PMatrix2D &mat){
+    todo("PShader::set(const std::string&, PMatrix2D)");
+}
+void PShader::set(const std::string &name, PMatrix3D &mat){
+    todo("PShader::set(const std::string&, PMatrix3D)");
+}
+void PShader::set(const std::string &name, PMatrix2D &mat, bool use3x3){
+    todo("PShader::set(const std::string&, PMatrix2D, bool)");
+}
+void PShader::set(const std::string &name, PMatrix3D &mat, bool use3x3){
+    todo("PShader::set(const std::string&, PMatrix3D, bool)");
+}
+void PShader::set(const std::string &name, PImage &tex){
+    todo("PShader::set(const std::string&, PImage&)");
+}
+std::string PShader::toString(){
+    std::stringstream ss;
+    ss << "PShader(" << program << ")\n";
+    return ss.str();
+}
+
 // ================== main driver ===================
 
 void ProcessInput(GLFWwindow* window){
@@ -785,8 +868,10 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    if(smoothness > 0){
+        glfwWindowHint(GLFW_SAMPLES, smoothness);
+    }
+    window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (!window){
         error("Failed to create the GLFW window\n");
         glfwTerminate();
@@ -799,7 +884,7 @@ int main(){
         return -1;
     }
     sh = new PShader();
-
+    gl->enable(F_MSAA);
     gl->viewport(width, height);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height){
         gl->viewport( width, height);
