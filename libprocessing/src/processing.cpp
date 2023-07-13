@@ -1,10 +1,14 @@
 #include "backend/gl/gl_backend.h"
+#include "backend/shaders.h"
 #include "processing.h"
 
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 #include <limits>
+#include <assert.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -12,14 +16,36 @@ void todo(const std::string& text){
     std::cout << "TODO: " << text << std::endl;
 }
 
-// ================== variables =====================
+void error(const std::string& text){
+    std::cerr << text << std::endl;
+}
 
+// ================== variables =====================
+GLFWwindow* window = null;
 backend *gl = null;
+PShader *sh = null;
 
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
 float _ppersisrtence = 0.5; // perlin persistance
+char* title = "";
+
+int colMode = RGB;
+float colMaxR = 0xFF;
+float colMaxG = 0xFF;
+float colMaxB = 0xFF;
+float colMaxA = 0xFF;
+
+int hsbKey = 0xFFFFFF;
+float hsbColor[3] = {0.f,0.f,0.f};
+
+int bgColor = 0xff000000; // 0xAARRGGBB
+int strokeColor = 0xff0011bb;
+int fillColor = 0xff0011bb;
+
+bool strokeDraw = true;
+bool fillDraw = true;
 
 // variables taken from header
 
@@ -28,6 +54,16 @@ int mouseY = -1;
 int pmouseX = -1;
 int pmouseY = -1;
 bool isMousePressed = false;
+int displayHeight = 0;
+int displayWidth = 0;
+int frameCount = 0;
+int framerate = 60;
+int height = 320;
+int width = 320;
+int pixelHeight = 1;
+int pixelWidth = 1;
+bool focused = true;
+
 
 // =================== methods ======================
 
@@ -70,6 +106,36 @@ double gradient(int hash, double x, double y, double z) {
     return std::abs(((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v));
 }
 
+void toHSB(int color){
+    int r = (color >> 16) & 0xFF;
+    int g = (color >> 8 ) & 0xFF;
+    int b = (color      ) & 0xFF;
+    float normR = r / colMaxR;
+    float normG = g / colMaxG;
+    float normB = b / colMaxB;
+    float val_max = max({normR,normG,normB});
+    float val_min = min({normR,normG,normB});
+    float delta = val_max - val_min;
+    hsbKey = color;
+    hsbColor[2] = val_max;
+    if(val_max == 0.f){
+        hsbColor[1] = 0.f;
+    }else{
+        hsbColor[1] = delta / val_max;
+    }
+    if (delta == 0.f) {
+        hsbColor[0] = 0.f;
+    } else if (val_max == normR) {
+        hsbColor[0] = 60.f * ((normG - normB) / delta);
+    } else if (val_max == normG) {
+        hsbColor[0] = 60.f * (2.f + (normB - normR) / delta);
+    } else if (val_max == normB) {
+        hsbColor[0] = 60.f * (4.f + (normR - normG) / delta);
+    }
+    if (hsbColor[0] < 0.f) {
+        hsbColor[0] += 360.f;
+    }
+}
 
 int abs(int n){
     return std::abs(n);
@@ -211,8 +277,6 @@ float sin(float angle){
 float tan(float angle){
     return std::tan(angle);
 }
-
-
 float noise(float x, float y, float z){
     long t = _seed;
     randomSeed(_pseed);
@@ -271,7 +335,160 @@ float noise(float x){
     return noise(x,0.f);
 }
 
+void size(int w, int h){
+    height = h;
+    if(height < 128)
+        height = 128;
+    width = w;
+    if(width < 128)
+        width = 128;
+}
 
+void noStroke(){
+    strokeDraw = false;
+}
+void stroke(float gray){
+    stroke(gray,colMaxA);
+}
+void stroke(float gray, float alpha){
+    stroke(gray,gray,gray,alpha);
+}
+void stroke(float x, float y, float z){
+    stroke(x,y,z,colMaxA);
+}
+void stroke(float x, float y, float z, float a){
+    int   r = (int) constrain(x,0.f,colMaxR);
+    int   g = (int) constrain(y,0.f,colMaxG);
+    int   b = (int) constrain(z,0.f,colMaxB);
+    int  _a = (int) constrain(a,0.f,colMaxA);
+    strokeColor = (_a << 24) | (r << 16) | (g << 8) | b;
+}
+
+void noFill(){
+    fillDraw = false;
+}
+void fill(float gray){
+    fill(gray,colMaxA);
+}
+void fill(float gray, float alpha){
+    fill(gray,gray,gray,alpha);
+}
+void fill(float x, float y, float z){
+    fill(x,y,z,colMaxA);
+}
+void fill(float x, float y, float z, float a){
+    int r = constrain(x,0.f,colMaxR);
+    int g = constrain(y,0.f,colMaxG);
+    int b = constrain(z,0.f,colMaxB);
+    int A = constrain(a,0.f,colMaxA);
+    fillColor = (A << 24) | (r << 16) | (g << 8) | b;
+}
+void background(float gray){
+    background(gray,gray,gray);
+}
+void background(float gray, float alpha){
+    background(gray,gray,gray,alpha);
+}
+void background(float x, float y, float z){
+    background(x,y,z,colMaxA);
+}
+void background(float x, float y, float z, float a){
+    int r = (int) constrain(x,0.f,colMaxR);
+    int g = (int) constrain(y,0.f,colMaxG);
+    int b = (int) constrain(z,0.f,colMaxB);
+    int A = (int) constrain(a,0.f,colMaxA);
+    bgColor = (A << 24) | (r << 16) | (g << 8) | b;
+}
+void background(PImage image){
+    todo("background(PImage)");
+}
+void colorMode(int mode){
+    assert(mode == RGB || mode == HSB);
+    colMode = mode;
+}
+void colorMode(int mode, float max){
+    assert(mode == RGB || mode == HSB);
+    colMode = mode;
+    colMaxR = max;
+    colMaxG = max;
+    colMaxB = max;
+    colMaxA = max;
+}
+void colorMode(int mode, float maxX, float maxY, float maxZ){
+    assert(mode == RGB || mode == HSB);
+    colMode = mode;
+    colMaxR = maxX;
+    colMaxG = maxY;
+    colMaxB = maxZ;
+}
+void colorMode(int mode, float maxX, float maxY, float maxZ, float maxA){
+    assert(mode == RGB || mode == HSB);
+    colMode = mode;
+    colMaxR = maxX;
+    colMaxG = maxY;
+    colMaxB = maxZ;
+    colMaxA = maxA;
+}
+
+float alpha(int what){
+    float outgoing = (what >> 24) & 0xff;
+    if (colMaxA == 255) return outgoing;
+    return (outgoing / 255.0f) * colMaxA;
+}
+float red(int what){
+    float outgoing = (what >> 16) & 0xff;
+    if (colMaxR == 255) return outgoing;
+    return (outgoing / 255.0f) * colMaxR;
+}
+float green(int what){
+    float outgoing = (what >> 8) & 0xff;
+    if (colMaxG == 255) return outgoing;
+    return (outgoing / 255.0f) * colMaxG;
+}
+float blue(int what){
+    float outgoing = what & 0xff;
+    if (colMaxB == 255) return outgoing;
+    return (outgoing / 255.0f) * colMaxB;
+}
+
+float Nalpha(int what){
+    int outgoing = (what >> 24) & 0xff;
+    return (outgoing / 255.0f) ;
+}
+float Nred(int what){
+    int outgoing = (what >> 16) & 0xFF;
+    return (outgoing / 255.0f);
+}
+float Ngreen(int what){
+    int outgoing = (what >> 8) & 0xff;
+    return (outgoing / 255.0f);
+}
+float Nblue(int what){
+    int outgoing = what & 0xff;
+    return (outgoing / 255.0f);
+}
+
+float hue(int what){
+    if (what != hsbKey) {
+        toHSB(what);
+        hsbKey = what;
+    }
+    return hsbColor[0] * colMaxR;
+}
+float saturation(int what){
+    if (what != hsbKey) {
+        toHSB(what);
+        hsbKey = what;
+    }
+    return hsbColor[1] * colMaxG;
+}
+float brightness(int what){
+    if (what != hsbKey) {
+        toHSB(what);
+        hsbKey = what;
+    }
+    return hsbColor[2] * colMaxB;
+}
 // ============== classes ======================
 
 PVector::PVector() : PVector(0.f,0.f,0.f){}
@@ -513,6 +730,44 @@ float PVector::angleBetween(PVector& v1,PVector& v2){
 float* PVector::array(){
     return new float[3]{this->x,this->y,this->z};
 }
+PShader::PShader() : PShader(vertexCode.c_str(),fragmentCode.c_str()){/* ... */}
+std::string readFile(const std::string& filename){
+    std::stringstream ss;
+    std::ifstream inputFile(filename);
+    if (!inputFile) {
+        error("Failed to open file: " + filename);
+    }
+    std::string line;
+    while (std::getline(inputFile, line)) {
+        ss << line;
+    }
+    inputFile.close();
+    return ss.str();
+}
+void PShader::create(const char* vert,const char* frag){
+    if(gl != null){
+        int v = gl->compileShader(vert,SHADER_VERTEX);
+        int f = gl->compileShader(frag,SHADER_FRAGMENT);
+        program = gl->bindProgram({v,f});
+    }else{
+        error("GL == NULL");
+    }
+}
+PShader::PShader(const std::string& vert,const std::string& frag){
+    char *v = (char*)(readFile(vert).c_str());
+    char *f = (char*)(readFile(frag).c_str());
+    create(v,f);
+    delete v;
+    delete f;
+}
+
+PShader::PShader(const char* vert,const char* frag){
+    this->create(vert,frag);
+}
+
+std::string PShader::toString(){
+    std::cout << "PShader(" << program << ")\n";
+}
 // ================== main driver ===================
 
 void ProcessInput(GLFWwindow* window){
@@ -522,40 +777,38 @@ void ProcessInput(GLFWwindow* window){
 
 int main(){
     gl = new GLBackend();
+    //if(&settings){
+    //    settings();
+    //}
     setup();
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Construct the window
-    GLFWwindow* window = glfwCreateWindow(800, 600, "OpenGL Template", nullptr, nullptr);
-    if (!window)
-    {
-        std::cout << "Failed to create the GLFW window\n";
+    window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    if (!window){
+        error("Failed to create the GLFW window\n");
         glfwTerminate();
     }
 
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-        std::cout << "Failed to initialize GLAD\n";
+        error("Failed to initialize GLAD\n");
         return -1;
     }
+    sh = new PShader();
 
-    // Handle view port dimensions
-    gl->viewport(800, 600);
+    gl->viewport(width, height);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height){
         gl->viewport( width, height);
     });
 
-    // This is the render loop
     while (!glfwWindowShouldClose(window)){
         ProcessInput(window);
-
-        gl->clearColor(1.00f, 0.2f, 0.9f, 1.00f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        gl->clearColor(Nred(bgColor), Ngreen(bgColor), Nblue(bgColor), Nalpha(bgColor));
+        draw();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

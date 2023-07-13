@@ -3,14 +3,38 @@
 
 #include <string>
 
-std::string vertex =
-    R"r(
+std::string vertexCode =
+R"r(
+#version 330 core
+layout (location = 0) in vec3 pos;
+layout (location = 1) in vec4 col;
+layout (location = 2) in vec2 tex;
 
-    )r";
+out vec2 TexCoords;
+out vec4 Colour;
 
-std::string fragment =
-    R"r(
+uniform mat4 mat;
 
-    )r";
+void main(){
+    TexCoords = tex;
+    Colour = col;
+    gl_Position = mat * vec4(pos, 1.0);
+}
+)r";
+
+std::string fragmentCode =
+R"r(
+#version 330 core
+in vec4 Colour;
+in vec2 TexCoords;
+
+out vec4 color;
+
+uniform sampler2D image;
+
+void main(){
+    color = Colour * texture(image, TexCoords);
+}
+)r";
 
 #endif // SHADERS_H

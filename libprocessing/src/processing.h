@@ -19,13 +19,27 @@
 #define TAU TWO_PI
 #define QUARTER_PI PI/4
 
+#define RGB 1 << 4
+#define HSB 1 << 8
+
 // ================== variables =====================
+
+extern bool isMousePressed;
+extern bool focused;
 
 extern int mouseX;
 extern int mouseY;
 extern int pmouseX;
 extern int pmouseY;
-extern bool isMousePressed;
+extern int displayHeight;
+extern int displayWidth;
+extern int frameCount;
+extern int framerate;
+extern int height;
+extern int width;
+extern int pixelHeight;
+extern int pixelWidth;
+
 
 // ==================== classes =====================
 
@@ -96,6 +110,124 @@ public:
 
 };
 
+class PMatrix : public PObject{
+public:
+    PMatrix();
+
+    std::string toString() override;
+};
+
+class PMatrix2D : public PMatrix{
+public:
+    PMatrix2D();
+};
+
+class PMatrix3D : public PMatrix{
+public:
+    PMatrix3D();
+};
+
+class PImage : public PObject{
+public:
+    int* pixels = null;
+    int  width, height;
+
+    void loadPixels();
+    void updatePixels();
+    void resize();
+    void get();
+    void set();
+    void mask();
+    void filter();
+    void copy();
+    void blendColor();
+    void blend();
+    void save();
+
+    std::string toString() override;
+};
+
+class PShader : public PObject{
+private:
+    void create(const char* vert,const char* frag);
+public:
+    PShader();                       // load default shader
+    PShader(const std::string& vert,const std::string& frag);   // code
+    PShader(const char* vert,const char* frag);                 // file
+
+    void set(const std::string &name, int x);
+    void set(const std::string &name, float x);
+    void set(const std::string &name, bool x);
+    void set(const std::string &name, int x, int y);
+    void set(const std::string &name, float x, float y);
+    void set(const std::string &name, bool x, bool y);
+    void set(const std::string &name, int x, int y, int z);
+    void set(const std::string &name, float x, float y, float z);
+    void set(const std::string &name, bool x, bool y, bool z);
+    void set(const std::string &name, int x, int y, int z, int w);
+    void set(const std::string &name, float x, float y, float z, float w);
+    void set(const std::string &name, bool x, bool y, bool z, bool w);
+    void set(const std::string &name, int* vec);
+    void set(const std::string &name, float* vec);
+    void set(const std::string &name, bool* vec);
+    void set(const std::string &name, int* vec,int ncoords);
+    void set(const std::string &name, float* vec,int ncoords);
+    void set(const std::string &name, bool* vec,int ncoords);
+    void set(const std::string &name, PMatrix2D &mat);
+    void set(const std::string &name, PMatrix3D &mat);
+    void set(const std::string &name, PMatrix2D &mat, bool use3x3);
+    void set(const std::string &name, PMatrix3D &mat, bool use3x3);
+    void set(const std::string &name, PImage &tex);
+
+    std::string toString() override;
+    int program;
+};
+
+class color : public PObject{
+public:
+    float r,g,b,a;
+
+
+    std::string toString() override;
+
+};
+
+class PFont : public PObject{
+public:
+    PFont();
+private:
+
+};
+
+class PShape : public PObject{
+public:
+    PShape();
+
+    void isVisible();
+    void setVisible();
+    void disableStyle();
+    void enableStyle();
+    void beginContour();
+    void endContour();
+    void beginShape();
+    void endShape();
+    void getChildCount();
+    void getChild();
+    void addChild();
+    void getVertexCount();
+    void getVertex();
+    void setVertex();
+    void setFill();
+    void setStroke();
+    void translate();
+    void rotateX();
+    void rotateY();
+    void rotateZ();
+    void rotate();
+    void scale();
+    void resetMatrix();
+};
+
 // =================== methods ======================
 
 void randomSeed(long seed);
@@ -160,6 +292,94 @@ float radians(float degrees);
 float sin(float angle);
 float tan(float angle);
 
+// text functions
+
+void createFont();
+void loadFont();
+void textFont();
+void text();
+void textAlign();
+void textLeading();
+void textMode();
+void textSize();
+void textWidth();
+void textAscent();
+void textDescent();
+
+// shader functions
+
+void loadShader();
+void resetShader();
+void shader();
+
+// matrix functions
+
+void pushMatrix();
+void popMatrix();
+
+void translate(float tx, float ty);
+void translate(float tx, float ty, float tz);
+void rotate(float angle);
+void rotateX(float angle);
+void rotateY(float angle);
+void rotateZ(float angle);
+void rotate(float angle, float vx, float vy, float vz);
+void scale(float s);
+void scale(float sx, float sy);
+void scale(float x, float y, float z);
+
+void resetMatrix();
+void applyMatrix(float n00, float n01, float n02,
+                 float n10, float n11, float n12);
+void applyMatrix(float n00, float n01, float n02, float n03,
+                 float n10, float n11, float n12, float n13,
+                 float n20, float n21, float n22, float n23,
+                 float n30, float n31, float n32, float n33);
+
+void printMatrix();
+
+// drawing functions
+
+void noStroke();
+void stroke(float gray);
+void stroke(float gray, float alpha);
+void stroke(float x, float y, float z);
+void stroke(float x, float y, float z, float a);
+
+void noFill();
+void fill(float gray);
+void fill(float gray, float alpha);
+void fill(float x, float y, float z);
+void fill(float x, float y, float z, float a);
+
+void background(float gray);
+void background(float gray, float alpha);
+void background(float x, float y, float z);
+void background(float x, float y, float z, float a);
+void background(PImage image);
+
+void colorMode(int mode);
+void colorMode(int mode, float max);
+void colorMode(int mode, float maxX, float maxY, float maxZ);
+void colorMode(int mode, float maxX, float maxY, float maxZ, float maxA);
+
+
+int color(int gray);
+int color(int gray, int alpha);
+int color(int rgb, float alpha);
+int color(int x, int y, int z);
+
+float alpha(int what);
+float red(int what);
+float green(int what);
+float blue(int what);
+float hue(int what);
+float saturation(int what);
+float brightness(int what);
+
+int lerpColor(int c1, int c2, float amt);
+int lerpColor(int c1, int c2, float amt, int mode);
+
 // ================== public functions ===================
 
 void setup();
@@ -175,5 +395,33 @@ void mouseClicked();
 void mouseMoved();
 void mouseDragged();
 void mouseWheel();
+
+void cursor(int kind);
+void cursor(PImage img);
+void cursor(PImage img, int x,int y);
+void cursor();
+void delay(int napTime);
+int  displayDensity();
+int  displayDensity(int display);
+void frameRate(float fps);
+void fullScreen();
+void fullScreen(int display);
+void fullScreen(char* renderer);
+void fullScreen(char* renderer, int display);
+void noCursor();
+void noSmooth();
+void pixelDensity(int density);
+void settings();
+void size(int w, int h);
+void size(int w, int h, int renderer);
+void smooth(int level);
+
+void windowMove();
+void windowMoved();
+void windowRatio();
+void windowResizable();
+void windowResize();
+void windowResized();
+void windowTitle();
 
 #endif

@@ -1,12 +1,20 @@
 #include <processing.h>
 
+bool z = true;
+int a = 0;
+
 void setup(){
-    for(int i = 0; i < 128;i++){
-        double a = noise(i);
-        printf("a = %.2f\n",a);
-    }
+    size(640,480);
 }
 
 void draw(){
-
+    background(a);
+    if(z){
+        a++;
+    }else{
+        a--;
+    }
+    if(a == 255 || a == 0){
+        z = !z;
+    }
 }
