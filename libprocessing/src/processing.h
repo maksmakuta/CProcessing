@@ -2,7 +2,7 @@
 #define PROCESSING_H
 
 /**
- * processing v.2.0-beta3
+ * processing v.2.0-beta6
  * @author Maks Makuta
  */
 
@@ -22,6 +22,9 @@
 #define RGB 1 << 4
 #define HSB 1 << 8
 
+
+typedef std::array<float,6> mat2Data;
+typedef std::array<float,16> mat4Data;
 // ================== variables =====================
 
 extern bool isMousePressed;
@@ -110,21 +113,114 @@ public:
 
 };
 
-class PMatrix : public PObject{
-public:
-    PMatrix();
-
-    std::string toString() override;
-};
-
-class PMatrix2D : public PMatrix{
+class PMatrix2D : public PObject{
 public:
     PMatrix2D();
+    PMatrix2D(mat2Data* mat);
+    PMatrix2D(PMatrix2D*);
+    PMatrix2D(float a00,float a01,float a02,
+              float a10,float a11,float a12);
+
+    void reset();
+    PMatrix2D* get();
+    mat2Data* get(mat2Data* target);
+    void set(PMatrix2D* src);
+    void set(mat2Data* source);
+    void set(float m00, float m01, float m02,
+             float m10, float m11, float m12);
+
+    void translate(float tx, float ty);
+    void rotate(float angle);
+    void rotateZ(float angle);
+    void scale(float s);
+    void scale(float sx, float sy);
+    void shearX(float angle);
+    void shearY(float angle);
+
+    void apply(PMatrix2D* source);
+    void apply(float n00, float n01, float n02,
+               float n10, float n11, float n12);
+
+    void preApply(PMatrix2D* source);
+    void preApply(float n00, float n01, float n02,
+                  float n10, float n11, float n12);
+
+    PVector* mult(PVector* source, PVector* target);
+    mat2Data* mult(mat2Data* source, mat2Data* target);
+
+    bool invert();
+    float determinant();
+
+    std::string toString()  override;
+
+    float m00, m01, m02,
+          m10, m11, m12;
 };
 
-class PMatrix3D : public PMatrix{
+class PMatrix3D : public PObject{
 public:
     PMatrix3D();
+    PMatrix3D(mat4Data* mat);
+    PMatrix3D(PMatrix3D*);
+    PMatrix3D(
+        float m00, float m01, float m02,
+        float m10, float m11, float m12
+    );
+    PMatrix3D(
+        float a00, float a01, float a02, float a03,
+        float a10, float a11, float a12, float a13,
+        float a20, float a21, float a22, float a23,
+        float a30, float a31, float a32, float a33
+    );
+
+    void reset();
+    PMatrix3D* get();
+    mat4Data* get(mat4Data* target);
+    void set(PMatrix3D* src);
+    void set(mat4Data* source);
+    void set(float m00, float m01, float m02, float m03,
+             float m10, float m11, float m12, float m13,
+             float m20, float m21, float m22, float m23,
+             float m30, float m31, float m32, float m33);
+
+    void translate(float tx, float ty);
+    void translate(float tx, float ty, float tz);
+    void rotate(float angle);
+    void rotateX(float angle);
+    void rotateY(float angle);
+    void rotateZ(float angle);
+    void rotate(float angle, float v0, float v1, float v2);
+    void scale(float s);
+    void scale(float sx, float sy);
+    void scale(float x, float y, float z);
+    void shearX(float angle);
+    void shearY(float angle);
+
+    void apply(PMatrix3D* source);
+    void apply(float n00, float n01, float n02, float n03,
+               float n10, float n11, float n12, float n13,
+               float n20, float n21, float n22, float n23,
+               float n30, float n31, float n32, float n33);
+
+    void preApply(PMatrix3D* source);
+    void preApply(float n00, float n01, float n02, float n03,
+                  float n10, float n11, float n12, float n13,
+                  float n20, float n21, float n22, float n23,
+                  float n30, float n31, float n32, float n33);
+
+    PVector mult(PVector source, PVector target);
+    mat4Data* mult(mat4Data* source, mat4Data* target);
+
+    void transpose();
+    bool invert();
+    float determinant();
+
+    std::string toString()  override;
+
+    float m00, m01, m02, m03,
+          m10, m11, m12, m13,
+          m20, m21, m22, m23,
+          m30, m31, m32, m33;
 };
 
 class PImage : public PObject{

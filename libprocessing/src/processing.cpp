@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -22,15 +23,16 @@ void error(const std::string& text){
 
 // ================== variables =====================
 GLFWwindow* window = null;
-backend *gl = null;
-PShader *sh = null;
+PMatrix3D* mat = null;
+backend* gl = null;
+PShader* sh = null;
 
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
 float _ppersisrtence = 0.5; // perlin persistance
 std::string title;
-int smoothness = 4;
+int smoothness = 4; // multisamples (MSAA), can be 1,2,4,8
 
 int colMode = RGB;
 float colMaxR = 0xFF;
@@ -358,6 +360,7 @@ void stroke(float x, float y, float z){
     stroke(x,y,z,colMaxA);
 }
 void stroke(float x, float y, float z, float a){
+    strokeDraw = true;
     int   r = (int) constrain(x,0.f,colMaxR);
     int   g = (int) constrain(y,0.f,colMaxG);
     int   b = (int) constrain(z,0.f,colMaxB);
@@ -378,6 +381,7 @@ void fill(float x, float y, float z){
     fill(x,y,z,colMaxA);
 }
 void fill(float x, float y, float z, float a){
+    fillDraw = false;
     int r = constrain(x,0.f,colMaxR);
     int g = constrain(y,0.f,colMaxG);
     int b = constrain(z,0.f,colMaxB);
@@ -851,6 +855,339 @@ std::string PShader::toString(){
     return ss.str();
 }
 
+PMatrix2D::PMatrix2D() : PMatrix2D(0.f,0.f,0.f,
+                                   0.f,0.f,0.f){}
+PMatrix2D::PMatrix2D(mat2Data* mat){
+    set(mat);
+}
+PMatrix2D::PMatrix2D(PMatrix2D* mat){
+    mat2Data* data = new mat2Data;
+    mat->get(data);
+    set(data);
+    delete data;
+}
+PMatrix2D::PMatrix2D(
+    float a00,float a01,float a02,
+    float a10,float a11,float a12
+){
+    set(a00,a01,a02,
+        a10,a11,a12);
+}
+
+void PMatrix2D::reset(){
+    set(1.f,0.f,0.f,
+        0.f,1.f,0.f);
+}
+PMatrix2D* PMatrix2D::get(){
+    return this;
+}
+mat2Data* PMatrix2D::get(mat2Data* target){
+    if(target == null || target->size() != 6){
+        target = new mat2Data;
+    }
+    float* p = target->data();
+    *(p+0) = m00;
+    *(p+1) = m01;
+    *(p+2) = m02;
+    *(p+3) = m10;
+    *(p+4) = m11;
+    *(p+5) = m12;
+    return target;
+}
+void PMatrix2D::set(mat2Data* source){
+    set(source->at(0),source->at(1),source->at(2),
+        source->at(3),source->at(4),source->at(5));
+}
+void PMatrix2D::set(float m00, float m01, float m02,
+                    float m10, float m11, float m12){
+    this->m00 = m00;
+    this->m01 = m01;
+    this->m02 = m02;
+    this->m10 = m10;
+    this->m11 = m11;
+    this->m12 = m12;
+}
+
+void PMatrix2D::translate(float tx, float ty){
+    this->m02 = tx*m00 + ty*m01 + m02;
+    this->m12 = tx*m10 + ty*m11 + m12;
+}
+void PMatrix2D::rotate(float angle){
+    float s = sin(angle);
+    float c = cos(angle);
+    float temp1 = m00;
+    float temp2 = m01;
+    this->m00 =  c * temp1 + s * temp2;
+    this->m01 = -s * temp1 + c * temp2;
+    temp1 = m10;
+    temp2 = m11;
+    this->m10 =  c * temp1 + s * temp2;
+    this->m11 = -s * temp1 + c * temp2;
+}
+void PMatrix2D::rotateZ(float angle){
+    rotate(angle);
+}
+void PMatrix2D::scale(float s){
+    scale(s, s);
+}
+void PMatrix2D::scale(float sx, float sy){
+    this->m00 *= sx;
+    this->m01 *= sy;
+    this->m10 *= sx;
+    this->m11 *= sy;
+}
+void PMatrix2D::shearX(float angle){
+    float t = tan(angle);
+    apply(1, 0, 1,
+          t, 0, 0);
+}
+void PMatrix2D::shearY(float angle){
+    float t = tan(angle);
+    apply(1, 0, 1,
+          0, t, 0);
+}
+
+void PMatrix2D::apply(PMatrix2D* source){
+    apply(source->m00,source->m01,source->m02,
+          source->m10,source->m11,source->m12);
+}
+void PMatrix2D::apply(float n00, float n01, float n02,
+                      float n10, float n11, float n12){
+    float t0 = m00;
+    float t1 = m01;
+    this->m00  = n00 * t0 + n10 * t1;
+    this->m01  = n01 * t0 + n11 * t1;
+    this->m02 += n02 * t0 + n12 * t1;
+    t0 = m10;
+    t1 = m11;
+    this->m10  = n00 * t0 + n10 * t1;
+    this->m11  = n01 * t0 + n11 * t1;
+    this->m12 += n02 * t0 + n12 * t1;
+}
+
+void PMatrix2D::preApply(PMatrix2D* source){
+    preApply(source->m00,source->m01,source->m02,
+             source->m10,source->m11,source->m12);
+}
+void PMatrix2D::preApply(float n00, float n01, float n02,
+              float n10, float n11, float n12){
+
+    float t0 = m02;
+    float t1 = m12;
+    n02 += t0 * n00 + t1 * n01;
+    n12 += t0 * n10 + t1 * n11;
+
+    this->m02 = n02;
+    this->m12 = n12;
+
+    t0 = m00;
+    t1 = m10;
+    this->m00 = t0 * n00 + t1 * n01;
+    this->m10 = t0 * n10 + t1 * n11;
+
+    t0 = m01;
+    t1 = m11;
+    this->m01 = t0 * n00 + t1 * n01;
+    this->m11 = t0 * n10 + t1 * n11;
+}
+PVector* PMatrix2D::mult(PVector* source, PVector* target){
+    if (target == null) {
+        target = new PVector();
+    }
+    target->x = m00*source->x + m01*source->y + m02;
+    target->y = m10*source->x + m11*source->y + m12;
+    return target;
+}
+mat2Data* PMatrix2D::mult(mat2Data* vec, mat2Data* out){
+    if (out == null || out->size() != 2) {
+        out = new mat2Data;
+    }
+    float* p = out->data();
+    if (vec == out) {
+        float tx = m00*vec->at(0) + m01*vec->at(1) + m02;
+        float ty = m10*vec->at(0) + m11*vec->at(1) + m12;
+        *(p+0) = tx;
+        *(p+1) = ty;
+    } else {
+        *(p+0) = m00*vec->at(0) + m01*vec->at(1) + m02;
+        *(p+1) = m10*vec->at(0) + m11*vec->at(1) + m12;
+    }
+    return out;
+}
+bool PMatrix2D::invert(){
+    float d = determinant();
+    if (abs(d) <= 0) {
+        return false;
+    }
+
+    float t00 = m00;
+    float t01 = m01;
+    float t02 = m02;
+    float t10 = m10;
+    float t11 = m11;
+    float t12 = m12;
+
+    m00 =  t11 / d;
+    m10 = -t10 / d;
+    m01 = -t01 / d;
+    m11 =  t00 / d;
+    m02 = (t01 * t12 - t11 * t02) / d;
+    m12 = (t10 * t02 - t00 * t12) / d;
+    return true;
+}
+float PMatrix2D::determinant(){
+    return m00 * m11 - m01 * m10;
+}
+std::string PMatrix2D::toString(){
+    std::stringstream ss;
+    ss << "PMatrix2D(" << m00 << ","<< m01 << ","<< m02 << "," << std::endl;
+    ss << "          " << m10 << ","<< m11 << ","<< m12 << ")" << std::endl;
+    return ss.str();
+}
+
+PMatrix3D::PMatrix3D(){
+    reset();
+}
+PMatrix3D::PMatrix3D(mat4Data* mat){
+    set(mat);
+}
+PMatrix3D::PMatrix3D(PMatrix3D* mat){
+    set(mat);
+}
+PMatrix3D::PMatrix3D(float m00, float m01, float m02,
+          float m10, float m11, float m12) {
+    set(m00, m01, m02, 0,
+        m10, m11, m12, 0,
+        0,   0,   1,   0,
+        0,   0,   0,   1);
+}
+PMatrix3D::PMatrix3D(
+    float a00, float a01, float a02, float a03,
+    float a10, float a11, float a12, float a13,
+    float a20, float a21, float a22, float a23,
+    float a30, float a31, float a32, float a33
+){
+    set(a00,a01,a02,a03,
+        a10,a11,a12,a13,
+        a20,a21,a22,a23,
+        a30,a31,a32,a33);
+}
+void PMatrix3D::reset(){
+    set(1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f);
+}
+PMatrix3D* PMatrix3D::get(){
+    return this;
+}
+mat4Data* PMatrix3D::get(mat4Data* target){
+    if(target != null || target->size() != 16){
+        target = new mat4Data;
+    }
+    float* p = target->data();
+    *(p+0 ) = m00;
+    *(p+1 ) = m01;
+    *(p+2 ) = m02;
+    *(p+3 ) = m03;
+    *(p+4 ) = m10;
+    *(p+5 ) = m11;
+    *(p+6 ) = m12;
+    *(p+7 ) = m13;
+    *(p+8 ) = m20;
+    *(p+9 ) = m21;
+    *(p+10) = m22;
+    *(p+11) = m23;
+    *(p+12) = m30;
+    *(p+13) = m31;
+    *(p+14) = m32;
+    *(p+15) = m33;
+    return target;
+}
+
+void PMatrix3D::set(PMatrix3D* src){
+    set(src->m00,src->m01,src->m02,src->m03,
+        src->m10,src->m11,src->m12,src->m13,
+        src->m20,src->m21,src->m22,src->m23,
+        src->m30,src->m31,src->m32,src->m33);
+}
+void PMatrix3D::set(mat4Data* source){
+    set(
+        source->at(0), source->at(1),
+        source->at(2), source->at(3),
+        source->at(4), source->at(5),
+        source->at(6), source->at(7),
+        source->at(8), source->at(9),
+        source->at(10),source->at(11),
+        source->at(12),source->at(13),
+        source->at(14),source->at(15)
+    );
+}
+void PMatrix3D::set(
+    float m00, float m01, float m02, float m03,
+    float m10, float m11, float m12, float m13,
+    float m20, float m21, float m22, float m23,
+    float m30, float m31, float m32, float m33){
+
+    this->m00 = m00;
+    this->m01 = m01;
+    this->m02 = m02;
+    this->m03 = m03;
+
+    this->m10 = m10;
+    this->m11 = m11;
+    this->m12 = m12;
+    this->m13 = m13;
+
+    this->m20 = m20;
+    this->m21 = m21;
+    this->m22 = m22;
+    this->m23 = m23;
+
+    this->m30 = m30;
+    this->m31 = m31;
+    this->m32 = m32;
+    this->m33 = m33;
+}
+void PMatrix3D::translate(float tx, float ty){
+
+}
+void PMatrix3D::translate(float tx, float ty, float tz){
+
+}
+void PMatrix3D::rotate(float angle){
+
+}
+void PMatrix3D::rotateX(float angle){
+
+}
+void PMatrix3D::rotateY(float angle){
+
+}
+void PMatrix3D::rotateZ(float angle){
+
+}
+void PMatrix3D::rotate(float angle, float v0, float v1, float v2){
+
+}
+void PMatrix3D::scale(float s){
+
+}
+void PMatrix3D::scale(float sx, float sy){
+
+}
+void PMatrix3D::scale(float x, float y, float z){
+
+}
+void PMatrix3D::shearX(float angle){
+
+}
+void PMatrix3D::shearY(float angle){
+
+}
+
+
+
 // ================== main driver ===================
 
 void ProcessInput(GLFWwindow* window){
@@ -884,7 +1221,8 @@ int main(){
         return -1;
     }
     sh = new PShader();
-    gl->enable(F_MSAA);
+    if(smoothness > 0)
+        gl->enable(F_MSAA);
     gl->viewport(width, height);
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height){
         gl->viewport( width, height);

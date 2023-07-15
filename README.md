@@ -2,19 +2,21 @@
 
 Port Processing language to C++  
 Now project are fully rewrited to provides full support of Processing API and support of few rendering APIs, like OpenGL and Vulkan.  
+Use [this](https://github.com/maksmakuta/CProcessing/commit/059adef3b518facb7c7068402baa8c4fdcd9bbc9) commit for stable version
 
 ### Dependencies
 
- - OpenGL 
+ - OpenGL / Vulkan
  - GLAD (included)
  - GLFW (included)
- - glm  (included)
- - stb  (included)  
+ - stb  (included)
 
 ### What's work
 
  - [x] Window making
- - [x] OpenGL making
+ - [-] Backend
+   - [-] OpenGL (3.3)
+   - [ ] Vulkan (1.2+, in future)
  - [ ] Drawing
    - [ ] 2D
      - [ ] Simple shapes 
