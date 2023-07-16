@@ -998,19 +998,18 @@ PVector* PMatrix2D::mult(PVector* source, PVector* target){
     target->y = m10*source->x + m11*source->y + m12;
     return target;
 }
-mat2Data* PMatrix2D::mult(mat2Data* vec, mat2Data* out){
-    if (out == null || out->size() != 2) {
-        out = new mat2Data;
+float* PMatrix2D::mult(float* vec, float* out){
+    if (out == null) {
+        out = new float[2];
     }
-    float* p = out->data();
     if (vec == out) {
-        float tx = m00*vec->at(0) + m01*vec->at(1) + m02;
-        float ty = m10*vec->at(0) + m11*vec->at(1) + m12;
-        *(p+0) = tx;
-        *(p+1) = ty;
+        float tx = m00*vec[0] + m01*vec[1] + m02;
+        float ty = m10*vec[0] + m11*vec[1] + m12;
+        out[0] = tx;
+        out[1] = ty;
     } else {
-        *(p+0) = m00*vec->at(0) + m01*vec->at(1) + m02;
-        *(p+1) = m10*vec->at(0) + m11*vec->at(1) + m12;
+        out[0] = m00*vec[0] + m01*vec[1] + m02;
+        out[1] = m10*vec[0] + m11*vec[1] + m12;
     }
     return out;
 }
@@ -1082,7 +1081,7 @@ PMatrix3D* PMatrix3D::get(){
     return this;
 }
 mat4Data* PMatrix3D::get(mat4Data* target){
-    if(target != null || target->size() != 16){
+    if(target == null || target->size() != 16){
         target = new mat4Data;
     }
     float* p = target->data();
@@ -1150,43 +1149,298 @@ void PMatrix3D::set(
     this->m33 = m33;
 }
 void PMatrix3D::translate(float tx, float ty){
-
+    translate(tx,ty,0.f);
 }
 void PMatrix3D::translate(float tx, float ty, float tz){
-
+    m03 += tx*m00 + ty*m01 + tz*m02;
+    m13 += tx*m10 + ty*m11 + tz*m12;
+    m23 += tx*m20 + ty*m21 + tz*m22;
+    m33 += tx*m30 + ty*m31 + tz*m32;
 }
 void PMatrix3D::rotate(float angle){
-
+    rotateZ(angle);
 }
 void PMatrix3D::rotateX(float angle){
-
+    float c = cos(angle);
+    float s = sin(angle);
+    apply(1, 0, 0, 0,
+          0, c, -s, 0,
+          0, s, c, 0,
+          0, 0, 0, 1);
 }
 void PMatrix3D::rotateY(float angle){
-
+    float c = cos(angle);
+    float s = sin(angle);
+    apply(c, 0, s, 0,
+          0, 1, 0, 0,
+          -s, 0, c, 0,
+          0, 0, 0, 1);
 }
 void PMatrix3D::rotateZ(float angle){
-
+    float c = cos(angle);
+    float s = sin(angle);
+    apply(c, -s, 0, 0,
+          s, c, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1);
 }
 void PMatrix3D::rotate(float angle, float v0, float v1, float v2){
+    float norm2 = v0 * v0 + v1 * v1 + v2 * v2;
+    if (norm2 < EPSILON) {
+        // The vector is zero, cannot apply rotation.
+        return;
+    }
 
+    if (abs(norm2 - 1) > EPSILON) {
+        // The rotation vector is not normalized.
+        float norm = sqrt(norm2);
+        v0 /= norm;
+        v1 /= norm;
+        v2 /= norm;
+    }
+
+    float c = cos(angle);
+    float s = sin(angle);
+    float t = 1.0f - c;
+
+    apply((t*v0*v0) + c, (t*v0*v1) - (s*v2), (t*v0*v2) + (s*v1), 0,
+          (t*v0*v1) + (s*v2), (t*v1*v1) + c, (t*v1*v2) - (s*v0), 0,
+          (t*v0*v2) - (s*v1), (t*v1*v2) + (s*v0), (t*v2*v2) + c, 0,
+          0, 0, 0, 1);
 }
 void PMatrix3D::scale(float s){
-
+    scale(s, s, s);
 }
 void PMatrix3D::scale(float sx, float sy){
-
+    scale(sx, sy, 1.f);
 }
 void PMatrix3D::scale(float x, float y, float z){
-
+    m00 *= x;  m01 *= y;  m02 *= z;
+    m10 *= x;  m11 *= y;  m12 *= z;
+    m20 *= x;  m21 *= y;  m22 *= z;
+    m30 *= x;  m31 *= y;  m32 *= z;
 }
 void PMatrix3D::shearX(float angle){
-
+    float t = tan(angle);
+    apply(1, t, 0, 0,
+          0, 1, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1);
 }
 void PMatrix3D::shearY(float angle){
-
+    float t = tan(angle);
+    apply(1, 0, 0, 0,
+          t, 1, 0, 0,
+          0, 0, 1, 0,
+          0, 0, 0, 1);
+}
+void PMatrix3D::apply(PMatrix3D* source){
+    apply(
+        source->m00,source->m01,source->m02,source->m03,
+        source->m10,source->m11,source->m12,source->m13,
+        source->m20,source->m21,source->m22,source->m23,
+        source->m30,source->m31,source->m32,source->m33
+    );
+}
+void PMatrix3D::apply(
+    float n00, float n01, float n02, float n03,
+    float n10, float n11, float n12, float n13,
+    float n20, float n21, float n22, float n23,
+    float n30, float n31, float n32, float n33
+){
+    float r00 = m00*n00 + m01*n10 + m02*n20 + m03*n30;
+    float r01 = m00*n01 + m01*n11 + m02*n21 + m03*n31;
+    float r02 = m00*n02 + m01*n12 + m02*n22 + m03*n32;
+    float r03 = m00*n03 + m01*n13 + m02*n23 + m03*n33;
+    float r10 = m10*n00 + m11*n10 + m12*n20 + m13*n30;
+    float r11 = m10*n01 + m11*n11 + m12*n21 + m13*n31;
+    float r12 = m10*n02 + m11*n12 + m12*n22 + m13*n32;
+    float r13 = m10*n03 + m11*n13 + m12*n23 + m13*n33;
+    float r20 = m20*n00 + m21*n10 + m22*n20 + m23*n30;
+    float r21 = m20*n01 + m21*n11 + m22*n21 + m23*n31;
+    float r22 = m20*n02 + m21*n12 + m22*n22 + m23*n32;
+    float r23 = m20*n03 + m21*n13 + m22*n23 + m23*n33;
+    float r30 = m30*n00 + m31*n10 + m32*n20 + m33*n30;
+    float r31 = m30*n01 + m31*n11 + m32*n21 + m33*n31;
+    float r32 = m30*n02 + m31*n12 + m32*n22 + m33*n32;
+    float r33 = m30*n03 + m31*n13 + m32*n23 + m33*n33;
+    this->m00 = r00;this->m01 = r01;this->m02 = r02;this->m03 = r03;
+    this->m10 = r10;this->m11 = r11;this->m12 = r12;this->m13 = r13;
+    this->m20 = r20;this->m21 = r21;this->m22 = r22;this->m23 = r23;
+    this->m30 = r30;this->m31 = r31;this->m32 = r32;this->m33 = r33;
 }
 
+void PMatrix3D::preApply(PMatrix3D* source){
+    preApply(
+        source->m00,source->m01,source->m02,source->m03,
+        source->m10,source->m11,source->m12,source->m13,
+        source->m20,source->m21,source->m22,source->m23,
+        source->m30,source->m31,source->m32,source->m33
+    );
+}
+void PMatrix3D::preApply(
+    float n00, float n01, float n02, float n03,
+    float n10, float n11, float n12, float n13,
+    float n20, float n21, float n22, float n23,
+    float n30, float n31, float n32, float n33
+){
+    float r00 = n00*m00 + n01*m10 + n02*m20 + n03*m30;
+    float r01 = n00*m01 + n01*m11 + n02*m21 + n03*m31;
+    float r02 = n00*m02 + n01*m12 + n02*m22 + n03*m32;
+    float r03 = n00*m03 + n01*m13 + n02*m23 + n03*m33;
 
+    float r10 = n10*m00 + n11*m10 + n12*m20 + n13*m30;
+    float r11 = n10*m01 + n11*m11 + n12*m21 + n13*m31;
+    float r12 = n10*m02 + n11*m12 + n12*m22 + n13*m32;
+    float r13 = n10*m03 + n11*m13 + n12*m23 + n13*m33;
+
+    float r20 = n20*m00 + n21*m10 + n22*m20 + n23*m30;
+    float r21 = n20*m01 + n21*m11 + n22*m21 + n23*m31;
+    float r22 = n20*m02 + n21*m12 + n22*m22 + n23*m32;
+    float r23 = n20*m03 + n21*m13 + n22*m23 + n23*m33;
+
+    float r30 = n30*m00 + n31*m10 + n32*m20 + n33*m30;
+    float r31 = n30*m01 + n31*m11 + n32*m21 + n33*m31;
+    float r32 = n30*m02 + n31*m12 + n32*m22 + n33*m32;
+    float r33 = n30*m03 + n31*m13 + n32*m23 + n33*m33;
+
+    m00 = r00; m01 = r01; m02 = r02; m03 = r03;
+    m10 = r10; m11 = r11; m12 = r12; m13 = r13;
+    m20 = r20; m21 = r21; m22 = r22; m23 = r23;
+    m30 = r30; m31 = r31; m32 = r32; m33 = r33;
+}
+PVector* PMatrix3D::mult(PVector* source, PVector* target){
+    if (target == null) {
+        target = new PVector();
+    }
+    target->set(m00*source->x + m01*source->y + m02*source->z + m03,
+                m10*source->x + m11*source->y + m12*source->z + m13,
+                m20*source->x + m21*source->y + m22*source->z + m23);
+    return target;
+}
+float* PMatrix3D::mult(float* source, float* target, int s){
+    if (target == null) {
+        if(s < 3){
+            target = new float[3];
+            s = 3;
+        }else if(s > 4){
+            target = new float[4];
+            s = 4;
+        }
+    }
+    if (s == 3) {
+        target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03;
+        target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13;
+        target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23;
+    } else if (s > 3) {
+        target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03*source[3];
+        target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13*source[3];
+        target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23*source[3];
+        target[3] = m30*source[0] + m31*source[1] + m32*source[2] + m33*source[3];
+    }
+    return target;
+}
+void PMatrix3D::transpose(){
+    float temp;
+    temp = m01; m01 = m10; m10 = temp;
+    temp = m02; m02 = m20; m20 = temp;
+    temp = m03; m03 = m30; m30 = temp;
+    temp = m12; m12 = m21; m21 = temp;
+    temp = m13; m13 = m31; m31 = temp;
+    temp = m23; m23 = m32; m32 = temp;
+}
+float determinant3x3(float t00, float t01, float t02,
+                     float t10, float t11, float t12,
+                     float t20, float t21, float t22) {
+    return (t00 * (t11 * t22 - t12 * t21) +
+            t01 * (t12 * t20 - t10 * t22) +
+            t02 * (t10 * t21 - t11 * t20));
+}
+bool PMatrix3D::invert(){
+    float d = determinant();
+    if (d == 0) {
+        return false;
+    }
+
+    // first row
+    float t00 =  determinant3x3(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+    float t01 = -determinant3x3(m10, m12, m13, m20, m22, m23, m30, m32, m33);
+    float t02 =  determinant3x3(m10, m11, m13, m20, m21, m23, m30, m31, m33);
+    float t03 = -determinant3x3(m10, m11, m12, m20, m21, m22, m30, m31, m32);
+
+    // second row
+    float t10 = -determinant3x3(m01, m02, m03, m21, m22, m23, m31, m32, m33);
+    float t11 =  determinant3x3(m00, m02, m03, m20, m22, m23, m30, m32, m33);
+    float t12 = -determinant3x3(m00, m01, m03, m20, m21, m23, m30, m31, m33);
+    float t13 =  determinant3x3(m00, m01, m02, m20, m21, m22, m30, m31, m32);
+
+    // third row
+    float t20 =  determinant3x3(m01, m02, m03, m11, m12, m13, m31, m32, m33);
+    float t21 = -determinant3x3(m00, m02, m03, m10, m12, m13, m30, m32, m33);
+    float t22 =  determinant3x3(m00, m01, m03, m10, m11, m13, m30, m31, m33);
+    float t23 = -determinant3x3(m00, m01, m02, m10, m11, m12, m30, m31, m32);
+
+    // fourth row
+    float t30 = -determinant3x3(m01, m02, m03, m11, m12, m13, m21, m22, m23);
+    float t31 =  determinant3x3(m00, m02, m03, m10, m12, m13, m20, m22, m23);
+    float t32 = -determinant3x3(m00, m01, m03, m10, m11, m13, m20, m21, m23);
+    float t33 =  determinant3x3(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+
+    // transpose and divide by the determinant
+    m00 = t00 / d;
+    m01 = t10 / d;
+    m02 = t20 / d;
+    m03 = t30 / d;
+
+    m10 = t01 / d;
+    m11 = t11 / d;
+    m12 = t21 / d;
+    m13 = t31 / d;
+
+    m20 = t02 / d;
+    m21 = t12 / d;
+    m22 = t22 / d;
+    m23 = t32 / d;
+
+    m30 = t03 / d;
+    m31 = t13 / d;
+    m32 = t23 / d;
+    m33 = t33 / d;
+
+    return true;
+}
+float PMatrix3D::determinant(){
+    float f =
+        m00
+        * ((m11 * m22 * m33 + m12 * m23 * m31 + m13 * m21 * m32)
+           - m13 * m22 * m31
+           - m11 * m23 * m32
+           - m12 * m21 * m33);
+    f -= m01
+         * ((m10 * m22 * m33 + m12 * m23 * m30 + m13 * m20 * m32)
+            - m13 * m22 * m30
+            - m10 * m23 * m32
+            - m12 * m20 * m33);
+    f += m02
+         * ((m10 * m21 * m33 + m11 * m23 * m30 + m13 * m20 * m31)
+            - m13 * m21 * m30
+            - m10 * m23 * m31
+            - m11 * m20 * m33);
+    f -= m03
+         * ((m10 * m21 * m32 + m11 * m22 * m30 + m12 * m20 * m31)
+            - m12 * m21 * m30
+            - m10 * m22 * m31
+            - m11 * m20 * m32);
+    return f;
+}
+std::string PMatrix3D::toString(){
+    std::stringstream ss;
+    ss << "PMatrix3D(" << m00 << ","<< m01 << ","<< m02 << "," << m03 << "," << std::endl;
+    ss << "          " << m10 << ","<< m11 << ","<< m12 << "," << m13 << "," << std::endl;
+    ss << "          " << m20 << ","<< m21 << ","<< m22 << "," << m23 << "," << std::endl;
+    ss << "          " << m30 << ","<< m31 << ","<< m32 << "," << m33 << ")" << std::endl;
+    return ss.str();
+}
 
 // ================== main driver ===================
 

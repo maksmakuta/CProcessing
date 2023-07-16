@@ -18,6 +18,7 @@
 #define TWO_PI 2.0*PI
 #define TAU TWO_PI
 #define QUARTER_PI PI/4
+#define EPSILON  0.0001
 
 #define RGB 1 << 4
 #define HSB 1 << 8
@@ -146,7 +147,7 @@ public:
                   float n10, float n11, float n12);
 
     PVector* mult(PVector* source, PVector* target);
-    mat2Data* mult(mat2Data* source, mat2Data* target);
+    float* mult(float* source, float* target);
 
     bool invert();
     float determinant();
@@ -208,8 +209,8 @@ public:
                   float n20, float n21, float n22, float n23,
                   float n30, float n31, float n32, float n33);
 
-    PVector mult(PVector source, PVector target);
-    mat4Data* mult(mat4Data* source, mat4Data* target);
+    PVector* mult(PVector* source, PVector* target);
+    float* mult(float* source, float* target, int s = 3);
 
     void transpose();
     bool invert();

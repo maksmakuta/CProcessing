@@ -2,7 +2,7 @@
 
 Port Processing language to C++  
 Now project are fully rewrited to provides full support of Processing API and support of few rendering APIs, like OpenGL and Vulkan.  
-Use [this](https://github.com/maksmakuta/CProcessing/commit/059adef3b518facb7c7068402baa8c4fdcd9bbc9) commit for stable version
+Use [this](https://github.com/maksmakuta/CProcessing/tree/059adef3b518facb7c7068402baa8c4fdcd9bbc9) commit for stable version
 
 ### Dependencies
 
@@ -13,9 +13,13 @@ Use [this](https://github.com/maksmakuta/CProcessing/commit/059adef3b518facb7c70
 
 ### What's work
 
- - [x] Window making
- - [-] Backend
-   - [-] OpenGL (3.3)
+ - [x] Window
+   - [x] Creation
+   - [x] Resize (no event)
+   - [x] Move (no event)
+   - [ ] Change focus 
+ - [ ] Backend
+   - [x] OpenGL (3.3, in development)
    - [ ] Vulkan (1.2+, in future)
  - [ ] Drawing
    - [ ] 2D
@@ -37,6 +41,8 @@ I use this repos for modernize my library
   - https://github.com/whackashoe/cprocessing
   - https://github.com/cchaine/processing-cpp
   - https://github.com/processing/processing4
+  
+Also I use official Processing API taken [here](https://processing.org/reference)
  
 ## Author
   
