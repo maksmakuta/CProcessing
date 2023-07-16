@@ -7,6 +7,7 @@
 #include <array>
 #include <iostream>
 #include <sstream>
+#include <stack>
 #include <fstream>
 #include <limits>
 #include <assert.h>
@@ -23,9 +24,11 @@ void error(const std::string& text){
 
 // ================== variables =====================
 GLFWwindow* window = null;
-PMatrix3D* mat = null;
 backend* gl = null;
 PShader* sh = null;
+
+PMatrix3D mat;
+std::stack<PMatrix3D> matStack;
 
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
@@ -502,6 +505,72 @@ void smooth(int level){
 void noSmooth(){
     smoothness = -1;
 }
+
+void pushMatrix(){
+    matStack.push(mat);
+}
+void popMatrix(){
+    mat = matStack.top();
+    matStack.pop();
+}
+
+void translate(float tx, float ty){
+    mat.translate(tx,ty);
+}
+void translate(float tx, float ty, float tz){
+    mat.translate(tx,ty,tz);
+}
+void rotate(float angle){
+    mat.rotate(angle);
+}
+void rotateX(float angle){
+    mat.rotateX(angle);
+}
+void rotateY(float angle){
+    mat.rotateY(angle);
+}
+void rotateZ(float angle){
+    mat.rotateZ(angle);
+}
+void rotate(float angle, float vx, float vy, float vz){
+    mat.rotate(angle,vx,vy,vz);
+}
+void scale(float s){
+    mat.scale(s);
+}
+void scale(float sx, float sy){
+    mat.scale(sx,sy);
+}
+void scale(float x, float y, float z){
+    mat.scale(x,y,z);
+}
+void resetMatrix(){
+    mat.reset();
+}
+void applyMatrix(float n00, float n01, float n02,
+                 float n10, float n11, float n12){
+    mat.apply(n00,n01,n02,
+              n10,n11,n12);
+}
+void applyMatrix(float n00, float n01, float n02, float n03,
+                 float n10, float n11, float n12, float n13,
+                 float n20, float n21, float n22, float n23,
+                 float n30, float n31, float n32, float n33){
+    mat.apply(n00,n01,n02,n03,
+              n10,n11,n12,n13,
+              n20,n21,n22,n23,
+              n30,n31,n32,n33);
+}
+
+void printMatrix(){
+    using namespace std;
+    cout << "MATRIX" << endl;
+    cout << mat.m00 << " " << mat.m01 << " " << mat.m02 << " " << mat.m03 << "\n";
+    cout << mat.m10 << " " << mat.m11 << " " << mat.m12 << " " << mat.m13 << "\n";
+    cout << mat.m20 << " " << mat.m21 << " " << mat.m22 << " " << mat.m23 << "\n";
+    cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n";
+ }
+
 
 void rect(float x, float y, float w, float h){
 
@@ -1243,6 +1312,15 @@ void PMatrix3D::apply(PMatrix3D* source){
     );
 }
 void PMatrix3D::apply(
+    float n00, float n01, float n02,
+    float n10, float n11, float n12
+){
+    apply(  n00,n01,n02,0.f,
+            n10,n11,n12,0.f,
+            0.f,0.f,1.f,0.f,
+            0.f,0.f,0.f,1.f);
+}
+void PMatrix3D::apply(
     float n00, float n01, float n02, float n03,
     float n10, float n11, float n12, float n13,
     float n20, float n21, float n22, float n23,
@@ -1276,6 +1354,17 @@ void PMatrix3D::preApply(PMatrix3D* source){
         source->m10,source->m11,source->m12,source->m13,
         source->m20,source->m21,source->m22,source->m23,
         source->m30,source->m31,source->m32,source->m33
+    );
+}
+void PMatrix3D::preApply(
+    float n00, float n01, float n02,
+    float n10, float n11, float n12
+){
+    preApply(
+        n00,n01,n02,0.f,
+        n10,n11,n12,0.f,
+        0.f,0.f,1.f,0.f,
+        0.f,0.f,0.f,1.f
     );
 }
 void PMatrix3D::preApply(
