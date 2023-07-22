@@ -185,57 +185,6 @@ void GLBackend::setUniform(int program, const std::string& name, bool x,bool y,b
     int loc = getUniformLocation(program,name);
     glUniform4i(loc,(int)x,(int)y,(int)z,(int)w);
 }
-void GLBackend::setUniform(int program, const std::string& name, bool* vec){
-    int size = sizeof(vec) / sizeof(bool);
-    switch(size){
-    case 1:
-        setUniform(program,name,vec[0]);
-        break;
-    case 2:
-        setUniform(program,name,vec[0],vec[1]);
-        break;
-    case 3:
-        setUniform(program,name,vec[0],vec[1],vec[2]);
-        break;
-    case 4:
-        setUniform(program,name,vec[0],vec[1],vec[2],vec[3]);
-        break;
-    }
-}
-void GLBackend::setUniform(int program, const std::string& name, int* vec){
-    int size = sizeof(vec) / sizeof(int);
-    switch(size){
-    case 1:
-        setUniform(program,name,vec[0]);
-        break;
-    case 2:
-        setUniform(program,name,vec[0],vec[1]);
-        break;
-    case 3:
-        setUniform(program,name,vec[0],vec[1],vec[2]);
-        break;
-    case 4:
-        setUniform(program,name,vec[0],vec[1],vec[2],vec[3]);
-        break;
-    }
-}
-void GLBackend::setUniform(int program, const std::string& name, float* vec){
-    int size = sizeof(vec) / sizeof(float);
-    switch(size){
-    case 1:
-        setUniform(program,name,vec[0]);
-        break;
-    case 2:
-        setUniform(program,name,vec[0],vec[1]);
-        break;
-    case 3:
-        setUniform(program,name,vec[0],vec[1],vec[2]);
-        break;
-    case 4:
-        setUniform(program,name,vec[0],vec[1],vec[2],vec[3]);
-        break;
-    }
-}
 void GLBackend::setUniform(int program, const std::string& name, bool* vec,int n){
     switch(n){
     case 1:
@@ -269,6 +218,9 @@ void GLBackend::setUniform(int program, const std::string& name, int* vec,int n)
     }
 }
 void GLBackend::setUniform(int program, const std::string& name, float* vec,int n){
+    if(activeProgram != program)
+        bindShader(program);
+    int loc = getUniformLocation(program,name);
     switch(n){
     case 1:
         setUniform(program,name,vec[0]);
@@ -281,6 +233,15 @@ void GLBackend::setUniform(int program, const std::string& name, float* vec,int 
         break;
     case 4:
         setUniform(program,name,vec[0],vec[1],vec[2],vec[3]);
+        break;
+    case 6:
+        glUniformMatrix3x2fv(loc,1,false,vec);
+        break;
+    case 9:
+        glUniformMatrix3fv(loc,1,false,vec);
+        break;
+    case 16:
+        glUniformMatrix4fv(loc,1,false,vec);
         break;
     }
 }

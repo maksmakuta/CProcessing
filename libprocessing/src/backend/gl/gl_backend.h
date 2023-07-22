@@ -39,9 +39,6 @@ public:
     void setUniform(int program, const std::string& name, bool x,bool y) override;
     void setUniform(int program, const std::string& name, bool x,bool y,bool z) override;
     void setUniform(int program, const std::string& name, bool x,bool y,bool z,bool w) override;
-    void setUniform(int program, const std::string& name, bool* vec) override;
-    void setUniform(int program, const std::string& name, int* vec) override;
-    void setUniform(int program, const std::string& name, float* vec) override;
     void setUniform(int program, const std::string& name, bool* vec,int n) override;
     void setUniform(int program, const std::string& name, int* vec,int n) override;
     void setUniform(int program, const std::string& name, float* vec,int n) override;

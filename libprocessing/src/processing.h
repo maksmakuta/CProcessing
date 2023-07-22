@@ -20,12 +20,14 @@
 #define QUARTER_PI PI/4
 #define EPSILON  0.0001
 
-#define RGB 1 << 4
-#define HSB 1 << 8
-
+#define ALPHA 1
+#define  ARGB 1 << 2
+#define   RGB 1 << 4
+#define   HSB 1 << 8
 
 typedef std::array<float,6> mat2Data;
 typedef std::array<float,16> mat4Data;
+
 // ================== variables =====================
 
 extern bool isMousePressed;
@@ -229,13 +231,21 @@ public:
 };
 
 class PImage : public PObject{
+private:
+    int length = 0;
 public:
     int* pixels = null;
-    int  width, height;
+    int  width, height, format;
+
+    PImage();
+    PImage(int width, int height);
+    PImage(int width, int height, int format);
+    PImage(int width, int height, int format, int* pixels, int pwidth, int pheight);
 
     void loadPixels();
     void updatePixels();
-    void resize();
+    void updatePixels(int x,int y,int w,int h);
+    void resize(int w,int h);
     void get();
     void set();
     void mask();
@@ -303,23 +313,31 @@ private:
 class PShape : public PObject{
 private:
     bool visibility = true;
+    bool newShape = false;
+    std::vector<PShape> childs;
+    std::vector<PVector> vertexes;
+    std::string name;
 public:
     PShape();
 
-    void isVisible();
-    void setVisible();
-    void disableStyle();
-    void enableStyle();
-    void beginContour();
-    void endContour();
+    bool isVisible();
+    void setVisible(bool isVisible);
+    //void disableStyle();
+    //void enableStyle();
+    //void beginContour();
+    //void endContour();
     void beginShape();
     void endShape();
-    void getChildCount();
-    void getChild();
-    void addChild();
-    void getVertexCount();
-    void getVertex();
-    void setVertex();
+    int getChildCount();
+    PShape getChild(int index);
+    PShape getChild(const std::string& name);
+    void addChild(PShape& child);
+    int getVertexCount();
+    PVector getVertex(int index);
+    PVector getVertex(int index, PVector& vec);
+    void setVertex(int index, float x,float y);
+    void setVertex(int index, float x,float y,float z);
+    void setVertex(int index, PVector vec);
     void setFill();
     void setStroke();
     void translate();
@@ -329,6 +347,8 @@ public:
     void rotate();
     void scale();
     void resetMatrix();
+
+    std::string toString() override;
 };
 
 // =================== methods ======================
@@ -350,7 +370,7 @@ float noise(float x);
 float noise(float x, float y);
 float noise(float x, float y, float z);
 
-int abs(int n);
+//int abs(int n);
 int constrain(int amt,int low,int high);
 int max(int a, int b);
 int max(int a, int b,int c);
@@ -358,17 +378,17 @@ int max(std::initializer_list<int> list);
 int min(int a, int b);
 int min(int a, int b, int c);
 int min(std::initializer_list<int> list);
-int round(float n);
-int floor(float n);
+//int round(float n);
+//int floor(float n);
 
-float abs(float n);
-float ceil(float n);
+//float abs(float n);
+//float ceil(float n);
 float constrain(float amt,float low,float high);
 float dist(float x1,float y1,float x2, float y2);
 float dist(float x1,float y1,float z1, float x2,float y2,float z2);
-float exp(float n);
+//loat exp(float n);
 float lerp(float start, float end, float t);
-float log(float n);
+//float log(float n);
 float mag(float a, float b);
 float mag(float a, float b, float c);
 float map(float value,
@@ -381,19 +401,20 @@ float min(float a, float b);
 float min(float a, float b, float c);
 float min(std::initializer_list<float> list);
 float norm(float value,float start,float stop);
-float pow(float n,float e);
+//float pow(float n,float e);
 float sq(float n);
-float sqrt(float n);
+//float sqrt(float n);
 
-float acos(float value);
-float asin(float value);
-float atan2(float y, float x);
-float atan(float value);
-float cos(float angle);
 float degrees(float radians);
 float radians(float degrees);
-float sin(float angle);
-float tan(float angle);
+
+//float acos(float value);
+//float asin(float value);
+//float atan2(float y, float x);
+//float atan(float value);
+//float cos(float angle);
+//float sin(float angle);
+//float tan(float angle);
 
 // text functions
 

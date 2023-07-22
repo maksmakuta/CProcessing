@@ -1,7 +1,9 @@
-#include "backend/gl/gl_backend.h"
-#include "backend/shaders.h"
-#include "processing.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#include <stb/stb_image_resize.h>
+#include <stb/stb_image_write.h>
 #include <cmath>
 #include <algorithm>
 #include <array>
@@ -13,6 +15,9 @@
 #include <assert.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "backend/gl/gl_backend.h"
+#include "backend/shaders.h"
+#include "processing.h"
 
 void todo(const std::string& text){
     std::cout << "TODO: " << text << std::endl;
@@ -30,6 +35,7 @@ PShader* sh = null;
 PMatrix3D mat;
 std::stack<PMatrix3D> matStack;
 
+float* tmp = null;
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
@@ -72,6 +78,13 @@ bool focused = true;
 
 
 // =================== methods ======================
+
+void tempBuff(int size){
+    if(tmp != null){
+        delete []tmp;
+    }
+    tmp = new float[size];
+}
 
 void randomSeed(long seed){
     _seed = seed;
@@ -143,15 +156,15 @@ void toHSB(int color){
     }
 }
 
-int abs(int n){
-    return std::abs(n);
-}
-float abs(float n){
-    return std::abs(n);
-}
-float ceil(float n){
-    return std::ceil(n);
-}
+//int abs(int n){
+//   return std::abs(n);
+//}
+//float abs(float n){
+//    return std::abs(n);
+//}
+//float ceil(float n){
+//    return std::ceil(n);
+//}
 int constrain(int amt, int low, int high) {
     if (amt < low) {
         return low;
@@ -183,15 +196,15 @@ float dist(float x1, float y1, float z1, float x2, float y2, float z2) {
     float dz = z2 - z1;
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
-float exp(float n) {
-    return std::exp(n);
-}
+//float exp(float n) {
+//    return std::exp(n);
+//}
 float lerp(float start, float end, float t){
     return start + t * (end - start);
 }
-float log(float n){
-    return std::log(n);
-}
+//float log(float n){
+//    return std::log(n);
+//}
 float mag(float a, float b) {
     return std::sqrt(a * a + b * b);
 }
@@ -241,48 +254,48 @@ float min(std::initializer_list<float> list) {
 float norm(float value,float start,float stop){
     return map(value,start,stop,0.f,1.f);
 }
-float pow(float n,float e){
-    return std::pow(n,e);
-}
-int round(float n){
-    return std::roundf(n);
-}
-int floor(float n){
-    return std::floor(n);
-}
+//float pow(float n,float e){
+//    return std::pow(n,e);
+//}
+//int round(float n){
+//    return std::roundf(n);
+//}
+//int floor(float n){
+//    return std::floor(n);
+//}
 float sq(float n){
     return n*n;
 }
-float sqrt(float n){
-    return std::sqrt(n);
-}
-float acos(float value){
-    return std::acos(value);
-}
-float asin(float value){
-    return std::asin(value);
-}
-float atan2(float y, float x){
-    return std::atan2(y,x);
-}
-float atan(float value){
-    return std::atan(value);
-}
-float cos(float angle){
-    return std::cos(angle);
-}
+//float sqrt(float n){
+//    return std::sqrt(n);
+//}
+//float acos(float value){
+//    return std::acos(value);
+//}
+//float asin(float value){
+//    return std::asin(value);
+//}
+//float atan2(float y, float x){
+//    return std::atan2(y,x);
+//}
+//float atan(float value){
+//    return std::atan(value);
+//}
+//float cos(float angle){
+//    return std::cos(angle);
+//}
 float degrees(float radians){
     return radians * (180.f / PI);
 }
 float radians(float degrees){
     return degrees * (PI / 180.f);
 }
-float sin(float angle){
-    return std::sin(angle);
-}
-float tan(float angle){
-    return std::tan(angle);
-}
+//float sin(float angle){
+//    return std::sin(angle);
+//}
+//float tan(float angle){
+//    return std::tan(angle);
+//}
 float noise(float x, float y, float z){
     long t = _seed;
     randomSeed(_pseed);
@@ -568,9 +581,8 @@ void printMatrix(){
     cout << mat.m00 << " " << mat.m01 << " " << mat.m02 << " " << mat.m03 << "\n";
     cout << mat.m10 << " " << mat.m11 << " " << mat.m12 << " " << mat.m13 << "\n";
     cout << mat.m20 << " " << mat.m21 << " " << mat.m22 << " " << mat.m23 << "\n";
-    cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n";
- }
-
+    cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n\n";
+}
 
 void rect(float x, float y, float w, float h){
 
@@ -904,16 +916,56 @@ void PShader::set(const std::string &name, bool* vec,int ncoords){
     gl->setUniform(program,name,vec,ncoords);
 }
 void PShader::set(const std::string &name, PMatrix2D &mat){
-    todo("PShader::set(const std::string&, PMatrix2D)");
+    mat2Data* temp = new mat2Data();
+    mat.get(temp);
+    gl->setUniform(program,name,temp->data(),temp->size());
+    delete(temp);
 }
 void PShader::set(const std::string &name, PMatrix3D &mat){
-    todo("PShader::set(const std::string&, PMatrix3D)");
+    mat4Data* temp = new mat4Data();
+    mat.get(temp);
+    gl->setUniform(program,name,temp->data(),temp->size());
+    delete(temp);
 }
 void PShader::set(const std::string &name, PMatrix2D &mat, bool use3x3){
-    todo("PShader::set(const std::string&, PMatrix2D, bool)");
+    if(use3x3){
+        tempBuff(9);
+        mat2Data* temp = new mat2Data();
+        mat.get(temp);
+        tmp[0] = temp->at(0);
+        tmp[1] = temp->at(1);
+        tmp[2] = temp->at(2);
+        tmp[3] = temp->at(3);
+        tmp[4] = temp->at(4);
+        tmp[5] = temp->at(5);
+        tmp[6] = 0.f;
+        tmp[7] = 0.f;
+        tmp[8] = 0.f;
+        gl->setUniform(program,name,tmp,9);
+        delete temp;
+    }else{
+        set(name,mat);
+    }
 }
 void PShader::set(const std::string &name, PMatrix3D &mat, bool use3x3){
-    todo("PShader::set(const std::string&, PMatrix3D, bool)");
+    if(use3x3){
+        tempBuff(9);
+        mat4Data* temp = new mat4Data();
+        mat.get(temp);
+        tmp[0] = temp->at(0);
+        tmp[1] = temp->at(1);
+        tmp[2] = temp->at(2);
+        tmp[3] = temp->at(4);
+        tmp[4] = temp->at(5);
+        tmp[5] = temp->at(6);
+        tmp[6] = temp->at(8);
+        tmp[7] = temp->at(9);
+        tmp[8] = temp->at(10);
+        gl->setUniform(program,name,tmp,9);
+        delete temp;
+    }else{
+        set(name,mat);
+    }
 }
 void PShader::set(const std::string &name, PImage &tex){
     todo("PShader::set(const std::string&, PImage&)");
@@ -951,7 +1003,7 @@ PMatrix2D* PMatrix2D::get(){
     return this;
 }
 mat2Data* PMatrix2D::get(mat2Data* target){
-    if(target == null || target->size() != 6){
+    if(target == null){
         target = new mat2Data;
     }
     float* p = target->data();
@@ -1150,7 +1202,7 @@ PMatrix3D* PMatrix3D::get(){
     return this;
 }
 mat4Data* PMatrix3D::get(mat4Data* target){
-    if(target == null || target->size() != 16){
+    if(target == null){
         target = new mat4Data;
     }
     float* p = target->data();
@@ -1412,20 +1464,24 @@ float* PMatrix3D::mult(float* source, float* target, int s){
         if(s < 3){
             target = new float[3];
             s = 3;
-        }else if(s > 4){
+        }
+        if(s > 4){
             target = new float[4];
             s = 4;
         }
     }
-    if (s == 3) {
-        target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03;
-        target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13;
-        target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23;
-    } else if (s > 3) {
-        target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03*source[3];
-        target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13*source[3];
-        target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23*source[3];
-        target[3] = m30*source[0] + m31*source[1] + m32*source[2] + m33*source[3];
+    if (target == null) {
+        if (s == 3) {
+            target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03;
+            target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13;
+            target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23;
+        }
+        if (s == 4) {
+            target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03*source[3];
+            target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13*source[3];
+            target[2] = m20*source[0] + m21*source[1] + m22*source[2] + m23*source[3];
+            target[3] = m30*source[0] + m31*source[1] + m32*source[2] + m33*source[3];
+        }
     }
     return target;
 }
@@ -1530,6 +1586,155 @@ std::string PMatrix3D::toString(){
     ss << "          " << m30 << ","<< m31 << ","<< m32 << "," << m33 << ")" << std::endl;
     return ss.str();
 }
+PImage::PImage(){
+    this->format = ARGB;
+}
+PImage::PImage(int width, int height) : PImage(width,height,ARGB){}
+PImage::PImage(int width, int height, int format){
+    assert(format == ALPHA || format == ARGB || format == RGB);
+    this->format = format;
+    this->width = width;
+    this->height = height;
+    this->pixels = new int[width * height];
+    this->length = width * height;
+}
+PImage::PImage(int width, int height, int format, int* pixels, int pwidth, int pheight){
+    assert(format == ALPHA || format == ARGB || format == RGB);
+    this->format = format;
+    this->width = width;
+    this->height = height;
+    this->pixels = new int[width * height];
+    this->length = width * height;
+}
+void PImage::loadPixels(){
+    int l = width * height;
+    if (pixels == null || length != l) {
+        pixels = new int[l];
+        length = l;
+    }
+}
+void PImage::updatePixels(){
+    updatePixels(0,0,width,height);
+}
+void PImage::updatePixels(int x,int y,int w,int h){
+    todo("updatePixels(int x,int y,int w,int h)");
+}
+unsigned char* transformImageARGB(int* colours,int w, int h, int* s){
+    *s = w * h * 4;
+    unsigned char* buff = new unsigned char[w * h * 4];
+    for(int a = 0;a < w * h;a++){
+        buff[a*4 + 0] = (unsigned char)(colours[a] >> 24) & 0xFF;
+        buff[a*4 + 1] = (unsigned char)(colours[a] >> 16) & 0xFF;
+        buff[a*4 + 2] = (unsigned char)(colours[a] >>  8) & 0xFF;
+        buff[a*4 + 3] = (unsigned char)(colours[a]      ) & 0xFF;
+    }
+    return buff;
+}
+void PImage::resize(int w,int h){
+    int size;
+    unsigned char* data = transformImageARGB(pixels,width,height,&size);
+    int width, height, channels;
+    unsigned char* inputImage = stbi_load_from_memory(data, size, &width, &height, &channels, 0);
+    if (!inputImage) {
+        printf("Failed to load the input image from memory.\n");
+    }
+    int resizedChannels = channels;
+    unsigned char* resizedImage = new unsigned char[w * h * resizedChannels];
+    stbir_resize_uint8(inputImage, width, height, 0, resizedImage,w, h, 0, resizedChannels);
+
+
+}
+std::string PImage::toString(){
+    std::string f;
+    switch(this->format){
+    case ALPHA:
+        f = "ALPHA";
+        break;
+    case RGB:
+        f = "RGB";
+        break;
+    case ARGB:
+        f = "ARGB";
+        break;
+    default:
+        f = "unknown";
+    }
+    std::stringstream ss;
+    ss << "PImage(" << width << "x" << height << ", format=" << f << ")\n";
+    return ss.str();
+}
+
+
+PShape::PShape(){
+
+}
+bool PShape::isVisible(){
+    return this->visibility;
+}
+void PShape::setVisible(bool isVisible){
+    this->visibility = isVisible;
+}
+void PShape::beginShape(){
+    if(!newShape){
+        newShape = true;
+    }else{
+        error("beginShape() must be called once");
+    }
+}
+void PShape::endShape(){
+    if(newShape){
+        newShape = false;
+    }else{
+        error("endShape() must be called once after beginShape()");
+    }
+}
+int PShape::getChildCount(){
+    return childs.size();
+}
+PShape PShape::getChild(int index){
+    if(index < 0 || index > getChildCount())
+        error("PShape::getChild(int index) -> wrong index");
+    return childs[index];
+}
+PShape PShape::getChild(const std::string& name){
+    for(PShape& child : childs){
+        if(child.name == name){
+            return child;
+        }
+    }
+    return PShape();
+}
+void PShape::addChild(PShape& child){
+    this->childs.push_back(child);
+}
+int PShape::getVertexCount(){
+    return vertexes.size();
+}
+PVector PShape::getVertex(int index){
+    if(index < 0 || index > getVertexCount()){
+        error("PShape::getVertex(int index) -> wrong index");
+        return PVector();
+    }
+    return vertexes[index];
+}
+PVector PShape::getVertex(int index, PVector& vec){
+    vec = getVertex(index);
+    return vec;
+}
+void PShape::setVertex(int index, float x,float y){
+    setVertex(index,PVector(x,y));
+}
+void PShape::setVertex(int index, float x,float y,float z){
+    setVertex(index,PVector(x,y,z));
+}
+void PShape::setVertex(int index, PVector vec){
+    if(index < 0 || index > getVertexCount()){
+        error("PShape::setVertex(int index) -> wrong index");
+        return;
+    }
+    vertexes[index] = vec;
+}
+
 
 // ================== main driver ===================
 

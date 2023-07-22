@@ -48,9 +48,6 @@ public:
     virtual void setUniform(int program, const std::string& name, bool x,bool y) = 0;
     virtual void setUniform(int program, const std::string& name, bool x,bool y,bool z) = 0;
     virtual void setUniform(int program, const std::string& name, bool x,bool y,bool z,bool w) = 0;
-    virtual void setUniform(int program, const std::string& name, bool* vec) = 0;
-    virtual void setUniform(int program, const std::string& name, int* vec) = 0;
-    virtual void setUniform(int program, const std::string& name, float* vec) = 0;
     virtual void setUniform(int program, const std::string& name, bool* vec,int n) = 0;
     virtual void setUniform(int program, const std::string& name, int* vec,int n) = 0;
     virtual void setUniform(int program, const std::string& name, float* vec,int n) = 0;
