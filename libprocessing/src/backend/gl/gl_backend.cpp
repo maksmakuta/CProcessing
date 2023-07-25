@@ -3,20 +3,28 @@
 #include <glad/glad.h>
 #include <string>
 
+GLuint VAO, VBO;
+
 GLBackend::GLBackend() : backend(){
 
 }
 
 void GLBackend::init(){
-
+    //GLint temp;
+    //glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &temp);
+    //std::cout << "Max textures: " << temp << "\n";
 }
 
 void GLBackend::begin(){
-
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
 }
 
 void GLBackend::end(){
-
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 }
 
 void GLBackend::viewport(float w,float h){
@@ -27,8 +35,17 @@ void GLBackend::clearColor(float r,float g,float b,float a){
     glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-void GLBackend::draw(){
-
+void GLBackend::draw(std::vector<vertex>& points){
+    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(vertex), points.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(7*sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(9*sizeof(float)));
+    glEnableVertexAttribArray(3);
+    glDrawArrays(GL_TRIANGLES, 0, points.size());
 }
 
 void GLBackend::enable(int feature){
@@ -244,6 +261,19 @@ void GLBackend::setUniform(int program, const std::string& name, float* vec,int 
         glUniformMatrix4fv(loc,1,false,vec);
         break;
     }
+}
+
+uint GLBackend::genTexture(unsigned char* data,int w,int h,int type){
+    uint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return tex;
 }
 
 GLBackend::~GLBackend(){

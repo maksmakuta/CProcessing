@@ -36,6 +36,7 @@ PMatrix3D mat;
 std::stack<PMatrix3D> matStack;
 
 float* tmp = null;
+std::vector<vertex> data; // vertex data for drawing
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
@@ -52,9 +53,9 @@ float colMaxA = 0xFF;
 int hsbKey = 0xFFFFFF;
 float hsbColor[3] = {0.f,0.f,0.f};
 
-int bgColor = 0xff000000; // 0xAARRGGBB
-int strokeColor = 0xff0011bb;
-int fillColor = 0xff0011bb;
+color bgColor = 0xff000000, // 0xAARRGGBB
+    strokeColor = 0xff0011bb,
+    fillColor = 0xff0011bb;
 
 bool strokeDraw = true;
 bool fillDraw = true;
@@ -76,8 +77,39 @@ int pixelHeight = 1;
 int pixelWidth = 1;
 bool focused = true;
 
-
 // =================== methods ======================
+
+void drawShape(PShape& s){
+    std::cout << "size :" << s.getVertexCount() << "\n";
+    if(gl != null){
+        gl->begin();
+        gl->bindShader(sh->program);
+        sh->set("mat",mat);
+        sh->set("images",0);
+        for(int a = 0;a < s.getVertexCount();a++){
+            PVector p = s.getVertex(a);
+            vertex v;
+            v.x = p.x;
+            v.y = p.y;
+            v.z = p.z;
+            if(s.isFill){
+                v.r = s.fillColor.r;
+                v.g = s.fillColor.g;
+                v.b = s.fillColor.b;
+                v.a = s.fillColor.a;
+            }else{
+                v.r = s.strokeColor.r;
+                v.g = s.strokeColor.g;
+                v.b = s.strokeColor.b;
+                v.a = s.strokeColor.a;
+            }
+            data.push_back(v);
+        }
+        gl->draw(data);
+        data.clear();
+        gl->end();
+    }
+}
 
 void tempBuff(int size){
     if(tmp != null){
@@ -472,23 +504,6 @@ float blue(int what){
     return (outgoing / 255.0f) * colMaxB;
 }
 
-float Nalpha(int what){
-    int outgoing = (what >> 24) & 0xff;
-    return (outgoing / 255.0f) ;
-}
-float Nred(int what){
-    int outgoing = (what >> 16) & 0xFF;
-    return (outgoing / 255.0f);
-}
-float Ngreen(int what){
-    int outgoing = (what >> 8) & 0xff;
-    return (outgoing / 255.0f);
-}
-float Nblue(int what){
-    int outgoing = what & 0xff;
-    return (outgoing / 255.0f);
-}
-
 float hue(int what){
     if (what != hsbKey) {
         toHSB(what);
@@ -584,12 +599,194 @@ void printMatrix(){
     cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n\n";
 }
 
-void rect(float x, float y, float w, float h){
+void arc(float x, float y, float w, float h, float start, float stop){
+    PShape s;
+    float step = radians(1);
+    s.beginShape();
+    s.fill(fillColor);
+    s.noStroke();
+    if(start > stop){
+        std::swap(start,stop);
+    }
+    do{
+        s.vertex(x,y);
+        s.vertex(x + cos(start)*w,y + sin(start)*h);
+        start += step;
+        s.vertex(x + cos(start)*w,y + sin(start)*h);
+    }while(start < stop);
+    s.endShape();
+    drawShape(s);
+}
+void arc(float x, float y, float w, float h, float start, float stop, int mode){
+    arc(x,y,w,h,start,stop);
+}
+void circle(float x, float y, float extent){
+    ellipse(x,y,extent,extent);
+}
+void ellipse(float x, float y, float w, float h){
+    int step = 10;
+    PShape s;
+    s.beginShape();
+    s.fill(fillColor);
+    s.noStroke();
+    float d = 0.f;
+    for(int a = 0;a < 360;a+=step){
+        s.vertex(x,y);
+        s.vertex(x + cos(d)*w,y + sin(d)*h);
+        d = radians(a+step);
+        s.vertex(x + cos(d)*w,y + sin(d)*h);
+    }
+    s.endShape();
+    drawShape(s);
+}
+void line(float x1, float y1, float x2, float y2){
 
 }
+void line(float x1, float y1, float z1, float x2, float y2, float z2){
 
+}
+void point(float x, float y){
+    circle(x,y,0.5);
+}
+void point(float x, float y, float z){
+    point(x,y);
+}
+void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
+    PShape s;
+    s.beginShape();
+    s.fill(fillColor);
+    s.noStroke();
+    s.vertex(x1,y1);
+    s.vertex(x2,y2);
+    s.vertex(x3,y3);
+    s.vertex(x2,y2);
+    s.vertex(x3,y3);
+    s.vertex(x4,y4);
+    s.endShape();
+    drawShape(s);
+}
+void rect(float x, float y, float w, float h, float r){
+    todo("rect(float x, float y, float w, float h, float r)");
+    rect(x,y,w,h,r,r,r,r);
+}
+void rect(float x, float y, float w, float h, float tl, float tr, float br, float bl){
+    todo("rect(float x, float y, float w, float h, float tl, float tr, float br, float bl)");
+    rect(x,y,w,h);
+}
+void square(float x,float y,float s){
+    rect(x,y,s,s);
+}
+void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
+    PShape s;
+    s.beginShape();
+    s.fill(fillColor);
+    s.noStroke();
+    s.vertex(x1,y1);
+    s.vertex(x2,y2);
+    s.vertex(x3,y3);
+    s.endShape();
+    drawShape(s);
+}
+void rect(float x, float y, float w, float h){
+    PShape s;
+    s.beginShape();
+    s.fill(fillColor);
+    s.noStroke();
+    s.vertex(x,y);
+    s.vertex(x+w,y);
+    s.vertex(x,y+h);
+    s.vertex(x+w,y);
+    s.vertex(x,y+h);
+    s.vertex(x+w,y+h);
+    s.endShape();
+    drawShape(s);
+}
+
+void frustum(float left,float right,float bottom,float top,float near,float far){
+    mat.reset();
+    mat.m00 = (2.f * near)/(right-left);
+    mat.m02 = (right+left)/(right-left);
+    mat.m11 = (2.f * near)/(top-bottom);
+    mat.m12 = (top+bottom)/(top-bottom);
+    mat.m22 = -(far+near)/(far-near);
+    mat.m23 = -(2.0f * far * near) / (far - near);
+    mat.m32 = -1.f;
+    mat.m33 = 0.f;
+}
+void ortho(){
+    ortho(-width/2, width/2, -height/2, height/2);
+}
+void ortho(float left,float right,float bottom,float top){
+    ortho(left,right,bottom,top,1.f,-1.f);
+}
+void ortho(float left,float right,float bottom,float top,float near,float far){
+    mat.reset();
+    mat.m00 = 2.0f / (right - left);
+    mat.m11 = 2.0f / (top - bottom);
+    mat.m22 = -2.0f / (far - near);
+    mat.m30 = -(right + left) / (right - left);
+    mat.m31 = -(top + bottom) / (top - bottom);
+    mat.m32 = -(far + near) / (far - near);
+}
+void perspective(){
+    float cameraZ = ((height/2.0) / tan(PI*60.0/360.0));
+    perspective(PI/3.0, (float)width/height, cameraZ/10.0, cameraZ*10.0);
+}
+void perspective(float fov, float aspect,float zNear,float zFar){
+    mat.reset();
+    float tanHalfFOV = tan(fov / 2.0f);
+    float right = zNear * tanHalfFOV;
+    float left = -right;
+    float top = right / aspect;
+    float bottom = -top;
+
+    mat.m00 = 2.0f * zNear / (right - left);
+    mat.m11 = 2.0f * zNear / (top - bottom);
+    mat.m20 = (right + left) / (right - left);
+    mat.m21 = (top + bottom) / (top - bottom);
+    mat.m22 = -(zFar + zNear) / (zFar - zNear);
+    mat.m23 = -1.0f;
+    mat.m32 = -(2.0f * zFar * zNear) / (zFar - zNear);
+
+}
 // ============== classes ======================
 
+color::color(int gray){
+    this->r = gray / colMaxR;
+    this->g = gray / colMaxG;
+    this->b = gray / colMaxB;
+    this->a = colMaxA;
+}
+color::color(int gray, int alpha){
+    this->r = gray  / colMaxR;
+    this->g = gray  / colMaxG;
+    this->b = gray  / colMaxB;
+    this->a = alpha / colMaxA;
+}
+color::color(int rgb, float alpha){
+    this->r = ((rgb >> 16) & 0xFF) / colMaxR;
+    this->g = ((rgb >> 8) & 0xFF) / colMaxG;
+    this->b = ((rgb) & 0xFF) / colMaxB;
+    this->a = colMaxA;
+}
+color::color(int x, int y, int z){
+    this->r = x / colMaxR;
+    this->g = y / colMaxG;
+    this->b = z / colMaxB;
+    this->a = colMaxA;
+}
+color& color::operator=(int argb){
+    this->a = ((argb >> 24) & 0xFF) / colMaxA;
+    this->r = ((argb >> 16) & 0xFF) / colMaxR;
+    this->g = ((argb >> 8) & 0xFF) / colMaxG;
+    this->b = ((argb) & 0xFF) / colMaxB;
+    return *this;
+}
+std::string color::toString(){
+    std::stringstream ss;
+    ss << "color(" << r << "," << g << "," << b << "," << a << ")\n";
+    return ss.str();
+}
 PVector::PVector() : PVector(0.f,0.f,0.f){}
 PVector::PVector(float _x,float _y) : PVector(_x,_y,0.f){}
 PVector::PVector(float _x,float _y,float _z){
@@ -1631,19 +1828,20 @@ unsigned char* transformImageARGB(int* colours,int w, int h, int* s){
     return buff;
 }
 void PImage::resize(int w,int h){
-    int size;
-    unsigned char* data = transformImageARGB(pixels,width,height,&size);
-    int width, height, channels;
-    unsigned char* inputImage = stbi_load_from_memory(data, size, &width, &height, &channels, 0);
-    if (!inputImage) {
-        printf("Failed to load the input image from memory.\n");
-    }
-    int resizedChannels = channels;
-    unsigned char* resizedImage = new unsigned char[w * h * resizedChannels];
-    stbir_resize_uint8(inputImage, width, height, 0, resizedImage,w, h, 0, resizedChannels);
+    todo("in development");
 
-
+    //int size;
+    //unsigned char* data = transformImageARGB(pixels,width,height,&size);
+    //int width, height, channels;
+    //unsigned char* inputImage = stbi_load_from_memory(data, size, &width, &height, &channels, 0);
+    //if (!inputImage) {
+    //    printf("Failed to load the input image from memory.\n");
+    //}
+    //int resizedChannels = channels;
+    //unsigned char* resizedImage = new unsigned char[w * h * resizedChannels];
+    //stbir_resize_uint8(inputImage, width, height, 0, resizedImage,w, h, 0, resizedChannels);
 }
+
 std::string PImage::toString(){
     std::string f;
     switch(this->format){
@@ -1681,7 +1879,7 @@ void PShape::beginShape(){
         error("beginShape() must be called once");
     }
 }
-void PShape::endShape(){
+void PShape::endShape(bool close){
     if(newShape){
         newShape = false;
     }else{
@@ -1734,14 +1932,71 @@ void PShape::setVertex(int index, PVector vec){
     }
     vertexes[index] = vec;
 }
-
+void PShape::vertex(float x, float y){
+    vertexes.push_back(PVector(x,y));
+}
+void PShape::vertex(float x, float y,float z){
+    vertexes.push_back(PVector(x,y,z));
+}
+void PShape::setFill(color c){
+    if(!isFill) isFill = true;
+    fillColor = c;
+}
+void PShape::setStroke(color c){
+    if(!isStroke) isStroke = true;
+    strokeColor = c;
+}
+void PShape::fill(color c){
+    if(!isFill) isFill = true;
+    fillColor = c;
+}
+void PShape::stroke(color c){
+    if(!isStroke) isStroke = true;
+    strokeColor = c;
+}
+void PShape::noFill(){
+    isFill = false;
+}
+void PShape::noStroke(){
+    isStroke = false;
+}
+void PShape::translate(float x,float y){
+    mat.translate(x,y);
+}
+void PShape::translate(float x,float y, float z){
+    mat.translate(x,y,z);
+}
+void PShape::rotateX(float angle){
+    mat.rotateX(angle);
+}
+void PShape::rotateY(float angle){
+    mat.rotateY(angle);
+}
+void PShape::rotateZ(float angle){
+    mat.rotateZ(angle);
+}
+void PShape::rotate(float angle){
+    mat.rotate(angle);
+}
+void PShape::scale(float s){
+    mat.scale(s);
+}
+void PShape::scale(float x,float y){
+    mat.scale(x,y);
+}
+void PShape::scale(float x,float y,float z){
+    mat.scale(x,y,z);
+}
+void PShape::resetMatrix(){
+    mat.reset();
+}
+std::string PShape::toString(){
+    std::stringstream ss;
+    ss << "PShape(" << getChildCount() << "," << getVertexCount() << ")";
+    return ss.str();
+}
 
 // ================== main driver ===================
-
-void ProcessInput(GLFWwindow* window){
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
 
 int main(){
     gl = new GLBackend();
@@ -1768,23 +2023,35 @@ int main(){
         error("Failed to initialize GLAD\n");
         return -1;
     }
+    gl->init();
     sh = new PShader();
     if(smoothness > 0)
         gl->enable(F_MSAA);
+    ortho(0,width,height,0);
     gl->viewport(width, height);
-    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height){
-        gl->viewport( width, height);
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int w, int h){
+        gl->viewport(w, h);
+        ortho(0,w,h,0);
+        width = w;
+        height = h;
     });
 
+    double tmpX,tmpY;
+
     while (!glfwWindowShouldClose(window)){
-        ProcessInput(window);
-        gl->clearColor(Nred(bgColor), Ngreen(bgColor), Nblue(bgColor), Nalpha(bgColor));
+        pmouseX = mouseX;
+        pmouseY = mouseY;
+        glfwGetCursorPos(window,&tmpX,&tmpY);
+        mouseX = (int)tmpX;
+        mouseY = (int)tmpY;
+        gl->clearColor(bgColor.r,bgColor.g,bgColor.b,bgColor.a);
         draw();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    data.clear();
     glfwTerminate();
+    delete sh;
     delete gl;
     return 0;
 }

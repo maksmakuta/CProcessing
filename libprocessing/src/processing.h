@@ -2,7 +2,7 @@
 #define PROCESSING_H
 
 /**
- * processing v.2.0-beta6
+ * processing v.2.0-beta10
  * @author Maks Makuta
  */
 
@@ -21,9 +21,11 @@
 #define EPSILON  0.0001
 
 #define ALPHA 1
-#define  ARGB 1 << 2
-#define   RGB 1 << 4
-#define   HSB 1 << 8
+#define  ARGB 1 << 1
+#define   RGB 1 << 2
+#define   HSB 1 << 3
+
+#define CLOSE true
 
 typedef std::array<float,6> mat2Data;
 typedef std::array<float,16> mat4Data;
@@ -46,12 +48,25 @@ extern int width;
 extern int pixelHeight;
 extern int pixelWidth;
 
-
 // ==================== classes =====================
 
 class PObject{
 public:
     virtual std::string toString() = 0;
+};
+
+class color : public PObject{
+public:
+    float r,g,b,a;
+
+    color(int gray);
+    color(int gray, int alpha);
+    color(int rgb, float alpha);
+    color(int x, int y, int z);
+
+    color& operator = (int rgb);
+
+    std::string toString() override;
 };
 
 class PVector : public PObject{
@@ -294,15 +309,6 @@ public:
     int program;
 };
 
-class color : public PObject{
-public:
-    float r,g,b,a;
-
-
-    std::string toString() override;
-
-};
-
 class PFont : public PObject{
 public:
     PFont();
@@ -312,11 +318,12 @@ private:
 
 class PShape : public PObject{
 private:
-    bool visibility = true;
-    bool newShape = false;
+    bool visibility = true,
+        newShape = false;
     std::vector<PShape> childs;
     std::vector<PVector> vertexes;
     std::string name;
+    PMatrix3D mat;
 public:
     PShape();
 
@@ -327,28 +334,47 @@ public:
     //void beginContour();
     //void endContour();
     void beginShape();
-    void endShape();
+    void endShape(bool close = false);
+
     int getChildCount();
     PShape getChild(int index);
     PShape getChild(const std::string& name);
     void addChild(PShape& child);
+
     int getVertexCount();
     PVector getVertex(int index);
     PVector getVertex(int index, PVector& vec);
     void setVertex(int index, float x,float y);
     void setVertex(int index, float x,float y,float z);
     void setVertex(int index, PVector vec);
-    void setFill();
-    void setStroke();
-    void translate();
-    void rotateX();
-    void rotateY();
-    void rotateZ();
-    void rotate();
-    void scale();
+    void vertex(float x, float y);
+    void vertex(float x, float y,float z);
+
+    void setFill(color c);
+    void setStroke(color c);
+    void fill(color c);
+    void stroke(color c);
+    void noFill();
+    void noStroke();
+
+    void translate(float x,float y);
+    void translate(float x,float y, float z);
+    void rotateX(float angle);
+    void rotateY(float angle);
+    void rotateZ(float angle);
+    void rotate(float angle);
+    void scale(float s);
+    void scale(float x,float y);
+    void scale(float x,float y,float z);
     void resetMatrix();
 
     std::string toString() override;
+
+
+    bool isStroke = false,
+         isFill = true;
+    color strokeColor = 0,
+          fillColor = 0;
 };
 
 // =================== methods ======================
@@ -487,12 +513,6 @@ void colorMode(int mode, float max);
 void colorMode(int mode, float maxX, float maxY, float maxZ);
 void colorMode(int mode, float maxX, float maxY, float maxZ, float maxA);
 
-
-int color(int gray);
-int color(int gray, int alpha);
-int color(int rgb, float alpha);
-int color(int x, int y, int z);
-
 float alpha(int what);
 float red(int what);
 float green(int what);
@@ -518,6 +538,13 @@ void rect(float x, float y, float w, float h, float r);
 void rect(float x, float y, float w, float h, float tl, float tr, float br, float bl);
 void square(float x,float y,float s);
 void triangle(float x1,float y1,float x2,float y2,float x3,float y3);
+
+void frustum(float left,float right,float bottom,float top,float near,float far);
+void ortho();
+void ortho(float left,float right,float bottom,float top);
+void ortho(float left,float right,float bottom,float top,float near,float far);
+void perspective();
+void perspective(float fov, float aspect,float zNear,float zFar);
 
 // ================== public functions ===================
 

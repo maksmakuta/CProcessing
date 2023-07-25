@@ -3,16 +3,22 @@
 
 #include <initializer_list>
 #include <string>
+#include <vector>
 
 #define SHADER_VERTEX 1
 #define SHADER_FRAGMENT 2
 
 #define F_MSAA 0x0001
 
+#define TEX_RGB 0x0001
+#define TEX_RGBA 0x0002
+#define TEX_GRAY 0x0004
+
 struct vertex{
     float x = 0.f,y = 0.f,z = 0.f;
     float r = 0.f,g = 0.f,b = 0.f,a = 0.f;
     float u = 0.f,v = 0.f;
+    float texID = -1;
 };
 
 class backend{
@@ -27,7 +33,7 @@ public:
     virtual void viewport(float w, float h) = 0;
     virtual void end() = 0;
 
-    virtual void draw() = 0;
+    virtual void draw(std::vector<vertex>& vert) = 0;
     virtual void enable(int feature) = 0;
     virtual void disable(int feature) = 0;
 
@@ -51,6 +57,8 @@ public:
     virtual void setUniform(int program, const std::string& name, bool* vec,int n) = 0;
     virtual void setUniform(int program, const std::string& name, int* vec,int n) = 0;
     virtual void setUniform(int program, const std::string& name, float* vec,int n) = 0;
+
+    virtual uint genTexture(unsigned char* data,int w,int h,int type) = 0;
 
     virtual ~backend(){}
 };

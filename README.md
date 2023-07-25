@@ -23,16 +23,16 @@ Use [this](https://github.com/maksmakuta/CProcessing/tree/059adef3b518facb7c7068
    - [ ] Vulkan (1.2+, in future)
  - [ ] Drawing
    - [ ] 2D
-     - [ ] Simple shapes 
+     - [x] Simple shapes 
      - [ ] Complex shapes (via beginShape()/endShape()) 
      - [ ] Textures/Images
      - [ ] Matrix functions
    - [ ] Font Rendering
  - [ ] Input
-   - [ ] Mouse input
+   - [x] Mouse input
    - [ ] Keyboard input
  - [ ] Output
-   - [ ] print some data into stdout (beta)
+   - [ ] print some data into stdout
 
 ### Credits
 

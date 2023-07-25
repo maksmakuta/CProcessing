@@ -20,7 +20,7 @@ public:
 
     void enable(int feature) override;
     void disable(int feature) override;
-    void draw() override;
+    void draw(std::vector<vertex>& vert) override;
 
     int compileShader(const char* src, int type) override;
     int linkProgram(std::initializer_list<int> shaders) override;
@@ -43,6 +43,7 @@ public:
     void setUniform(int program, const std::string& name, int* vec,int n) override;
     void setUniform(int program, const std::string& name, float* vec,int n) override;
 
+    uint genTexture(unsigned char* data,int w,int h,int type) override;
 
     ~GLBackend();
 };
