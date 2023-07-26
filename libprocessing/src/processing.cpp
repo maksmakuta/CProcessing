@@ -27,6 +27,8 @@ void error(const std::string& text){
     std::cerr << text << std::endl;
 }
 
+// ================== functions =====================
+std::string readFile(const std::string& filename);
 // ================== variables =====================
 GLFWwindow* window = null;
 backend* gl = null;
@@ -52,13 +54,17 @@ float colMaxA = 0xFF;
 
 int hsbKey = 0xFFFFFF;
 float hsbColor[3] = {0.f,0.f,0.f};
-
 color bgColor = 0xff000000, // 0xAARRGGBB
     strokeColor = 0xff0011bb,
     fillColor = 0xff0011bb;
 
-bool strokeDraw = true;
-bool fillDraw = true;
+bool  strokeDraw = true;
+bool  fillDraw = true;
+int   _strokeCap = ROUND;
+int   _strokeJoin = MITER;
+float _strokeWidth = 4.f;
+int   _rectMode = CORNER;
+int   _ellipseMode = CENTER;
 
 // variables taken from header
 
@@ -112,9 +118,8 @@ void drawShape(PShape& s){
 }
 
 void tempBuff(int size){
-    if(tmp != null){
+    if(tmp != null)
         delete []tmp;
-    }
     tmp = new float[size];
 }
 
@@ -187,16 +192,6 @@ void toHSB(int color){
         hsbColor[0] += 360.f;
     }
 }
-
-//int abs(int n){
-//   return std::abs(n);
-//}
-//float abs(float n){
-//    return std::abs(n);
-//}
-//float ceil(float n){
-//    return std::ceil(n);
-//}
 int constrain(int amt, int low, int high) {
     if (amt < low) {
         return low;
@@ -228,15 +223,9 @@ float dist(float x1, float y1, float z1, float x2, float y2, float z2) {
     float dz = z2 - z1;
     return std::sqrt(dx * dx + dy * dy + dz * dz);
 }
-//float exp(float n) {
-//    return std::exp(n);
-//}
 float lerp(float start, float end, float t){
     return start + t * (end - start);
 }
-//float log(float n){
-//    return std::log(n);
-//}
 float mag(float a, float b) {
     return std::sqrt(a * a + b * b);
 }
@@ -286,48 +275,15 @@ float min(std::initializer_list<float> list) {
 float norm(float value,float start,float stop){
     return map(value,start,stop,0.f,1.f);
 }
-//float pow(float n,float e){
-//    return std::pow(n,e);
-//}
-//int round(float n){
-//    return std::roundf(n);
-//}
-//int floor(float n){
-//    return std::floor(n);
-//}
 float sq(float n){
     return n*n;
 }
-//float sqrt(float n){
-//    return std::sqrt(n);
-//}
-//float acos(float value){
-//    return std::acos(value);
-//}
-//float asin(float value){
-//    return std::asin(value);
-//}
-//float atan2(float y, float x){
-//    return std::atan2(y,x);
-//}
-//float atan(float value){
-//    return std::atan(value);
-//}
-//float cos(float angle){
-//    return std::cos(angle);
-//}
 float degrees(float radians){
     return radians * (180.f / PI);
 }
 float radians(float degrees){
     return degrees * (PI / 180.f);
 }
-//float sin(float angle){
-//    return std::sin(angle);
-//}
-//float tan(float angle){
-//    return std::tan(angle);
-//}
 float noise(float x, float y, float z){
     long t = _seed;
     randomSeed(_pseed);
@@ -377,15 +333,12 @@ float noise(float x, float y, float z){
                 w
             );
 }
-
 float noise(float x, float y){
     return noise(x,y,0.f);
 }
-
 float noise(float x){
     return noise(x,0.f);
 }
-
 void size(int w, int h){
     height = h;
     if(height < 128)
@@ -394,7 +347,16 @@ void size(int w, int h){
     if(width < 128)
         width = 128;
 }
-
+void ellipseMode(int mode){
+    if(mode == CENTER || mode == RADIUS ||
+       mode == CORNER || mode == CORNERS )
+    _ellipseMode = mode;
+}
+void rectMode(int mode){
+    if(mode == CENTER || mode == RADIUS ||
+        mode == CORNER || mode == CORNERS )
+    _rectMode = mode;
+}
 void noStroke(){
     strokeDraw = false;
 }
@@ -455,6 +417,20 @@ void background(float x, float y, float z, float a){
 void background(PImage image){
     todo("background(PImage)");
 }
+void strokeCap(int c){
+    if(c == SQUARE || c == ROUND || c == PROJECT)
+        _strokeCap = c;
+}
+void strokeJoin(int j){
+    if(j == MITER || j == ROUND || j == BEVEL)
+        _strokeJoin = j;
+}
+void strokeWeight(float size){
+    if(size <= 1.f)
+        _strokeWidth = 1.f;
+    else
+        _strokeWidth = size;
+}
 void colorMode(int mode){
     assert(mode == RGB || mode == HSB);
     colMode = mode;
@@ -482,7 +458,6 @@ void colorMode(int mode, float maxX, float maxY, float maxZ, float maxA){
     colMaxB = maxZ;
     colMaxA = maxA;
 }
-
 float alpha(int what){
     float outgoing = (what >> 24) & 0xff;
     if (colMaxA == 255) return outgoing;
@@ -525,15 +500,27 @@ float brightness(int what){
     }
     return hsbColor[2] * colMaxB;
 }
-
 void smooth(int level){
     smoothness = level;
 }
-
 void noSmooth(){
     smoothness = -1;
 }
-
+PShader loadShader(const std::string& fragFilename){
+    std::string fragCode = readFile(fragFilename);
+    return PShader(vertexCode,fragCode);
+}
+PShader loadShader(const std::string& fragFilename,const std::string&  vertFilename){
+    std::string fragCode = readFile(fragFilename);
+    std::string vertCode = readFile(vertFilename);
+    return PShader(vertCode,fragCode);
+}
+void resetShader(){
+    gl->bindShader(sh->program);
+}
+void shader(PShader &shader){
+    gl->bindShader(shader.program);
+}
 void pushMatrix(){
     matStack.push(mat);
 }
@@ -541,7 +528,6 @@ void popMatrix(){
     mat = matStack.top();
     matStack.pop();
 }
-
 void translate(float tx, float ty){
     mat.translate(tx,ty);
 }
@@ -640,13 +626,17 @@ void ellipse(float x, float y, float w, float h){
     drawShape(s);
 }
 void line(float x1, float y1, float x2, float y2){
-
+    std::vector<PVector> data = {
+        PVector(x1,y1),
+        PVector(x2,y2)
+    };
+    //strokify(data);
 }
 void line(float x1, float y1, float z1, float x2, float y2, float z2){
-
+    line(x1,y1,x2,y2);
 }
 void point(float x, float y){
-    circle(x,y,0.5);
+    circle(x,y,_strokeWidth);
 }
 void point(float x, float y, float z){
     point(x,y);
@@ -717,13 +707,14 @@ void ortho(){
     ortho(-width/2, width/2, -height/2, height/2);
 }
 void ortho(float left,float right,float bottom,float top){
-    ortho(left,right,bottom,top,1.f,-1.f);
+    ortho(left,right,bottom,top,0.1f,-0.1f);
 }
 void ortho(float left,float right,float bottom,float top,float near,float far){
     mat.reset();
     mat.m00 = 2.0f / (right - left);
     mat.m11 = 2.0f / (top - bottom);
     mat.m22 = -2.0f / (far - near);
+    mat.m33 = 1.f;
     mat.m30 = -(right + left) / (right - left);
     mat.m31 = -(top + bottom) / (top - bottom);
     mat.m32 = -(far + near) / (far - near);
@@ -794,13 +785,11 @@ PVector::PVector(float _x,float _y,float _z){
     this->y = _y;
     this->z = _z;
 }
-
 std::string PVector::toString(){
     char buf[32];
     std::sprintf(buf,"[%.2f,%.2f,%.2f]",x,y,z);
     return std::string(buf);
 }
-
 PVector PVector::set(float _x,float _y,float _z){
     this->x = _x;
     this->y = _y;
@@ -816,7 +805,6 @@ PVector PVector::set(PVector v){
 PVector PVector::set(float v[3]){
     return this->set(v[0],v[1],v[2]);
 }
-
 PVector PVector::random2D(){
     return PVector(
         random(-1.f,1.f),
@@ -830,7 +818,6 @@ PVector PVector::random2D(PVector& target){
     );
     return target;
 }
-
 PVector PVector::random3D(){
     return PVector(
         random(-1.f,1.f),
@@ -861,7 +848,7 @@ float PVector::mag(){
 float PVector::magSq(){
     return x * x + y * y + z * z;
 }
-PVector PVector::add(PVector& v){
+PVector PVector::add(PVector v){
     return this->add(v.x,v.y,v.z);
 }
 PVector PVector::add(float x, float y){
@@ -881,7 +868,7 @@ PVector PVector::add(PVector& v1, PVector& v2, PVector& target){
     target.add(v2);
     return target;
 }
-PVector PVector::sub(PVector& v){
+PVector PVector::sub(PVector v){
     return this->sub(v.x,v.y,v.z);
 }
 PVector PVector::sub(float x, float y){
@@ -933,7 +920,7 @@ PVector PVector::div(PVector& v, float n, PVector& target){
     target.div(n);
     return target;
 }
-float PVector::dist(PVector& v){
+float PVector::dist(PVector v){
     float dx = this->x - v.x;
     float dy = this->y - v.y;
     float dz = this->z - v.z;
@@ -942,7 +929,7 @@ float PVector::dist(PVector& v){
 float PVector::dist(PVector& v1,PVector& v2){
     return v1.dist(v2);
 }
-float PVector::dot(PVector& v){
+float PVector::dot(PVector v){
     return this->dot(v.x,v.y,v.z);
 }
 float PVector::dot(float x, float y, float z){
@@ -954,7 +941,7 @@ float PVector::dot(float x, float y, float z){
 float PVector::dot(PVector& v1, PVector& v2){
     return v1.dot(v2);
 }
-PVector PVector::cross(PVector& v){
+PVector PVector::cross(PVector v){
     float rX = this->y * v.z - this->z * v.y;
     float rY = this->z * v.x - this->x * v.z;
     float rZ = this->x * v.y - this->y * v.x;
@@ -1004,8 +991,7 @@ PVector PVector::rotate(float theta){
     this->y = x * s + y * c;
     return this->setMag(m);
 }
-
-PVector PVector::lerp(PVector& v,float amt){
+PVector PVector::lerp(PVector v,float amt){
     return this->lerp(v.x,v.y,v.z,amt);
 }
 PVector PVector::lerp(PVector& v1, PVector& v2, float amt){
@@ -1026,10 +1012,9 @@ float PVector::angleBetween(PVector& v1,PVector& v2){
 float* PVector::array(){
     return new float[3]{this->x,this->y,this->z};
 }
-
-// =================================== PShader ===================================
-
-PShader::PShader() : PShader(vertexCode.c_str(),fragmentCode.c_str()){/* ... */}
+bool PVector::equal(PVector v){
+    return this->x == v.x && this->y == v.y && this->z == v.z;
+}
 std::string readFile(const std::string& filename){
     std::stringstream ss;
     std::ifstream inputFile(filename);
@@ -1043,6 +1028,7 @@ std::string readFile(const std::string& filename){
     inputFile.close();
     return ss.str();
 }
+PShader::PShader() : PShader(vertexCode.c_str(),fragmentCode.c_str()){/* ... */}
 void PShader::create(const char* vert,const char* frag){
     if(gl != null){
         int v = gl->compileShader(vert,SHADER_VERTEX);
@@ -1172,9 +1158,7 @@ std::string PShader::toString(){
     ss << "PShader(" << program << ")\n";
     return ss.str();
 }
-
-PMatrix2D::PMatrix2D() : PMatrix2D(0.f,0.f,0.f,
-                                   0.f,0.f,0.f){}
+PMatrix2D::PMatrix2D() : PMatrix2D(0.f,0.f,0.f,0.f,0.f,0.f){}
 PMatrix2D::PMatrix2D(mat2Data* mat){
     set(mat);
 }
@@ -1191,7 +1175,6 @@ PMatrix2D::PMatrix2D(
     set(a00,a01,a02,
         a10,a11,a12);
 }
-
 void PMatrix2D::reset(){
     set(1.f,0.f,0.f,
         0.f,1.f,0.f);
@@ -1225,7 +1208,6 @@ void PMatrix2D::set(float m00, float m01, float m02,
     this->m11 = m11;
     this->m12 = m12;
 }
-
 void PMatrix2D::translate(float tx, float ty){
     this->m02 = tx*m00 + ty*m01 + m02;
     this->m12 = tx*m10 + ty*m11 + m12;
@@ -1264,7 +1246,6 @@ void PMatrix2D::shearY(float angle){
     apply(1, 0, 1,
           0, t, 0);
 }
-
 void PMatrix2D::apply(PMatrix2D* source){
     apply(source->m00,source->m01,source->m02,
           source->m10,source->m11,source->m12);
@@ -1282,7 +1263,6 @@ void PMatrix2D::apply(float n00, float n01, float n02,
     this->m11  = n01 * t0 + n11 * t1;
     this->m12 += n02 * t0 + n12 * t1;
 }
-
 void PMatrix2D::preApply(PMatrix2D* source){
     preApply(source->m00,source->m01,source->m02,
              source->m10,source->m11,source->m12);
@@ -1361,7 +1341,6 @@ std::string PMatrix2D::toString(){
     ss << "          " << m10 << ","<< m11 << ","<< m12 << ")" << std::endl;
     return ss.str();
 }
-
 PMatrix3D::PMatrix3D(){
     reset();
 }
@@ -1421,7 +1400,6 @@ mat4Data* PMatrix3D::get(mat4Data* target){
     *(p+15) = m33;
     return target;
 }
-
 void PMatrix3D::set(PMatrix3D* src){
     set(src->m00,src->m01,src->m02,src->m03,
         src->m10,src->m11,src->m12,src->m13,
@@ -1444,27 +1422,16 @@ void PMatrix3D::set(
     float m00, float m01, float m02, float m03,
     float m10, float m11, float m12, float m13,
     float m20, float m21, float m22, float m23,
-    float m30, float m31, float m32, float m33){
-
-    this->m00 = m00;
-    this->m01 = m01;
-    this->m02 = m02;
-    this->m03 = m03;
-
-    this->m10 = m10;
-    this->m11 = m11;
-    this->m12 = m12;
-    this->m13 = m13;
-
-    this->m20 = m20;
-    this->m21 = m21;
-    this->m22 = m22;
-    this->m23 = m23;
-
-    this->m30 = m30;
-    this->m31 = m31;
-    this->m32 = m32;
-    this->m33 = m33;
+    float m30, float m31, float m32, float m33
+){
+    this->m00 = m00; this->m01 = m01;
+    this->m02 = m02; this->m03 = m03;
+    this->m10 = m10; this->m11 = m11;
+    this->m12 = m12; this->m13 = m13;
+    this->m20 = m20; this->m21 = m21;
+    this->m22 = m22; this->m23 = m23;
+    this->m30 = m30; this->m31 = m31;
+    this->m32 = m32; this->m33 = m33;
 }
 void PMatrix3D::translate(float tx, float ty){
     translate(tx,ty,0.f);
@@ -1661,13 +1628,12 @@ float* PMatrix3D::mult(float* source, float* target, int s){
         if(s < 3){
             target = new float[3];
             s = 3;
-        }
-        if(s > 4){
+        } else if (s > 4){
             target = new float[4];
             s = 4;
         }
     }
-    if (target == null) {
+    if (target != null) {
         if (s == 3) {
             target[0] = m00*source[0] + m01*source[1] + m02*source[2] + m03;
             target[1] = m10*source[0] + m11*source[1] + m12*source[2] + m13;
@@ -1829,19 +1795,7 @@ unsigned char* transformImageARGB(int* colours,int w, int h, int* s){
 }
 void PImage::resize(int w,int h){
     todo("in development");
-
-    //int size;
-    //unsigned char* data = transformImageARGB(pixels,width,height,&size);
-    //int width, height, channels;
-    //unsigned char* inputImage = stbi_load_from_memory(data, size, &width, &height, &channels, 0);
-    //if (!inputImage) {
-    //    printf("Failed to load the input image from memory.\n");
-    //}
-    //int resizedChannels = channels;
-    //unsigned char* resizedImage = new unsigned char[w * h * resizedChannels];
-    //stbir_resize_uint8(inputImage, width, height, 0, resizedImage,w, h, 0, resizedChannels);
 }
-
 std::string PImage::toString(){
     std::string f;
     switch(this->format){
@@ -1861,11 +1815,7 @@ std::string PImage::toString(){
     ss << "PImage(" << width << "x" << height << ", format=" << f << ")\n";
     return ss.str();
 }
-
-
-PShape::PShape(){
-
-}
+PShape::PShape(){/* *** */}
 bool PShape::isVisible(){
     return this->visibility;
 }
@@ -1931,6 +1881,9 @@ void PShape::setVertex(int index, PVector vec){
         return;
     }
     vertexes[index] = vec;
+}
+void PShape::vertex(PVector vec){
+    vertexes.push_back(vec);
 }
 void PShape::vertex(float x, float y){
     vertexes.push_back(PVector(x,y));

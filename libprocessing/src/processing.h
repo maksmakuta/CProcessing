@@ -14,7 +14,7 @@
 #define null nullptr
 
 #define PI 3.14159265358979323846
-#define HALP_PI PI/2.0
+#define HALF_PI PI/2.0
 #define TWO_PI 2.0*PI
 #define TAU TWO_PI
 #define QUARTER_PI PI/4
@@ -24,6 +24,17 @@
 #define  ARGB 1 << 1
 #define   RGB 1 << 2
 #define   HSB 1 << 3
+
+#define PROJECT 0x0002
+#define SQUARE  0x0020
+#define MITER   0x0004
+#define BEVEL   0x0040
+#define ROUND   0x8000
+
+#define CENTER  0x0001
+#define RADIUS  0x0010
+#define CORNER  0x0100
+#define CORNERS 0x1000
 
 #define CLOSE true
 
@@ -84,28 +95,29 @@ public:
     PVector copy();
     float mag();
     float magSq();
-    PVector add(PVector& v);
+    PVector add(PVector v);
     PVector add(float x, float y);
     PVector add(float x, float y, float z);
-    PVector sub(PVector& v);
+    PVector sub(PVector v);
     PVector sub(float x, float y);
     PVector sub(float x, float y, float z);
     PVector mult(float n);
     PVector div(float n);
-    float dist(PVector& v);
-    float dot(PVector& v);
+    float dist(PVector v);
+    float dot(PVector v);
     float dot(float x, float y, float z);
-    PVector cross(PVector& v);
+    PVector cross(PVector v);
     PVector normalize();
     PVector normalize(PVector& target);
     PVector limit(float max);
     PVector setMag(float len);
     float heading();
     PVector rotate(float theta);
-    PVector lerp(PVector& v,float amt);
+    PVector lerp(PVector v,float amt);
     PVector lerp(float x,float y,float z, float amt);
     float* array();
     std::string toString() override;
+    bool equal(PVector v);
 
     static PVector random2D();
     static PVector random2D(PVector& target);
@@ -347,6 +359,7 @@ public:
     void setVertex(int index, float x,float y);
     void setVertex(int index, float x,float y,float z);
     void setVertex(int index, PVector vec);
+    void vertex(PVector vec);
     void vertex(float x, float y);
     void vertex(float x, float y,float z);
 
@@ -396,7 +409,6 @@ float noise(float x);
 float noise(float x, float y);
 float noise(float x, float y, float z);
 
-//int abs(int n);
 int constrain(int amt,int low,int high);
 int max(int a, int b);
 int max(int a, int b,int c);
@@ -404,17 +416,11 @@ int max(std::initializer_list<int> list);
 int min(int a, int b);
 int min(int a, int b, int c);
 int min(std::initializer_list<int> list);
-//int round(float n);
-//int floor(float n);
 
-//float abs(float n);
-//float ceil(float n);
 float constrain(float amt,float low,float high);
 float dist(float x1,float y1,float x2, float y2);
 float dist(float x1,float y1,float z1, float x2,float y2,float z2);
-//loat exp(float n);
 float lerp(float start, float end, float t);
-//float log(float n);
 float mag(float a, float b);
 float mag(float a, float b, float c);
 float map(float value,
@@ -427,20 +433,10 @@ float min(float a, float b);
 float min(float a, float b, float c);
 float min(std::initializer_list<float> list);
 float norm(float value,float start,float stop);
-//float pow(float n,float e);
 float sq(float n);
-//float sqrt(float n);
 
 float degrees(float radians);
 float radians(float degrees);
-
-//float acos(float value);
-//float asin(float value);
-//float atan2(float y, float x);
-//float atan(float value);
-//float cos(float angle);
-//float sin(float angle);
-//float tan(float angle);
 
 // text functions
 
@@ -458,9 +454,10 @@ void textDescent();
 
 // shader functions
 
-void loadShader();
+PShader loadShader(const std::string& fragFilename);
+PShader loadShader(const std::string& fragFilename,const std::string&  vertFilename);
 void resetShader();
-void shader();
+void shader(PShader &shader);
 
 // matrix functions
 
@@ -489,6 +486,12 @@ void applyMatrix(float n00, float n01, float n02, float n03,
 void printMatrix();
 
 // drawing functions
+
+void ellipseMode(int mode);
+void rectMode(int mode);
+void strokeCap(int);
+void strokeJoin(int);
+void strokeWeight(float);
 
 void noStroke();
 void stroke(float gray);

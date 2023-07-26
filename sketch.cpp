@@ -2,25 +2,17 @@
 
 void setup(){
     size(600,400);
+    strokeWeight(20);
 }
 
 void draw(){
     background(0);
-    noStroke();
+    noFill();
+    fill(200,100,20);
+    point(width/2,height/2);
+    point(mouseX,mouseY);
 
-    //fill(200);
-    //rect(100,100,200,250);
-
-    //fill(100,56,156);
-    //rect(0,0,100,50);
-
-    float s = map(mouseX,0.f,width,0.f,TAU);
-    float f = map(mouseY,0.f,height,0.f,TAU);
-
+    stroke(200);
     fill(200);
-    arc(width/2,height/2,100,60,s,f);
-
-    //fill(150,0,25);
-    //triangle(10,10,25,25,25,10);
-
+    line(width/2,height/2,mouseX,mouseY);
 }

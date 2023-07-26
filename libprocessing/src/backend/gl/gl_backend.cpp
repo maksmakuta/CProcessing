@@ -10,6 +10,7 @@ GLBackend::GLBackend() : backend(){
 }
 
 void GLBackend::init(){
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //GLint temp;
     //glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &temp);
     //std::cout << "Max textures: " << temp << "\n";
@@ -81,9 +82,10 @@ bool checkProgram(int program){
 int GLBackend::compileShader(const char* src, int type){
     int shader = -1;
     if(type == SHADER_VERTEX){
-        int t = glCreateShader(GL_VERTEX_SHADER);
-        shader = t;
+        std::cout << "VERTEX SHADER\n";
+        shader = glCreateShader(GL_VERTEX_SHADER);
     }else if(type == SHADER_FRAGMENT){
+        std::cout << "FRAGMENT SHADER\n";
         shader = glCreateShader(GL_FRAGMENT_SHADER);
     }else{
         shader = -1;
