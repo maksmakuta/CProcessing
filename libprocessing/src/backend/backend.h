@@ -14,7 +14,7 @@
 #define TEX_RGBA 0x0002
 #define TEX_GRAY 0x0004
 
-struct vertex{
+struct vert{
     float x = 0.f,y = 0.f,z = 0.f;
     float r = 0.f,g = 0.f,b = 0.f,a = 0.f;
     float u = 0.f,v = 0.f;
@@ -33,7 +33,7 @@ public:
     virtual void viewport(float w, float h) = 0;
     virtual void end() = 0;
 
-    virtual void draw(std::vector<vertex>& vert) = 0;
+    virtual void draw(std::vector<vert>& vert) = 0;
     virtual void enable(int feature) = 0;
     virtual void disable(int feature) = 0;
 

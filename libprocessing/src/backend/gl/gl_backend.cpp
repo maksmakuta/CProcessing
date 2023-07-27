@@ -10,7 +10,7 @@ GLBackend::GLBackend() : backend(){
 }
 
 void GLBackend::init(){
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     //GLint temp;
     //glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &temp);
     //std::cout << "Max textures: " << temp << "\n";
@@ -36,15 +36,15 @@ void GLBackend::clearColor(float r,float g,float b,float a){
     glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
-void GLBackend::draw(std::vector<vertex>& points){
-    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(vertex), points.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)0);
+void GLBackend::draw(std::vector<vert>& points){
+    glBufferData(GL_ARRAY_BUFFER, points.size() * sizeof(vert), points.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vert), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(vert), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(7*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(vert), (void*)(7*sizeof(float)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(vertex), (void*)(9*sizeof(float)));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(vert), (void*)(9*sizeof(float)));
     glEnableVertexAttribArray(3);
     glDrawArrays(GL_TRIANGLES, 0, points.size());
 }
@@ -59,11 +59,18 @@ void GLBackend::disable(int feature){
         glDisable(GL_MULTISAMPLE);
     }
 }
-bool checkShader(int shader){
+bool checkShader(int type,int shader){
     int success;
     char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success){
+        if(type == SHADER_VERTEX){
+            std::cout << "VERTEX SHADER\n";
+        }else if(type == SHADER_FRAGMENT){
+            std::cout << "FRAGMENT SHADER\n";
+        }else{
+            std::cerr << "Unknown shader type\n";
+        }
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
@@ -82,10 +89,8 @@ bool checkProgram(int program){
 int GLBackend::compileShader(const char* src, int type){
     int shader = -1;
     if(type == SHADER_VERTEX){
-        std::cout << "VERTEX SHADER\n";
         shader = glCreateShader(GL_VERTEX_SHADER);
     }else if(type == SHADER_FRAGMENT){
-        std::cout << "FRAGMENT SHADER\n";
         shader = glCreateShader(GL_FRAGMENT_SHADER);
     }else{
         shader = -1;
@@ -95,7 +100,7 @@ int GLBackend::compileShader(const char* src, int type){
         glShaderSource(shader, 1, &src, nullptr);
         glCompileShader(shader);
     }
-    bool status = checkShader(shader);
+    bool status = checkShader(type,shader);
     if(status){
         return shader;
     }else{

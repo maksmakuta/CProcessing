@@ -36,6 +36,14 @@
 #define CORNER  0x0100
 #define CORNERS 0x1000
 
+#define POINTS          0x0001
+#define LINES           0x0002
+#define TRIANGLES       0x0003
+#define TRIANGLE_FAN    0x0004
+#define TRIANGLE_STRIP  0x0005
+#define QUADS           0x0006
+#define QUAD_STRIP      0x0007
+
 #define CLOSE true
 
 typedef std::array<float,6> mat2Data;
@@ -69,14 +77,14 @@ public:
 class color : public PObject{
 public:
     float r,g,b,a;
+    int i;
 
     color(int gray);
     color(int gray, int alpha);
     color(int rgb, float alpha);
     color(int x, int y, int z);
-
-    color& operator = (int rgb);
-
+    color(int x, int y, int z,int w);
+    color& operator = (int argb);
     std::string toString() override;
 };
 
@@ -494,17 +502,20 @@ void strokeJoin(int);
 void strokeWeight(float);
 
 void noStroke();
+void stroke(color c);
 void stroke(float gray);
 void stroke(float gray, float alpha);
 void stroke(float x, float y, float z);
 void stroke(float x, float y, float z, float a);
 
 void noFill();
+void fill(color c);
 void fill(float gray);
 void fill(float gray, float alpha);
 void fill(float x, float y, float z);
 void fill(float x, float y, float z, float a);
 
+void background(color c);
 void background(float gray);
 void background(float gray, float alpha);
 void background(float x, float y, float z);
@@ -526,6 +537,13 @@ float brightness(int what);
 
 int lerpColor(int c1, int c2, float amt);
 int lerpColor(int c1, int c2, float amt, int mode);
+color lerpColor(color c1, color c2, float amt);
+color lerpColor(color c1, color c2, float amt, int mode);
+
+void beginShape(int mode = 0);
+void vertex(float x, float y);
+void vertex(float x, float y,float z);
+void endShape();
 
 void arc(float x, float y, float w, float h, float start, float stop);
 void arc(float x, float y, float w, float h, float start, float stop, int mode);

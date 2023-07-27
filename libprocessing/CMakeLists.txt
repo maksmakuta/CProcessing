@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 project(processing CXX)
 
+# BACKEND (string)
+# GL - OpenGL
+# VK - Vulkan (not implemented)
+
+SET(BACKEND "GL" CACHE STRING "Processing rendering backend" FORCE)
 
 #===========================================================================================
 # GLAD CONFIGURATION
@@ -36,15 +41,29 @@ set(CMAKE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(sources
     ${SOURCE_DIR}/processing.h
     ${SOURCE_DIR}/backend/backend.h
-    ${SOURCE_DIR}/backend/gl/gl_backend.h
     #${SOURCE_DIR}/backend/vk/vk_backend.h
 
     ${SOURCE_DIR}/processing.cpp
-    ${SOURCE_DIR}/backend/gl/gl_backend.cpp
     #${SOURCE_DIR}/backend/vk/vk_backend.cpp
 
     ${SOURCE_DIR}/backend/shaders.h
 )
+
+if(BACKEND STREQUAL "GL")
+    set(sources
+        ${sources}
+        ${SOURCE_DIR}/backend/gl/gl_backend.h
+        ${SOURCE_DIR}/backend/gl/gl_backend.cpp)
+elseif(BACKEND STREQUAL "VK")
+    set(sources
+        ${sources}
+        ${SOURCE_DIR}/backend/vk/vk_backend.h
+        ${SOURCE_DIR}/backend/vk/vk_backend.cpp)
+else()
+    message("Define rendering backend in BACKEND variable")
+    message("\"GL\" for OpenGL OR \"VK\" for Vulkan")
+endif()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()

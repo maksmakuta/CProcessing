@@ -3,6 +3,8 @@
 
 #include <string>
 
+#ifdef SHGL
+
 std::string vertexCode =
 R"r(
 #version 330 core
@@ -43,5 +45,13 @@ void main(){
         color = Colour;
 }
 )r";
+
+#endif
+
+
+#ifdef SHVK
+std::string vertexCode;
+std::string fragmentCode;
+#endif
 
 #endif // SHADERS_H

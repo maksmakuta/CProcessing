@@ -38,7 +38,7 @@ PMatrix3D mat;
 std::stack<PMatrix3D> matStack;
 
 float* tmp = null;
-std::vector<vertex> data; // vertex data for drawing
+std::vector<vert> _data; // vertex data for drawing
 long _seed = 0L;    // random seed
 long _pseed = 0L;   // perlin noise seed
 int _poctaves = 4;  // perlin octaves
@@ -57,6 +57,9 @@ float hsbColor[3] = {0.f,0.f,0.f};
 color bgColor = 0xff000000, // 0xAARRGGBB
     strokeColor = 0xff0011bb,
     fillColor = 0xff0011bb;
+
+PShape tempShape;
+bool tempBuilder;
 
 bool  strokeDraw = true;
 bool  fillDraw = true;
@@ -85,7 +88,7 @@ bool focused = true;
 
 // =================== methods ======================
 
-void drawShape(PShape& s){
+void shape(PShape& s){
     std::cout << "size :" << s.getVertexCount() << "\n";
     if(gl != null){
         gl->begin();
@@ -94,7 +97,7 @@ void drawShape(PShape& s){
         sh->set("images",0);
         for(int a = 0;a < s.getVertexCount();a++){
             PVector p = s.getVertex(a);
-            vertex v;
+            vert v;
             v.x = p.x;
             v.y = p.y;
             v.z = p.z;
@@ -109,10 +112,10 @@ void drawShape(PShape& s){
                 v.b = s.strokeColor.b;
                 v.a = s.strokeColor.a;
             }
-            data.push_back(v);
+            _data.push_back(v);
         }
-        gl->draw(data);
-        data.clear();
+        gl->draw(_data);
+        _data.clear();
         gl->end();
     }
 }
@@ -377,6 +380,10 @@ void stroke(float x, float y, float z, float a){
     int  _a = (int) constrain(a,0.f,colMaxA);
     strokeColor = (_a << 24) | (r << 16) | (g << 8) | b;
 }
+void stroke(color c){
+    strokeDraw = true;
+    strokeColor = c;
+}
 
 void noFill(){
     fillDraw = false;
@@ -391,12 +398,16 @@ void fill(float x, float y, float z){
     fill(x,y,z,colMaxA);
 }
 void fill(float x, float y, float z, float a){
-    fillDraw = false;
+    fillDraw = true;
     int r = constrain(x,0.f,colMaxR);
     int g = constrain(y,0.f,colMaxG);
     int b = constrain(z,0.f,colMaxB);
     int A = constrain(a,0.f,colMaxA);
     fillColor = (A << 24) | (r << 16) | (g << 8) | b;
+}
+void fill(color c){
+    fillDraw = true;
+    fillColor = c;
 }
 void background(float gray){
     background(gray,gray,gray);
@@ -458,6 +469,25 @@ void colorMode(int mode, float maxX, float maxY, float maxZ, float maxA){
     colMaxB = maxZ;
     colMaxA = maxA;
 }
+color lerpColor(color c1, color c2, float amt){
+    float R = lerp(c1.r,c2.r,amt);
+    float G = lerp(c1.g,c2.g,amt);
+    float B = lerp(c1.b,c2.b,amt);
+    float A = lerp(c1.a,c2.a,amt);
+    return color(R,G,B,A);
+}
+color lerpColor(color c1, color c2, float amt, int mode){
+    return lerpColor(c1,c2,amt);
+}
+int lerpColor(int c1, int c2, float amt){
+    color cc1 = c1;
+    color cc2 = c2;
+    return lerpColor(cc1,cc2,amt).i;
+}
+int lerpColor(int c1, int c2, float amt, int mode){
+    return lerpColor(c1,c2,amt);
+}
+
 float alpha(int what){
     float outgoing = (what >> 24) & 0xff;
     if (colMaxA == 255) return outgoing;
@@ -585,6 +615,103 @@ void printMatrix(){
     cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n\n";
 }
 
+void strokify(std::vector<PVector> points,bool loop = false){
+    if(points.size() > 1){
+        PShape s;
+        s.beginShape();
+        s.fill(strokeColor);
+        float w = _strokeWidth / 2.f;
+        PVector t1,t2,t3,t4;
+        for(int a = 0;a < points.size() - 1;a++){
+            auto p1 = points[a];
+            auto p2 = points[a+1];
+            auto p = PVector::sub(p2,p1);
+            p = PVector(-p.y,p.x).normalize().mult(w);
+            PVector::add(p1,p,t1);
+            PVector::sub(p1,p,t2);
+            PVector::add(p2,p,t3);
+            PVector::sub(p2,p,t4);
+
+            s.vertex(t1);
+            s.vertex(t2);
+            s.vertex(t4);
+
+            s.vertex(t1);
+            s.vertex(t3);
+            s.vertex(t4);
+
+        }
+        if(loop){
+            auto p1 = points[0];
+            auto p2 = points[points.size()-1];
+            auto p = PVector::sub(p2,p1);
+            p = PVector(-p.y,p.x).normalize().mult(w);
+            PVector::add(p1,p,t1);
+            PVector::sub(p1,p,t2);
+            PVector::add(p2,p,t3);
+            PVector::sub(p2,p,t4);
+
+            s.vertex(t1);
+            s.vertex(t2);
+            s.vertex(t4);
+
+            s.vertex(t1);
+            s.vertex(t3);
+            s.vertex(t4);
+        }else{
+
+        }
+        s.endShape();
+        shape(s);
+    }
+}
+
+void strokify(PShape shape,bool loop = false){
+    std::vector<PVector> data;
+    for(int a = 0;a < shape.getVertexCount();a++){
+        data.push_back(shape.getVertex(a));
+    }
+    strokify(data,loop);
+}
+
+void beginShape(int mode){
+    if(!tempBuilder){
+        tempBuilder = true;
+        tempShape = PShape();
+        if(strokeDraw){
+            tempShape.setStroke(strokeColor);
+        }
+        if(fillDraw){
+            tempShape.setFill(fillColor);
+        }
+    }else{
+        error("Close current shape");
+    }
+}
+void vertex(float x,float y){
+    vertex(x,y,0.f);
+}
+void vertex(float x,float y,float z){
+    if(tempBuilder){
+        tempShape.vertex(x,y,z);
+    }else{
+        error("vertex(...) can be used only between beginShape() and endshape() functions");
+    }
+}
+void endShape(){
+    if(tempBuilder){
+        if(strokeDraw){
+            strokify(tempShape);
+        }
+        if(fillDraw){
+            shape(tempShape);
+        }
+        tempBuilder = false;
+    }else{
+        error("No shape is creating");
+    }
+}
+
 void arc(float x, float y, float w, float h, float start, float stop){
     PShape s;
     float step = radians(1);
@@ -601,7 +728,7 @@ void arc(float x, float y, float w, float h, float start, float stop){
         s.vertex(x + cos(start)*w,y + sin(start)*h);
     }while(start < stop);
     s.endShape();
-    drawShape(s);
+    shape(s);
 }
 void arc(float x, float y, float w, float h, float start, float stop, int mode){
     arc(x,y,w,h,start,stop);
@@ -623,37 +750,50 @@ void ellipse(float x, float y, float w, float h){
         s.vertex(x + cos(d)*w,y + sin(d)*h);
     }
     s.endShape();
-    drawShape(s);
+    shape(s);
 }
 void line(float x1, float y1, float x2, float y2){
     std::vector<PVector> data = {
         PVector(x1,y1),
         PVector(x2,y2)
     };
-    //strokify(data);
+    strokify(data);
 }
 void line(float x1, float y1, float z1, float x2, float y2, float z2){
     line(x1,y1,x2,y2);
 }
 void point(float x, float y){
-    circle(x,y,_strokeWidth);
+    int t = fillColor.i;
+    fill(strokeColor);
+    circle(x,y,_strokeWidth/2.f);
+    fill(t);
 }
 void point(float x, float y, float z){
     point(x,y);
 }
 void quad(float x1,float y1,float x2,float y2,float x3,float y3,float x4,float y4){
-    PShape s;
-    s.beginShape();
-    s.fill(fillColor);
-    s.noStroke();
-    s.vertex(x1,y1);
-    s.vertex(x2,y2);
-    s.vertex(x3,y3);
-    s.vertex(x2,y2);
-    s.vertex(x3,y3);
-    s.vertex(x4,y4);
-    s.endShape();
-    drawShape(s);
+    if(fillDraw){
+        PShape s;
+        s.beginShape();
+        s.fill(fillColor);
+        s.noStroke();
+        s.vertex(x1,y1);
+        s.vertex(x2,y2);
+        s.vertex(x3,y3);
+        s.vertex(x2,y2);
+        s.vertex(x3,y3);
+        s.vertex(x4,y4);
+        s.endShape();
+        shape(s);
+    }
+    if(strokeDraw){
+        strokify({
+            PVector(x1,y1),
+            PVector(x2,y2),
+            PVector(x3,y3),
+            PVector(x4,y4)
+        },true);
+    }
 }
 void rect(float x, float y, float w, float h, float r){
     todo("rect(float x, float y, float w, float h, float r)");
@@ -675,21 +815,31 @@ void triangle(float x1,float y1,float x2,float y2,float x3,float y3){
     s.vertex(x2,y2);
     s.vertex(x3,y3);
     s.endShape();
-    drawShape(s);
+    shape(s);
 }
 void rect(float x, float y, float w, float h){
-    PShape s;
-    s.beginShape();
-    s.fill(fillColor);
-    s.noStroke();
-    s.vertex(x,y);
-    s.vertex(x+w,y);
-    s.vertex(x,y+h);
-    s.vertex(x+w,y);
-    s.vertex(x,y+h);
-    s.vertex(x+w,y+h);
-    s.endShape();
-    drawShape(s);
+    if(fillDraw){
+        PShape s;
+        s.beginShape();
+        s.fill(fillColor);
+        s.noStroke();
+        s.vertex(x,y);
+        s.vertex(x+w,y);
+        s.vertex(x,y+h);
+        s.vertex(x+w,y);
+        s.vertex(x,y+h);
+        s.vertex(x+w,y+h);
+        s.endShape();
+        shape(s);
+    }
+    if(strokeDraw){
+        strokify({
+            PVector(x,y),
+            PVector(x+w,y),
+            PVector(x+w,y+h),
+            PVector(x,y+h)
+        },true);
+    }
 }
 
 void frustum(float left,float right,float bottom,float top,float near,float far){
@@ -747,26 +897,39 @@ color::color(int gray){
     this->g = gray / colMaxG;
     this->b = gray / colMaxB;
     this->a = colMaxA;
+    this->i = ((int)this->a << 24) | ((int)this->r << 16) | ((int)this->g << 8) | (int)this->b;
 }
 color::color(int gray, int alpha){
     this->r = gray  / colMaxR;
     this->g = gray  / colMaxG;
     this->b = gray  / colMaxB;
     this->a = alpha / colMaxA;
+    this->i = ((int)this->a << 24) | ((int)this->r << 16) | ((int)this->g << 8) | (int)this->b;
 }
 color::color(int rgb, float alpha){
     this->r = ((rgb >> 16) & 0xFF) / colMaxR;
     this->g = ((rgb >> 8) & 0xFF) / colMaxG;
     this->b = ((rgb) & 0xFF) / colMaxB;
     this->a = colMaxA;
+    this->i = ((int)this->a << 24) | ((int)this->r << 16) | ((int)this->g << 8) | (int)this->b;
 }
 color::color(int x, int y, int z){
     this->r = x / colMaxR;
     this->g = y / colMaxG;
     this->b = z / colMaxB;
     this->a = colMaxA;
+    this->i = ((int)this->a << 24) | ((int)this->r << 16) | ((int)this->g << 8) | (int)this->b;
+}
+color::color(int x, int y, int z,int w){
+    this->r = x / colMaxR;
+    this->g = y / colMaxG;
+    this->b = z / colMaxB;
+    this->a = w / colMaxA;
+    this->i = ((int)this->a << 24) | ((int)this->r << 16) | ((int)this->g << 8) | (int)this->b;
+
 }
 color& color::operator=(int argb){
+    this->i = argb;
     this->a = ((argb >> 24) & 0xFF) / colMaxA;
     this->r = ((argb >> 16) & 0xFF) / colMaxR;
     this->g = ((argb >> 8) & 0xFF) / colMaxG;
@@ -775,7 +938,8 @@ color& color::operator=(int argb){
 }
 std::string color::toString(){
     std::stringstream ss;
-    ss << "color(" << r << "," << g << "," << b << "," << a << ")\n";
+    ss << "color(" << r << "," << g << "," << b << "," << a << "\n";
+    ss << "0x" << std::hex  << i << ")\n";
     return ss.str();
 }
 PVector::PVector() : PVector(0.f,0.f,0.f){}
@@ -881,7 +1045,8 @@ PVector PVector::sub(float x, float y, float z){
     return *this;
 }
 PVector PVector::sub(PVector& v1, PVector& v2){
-    return v1.sub(v2);
+    PVector t;
+    return PVector::sub(v1,v2,t);
 }
 PVector PVector::sub(PVector& v1, PVector& v2, PVector& target){
     target.set(v1);
@@ -2002,7 +2167,7 @@ int main(){
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    data.clear();
+    _data.clear();
     glfwTerminate();
     delete sh;
     delete gl;
