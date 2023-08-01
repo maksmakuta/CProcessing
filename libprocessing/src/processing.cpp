@@ -13,6 +13,7 @@
 #include <fstream>
 #include <limits>
 #include <assert.h>
+#include <optional>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "backend/gl/gl_backend.h"
@@ -615,63 +616,121 @@ void printMatrix(){
     cout << mat.m30 << " " << mat.m31 << " " << mat.m32 << " " << mat.m33 << "\n\n";
 }
 
-void strokify(std::vector<PVector> points,bool loop = false){
+struct Segment{
+    PVector p1,p2,p3,p4;
+    PVector a,b,n;
+};
+
+static Segment genSegment(PVector& a,PVector& b,float thickness){
+    PVector v = PVector::sub(a,b).normalize();
+    PVector n = PVector(-v.y,v.x).mult(thickness);
+    Segment s;
+    s.n = n;
+    s.a = a;
+    s.b = b;
+    s.p1 = PVector::add(a,n);
+    s.p2 = PVector::sub(a,n);
+    s.p3 = PVector::add(b,n);
+    s.p4 = PVector::sub(b,n);
+    return s;
+}
+
+static float angle(PVector& a,PVector& b,PVector& c){
+    PVector x = PVector::sub(a,b);
+    PVector y = PVector::sub(c,b);
+    float d = PVector::dot(x,y);
+    return acos(d / (x.mag() * y.mag()));
+}
+
+static PVector rotate(PVector &v,PVector &p, float theta,float radius){
+    float s = sin(theta);
+    float c = cos(theta);
+    float newX = (v.x - p.x) * c - (v.y - p.y) * s + p.x;
+    float newY = (v.x - p.x) * s + (v.y - p.y) * c + p.y;
+    return PVector(newX,newY).setMag(radius);
+}
+
+static std::vector<PVector> triangles(PVector &c, float startAngle, float endAngle,float r,int l = 16){
+    float step = (endAngle - startAngle) / (float)l;
+    std::vector<PVector> list;
+    for(float a = startAngle; a <= endAngle; a+= step){
+        list.push_back(c);
+        list.push_back(c);
+        list.push_back(c);
+    }
+    return list;
+}
+
+void strokify(std::vector<PVector> points,bool loop = false,bool allowOverlap = false){
+    float thickness = _strokeWidth / 2.f;
+    PShape _shape;
+    _shape.beginShape();
+    _shape.noStroke();
+    _shape.fill(strokeColor);
+    std::vector<Segment> segments;
     if(points.size() > 1){
-        PShape s;
-        s.beginShape();
-        s.fill(strokeColor);
-        float w = _strokeWidth / 2.f;
-        PVector t1,t2,t3,t4;
         for(int a = 0;a < points.size() - 1;a++){
-            auto p1 = points[a];
-            auto p2 = points[a+1];
-            auto p = PVector::sub(p2,p1);
-            p = PVector(-p.y,p.x).normalize().mult(w);
-            PVector::add(p1,p,t1);
-            PVector::sub(p1,p,t2);
-            PVector::add(p2,p,t3);
-            PVector::sub(p2,p,t4);
-
-            s.vertex(t1);
-            s.vertex(t2);
-            s.vertex(t4);
-
-            s.vertex(t1);
-            s.vertex(t3);
-            s.vertex(t4);
-
+            segments.push_back(genSegment(points[a],points[a+1],thickness));
         }
         if(loop){
-            auto p1 = points[0];
-            auto p2 = points[points.size()-1];
-            auto p = PVector::sub(p2,p1);
-            p = PVector(-p.y,p.x).normalize().mult(w);
-            PVector::add(p1,p,t1);
-            PVector::sub(p1,p,t2);
-            PVector::add(p2,p,t3);
-            PVector::sub(p2,p,t4);
-
-            s.vertex(t1);
-            s.vertex(t2);
-            s.vertex(t4);
-
-            s.vertex(t1);
-            s.vertex(t3);
-            s.vertex(t4);
+            segments.push_back(genSegment(points.front(),points.back(),thickness));
         }else{
+            if(_strokeCap == ROUND){
 
+            }else if(_strokeCap == SQUARE){
+                Segment& t = segments.back();
+                PVector y = PVector(-t.n.y,t.n.x);
+                t.p3.add(y);
+                t.p4.add(y);
+
+                Segment& u = segments.front();
+                y = PVector(-u.n.y,u.n.x);
+                u.p1.sub(y);
+                u.p2.sub(y);
+            }
         }
-        s.endShape();
-        shape(s);
     }
+
+    for(int a = 0;a < segments.size();a++){
+        if(a >= 0 && a+1 != segments.size()){
+            Segment _a = segments[a];
+            Segment _b = segments[a+1];
+            if(_strokeJoin == ROUND){
+
+            }else if(_strokeJoin == MITER){
+                PVector _pa = PVector::sub(_a.b,_a.p3).normalize();
+                PVector _pb = PVector::sub(_a.b,_b.p1).normalize();
+                PVector m = PVector::add(_pa,_pb);//.mult(thickness);
+                std::cout << m.toString();
+                //float l = m.
+                _shape.vertex(_a.b);
+                _shape.vertex(_a.p3);
+                _shape.vertex(_b.p1);
+
+                _shape.vertex(PVector::sub(_a.b,m));
+                _shape.vertex(_a.p3);
+                _shape.vertex(_b.p1);
+
+            }else if(_strokeJoin == BEVEL){
+                _shape.vertex(_a.b);
+                _shape.vertex(_a.p3);
+                _shape.vertex(_b.p1);
+            }
+        }
+        _shape.vertex(segments[a].p1);
+        _shape.vertex(segments[a].p2);
+        _shape.vertex(segments[a].p3);
+        _shape.vertex(segments[a].p3);
+        _shape.vertex(segments[a].p2);
+        _shape.vertex(segments[a].p4);
+    }
+    segments.clear();
+    _shape.endShape();
+    shape(_shape);
 }
 
 void strokify(PShape shape,bool loop = false){
-    std::vector<PVector> data;
-    for(int a = 0;a < shape.getVertexCount();a++){
-        data.push_back(shape.getVertex(a));
-    }
-    strokify(data,loop);
+    strokify(shape.vertices(),loop);
 }
 
 void beginShape(int mode){
@@ -963,7 +1022,7 @@ PVector PVector::set(float _x,float _y,float _z){
 PVector PVector::set(float _x,float _y){
     return this->set(_x,_y,0.f);
 }
-PVector PVector::set(PVector v){
+PVector PVector::set(const PVector &v){
     return this->set(v.x,v.y,v.z);
 }
 PVector PVector::set(float v[3]){
@@ -1006,13 +1065,22 @@ PVector PVector::fromAngle(float angle, PVector& target){
 PVector PVector::copy(){
     return PVector(this->x,this->y,this->z);
 }
+PVector PVector::copy() const{
+    return PVector(this->x,this->y,this->z);
+}
 float PVector::mag(){
     return sqrt(x * x + y * y + z * z);
 }
 float PVector::magSq(){
     return x * x + y * y + z * z;
 }
-PVector PVector::add(PVector v){
+float PVector::mag() const{
+    return sqrt(x * x + y * y + z * z);
+}
+float PVector::magSq() const{
+    return x * x + y * y + z * z;
+}
+PVector PVector::add(const PVector &v){
     return this->add(v.x,v.y,v.z);
 }
 PVector PVector::add(float x, float y){
@@ -1024,15 +1092,16 @@ PVector PVector::add(float x, float y, float z){
     this->z += z;
     return *this;
 }
-PVector PVector::add(PVector& v1, PVector& v2){
-    return v1.add(v2);
+PVector PVector::add(const PVector& v1,const  PVector& v2){
+    PVector t;
+    return add(v1,v2,t);
 }
-PVector PVector::add(PVector& v1, PVector& v2, PVector& target){
+PVector PVector::add(const PVector& v1,const  PVector& v2, PVector& target){
     target.set(v1);
     target.add(v2);
     return target;
 }
-PVector PVector::sub(PVector v){
+PVector PVector::sub(const PVector& v){
     return this->sub(v.x,v.y,v.z);
 }
 PVector PVector::sub(float x, float y){
@@ -1044,11 +1113,11 @@ PVector PVector::sub(float x, float y, float z){
     this->z -= z;
     return *this;
 }
-PVector PVector::sub(PVector& v1, PVector& v2){
+PVector PVector::sub(const PVector &v1, const PVector &v2){
     PVector t;
     return PVector::sub(v1,v2,t);
 }
-PVector PVector::sub(PVector& v1, PVector& v2, PVector& target){
+PVector PVector::sub(const PVector& v1,const PVector& v2, PVector& target){
     target.set(v1);
     target.sub(v2);
     return target;
@@ -1059,12 +1128,12 @@ PVector PVector::mult(float n){
     this->z *= n;
     return *this;
 }
-PVector PVector::mult(PVector& v, float n){
+PVector PVector::mult(const PVector& v, float n){
     PVector t = v.copy();
     t.mult(n);
     return t;
 }
-PVector PVector::mult(PVector& v, float n, PVector& target){
+PVector PVector::mult(const PVector& v, float n, PVector& target){
     target.set(v);
     target.mult(n);
     return target;
@@ -1075,26 +1144,27 @@ PVector PVector::div(float n){
     this->z /= n;
     return *this;
 }
-PVector PVector::div(PVector& v, float n){
+PVector PVector::div(const PVector& v, float n){
     PVector t = v.copy();
     t.div(n);
     return t;
 }
-PVector PVector::div(PVector& v, float n, PVector& target){
+PVector PVector::div(const PVector& v, float n, PVector& target){
     target.set(v);
     target.div(n);
     return target;
 }
-float PVector::dist(PVector v){
+float PVector::dist(const PVector& v){
     float dx = this->x - v.x;
     float dy = this->y - v.y;
     float dz = this->z - v.z;
     return std::sqrt(dx*dx+dy*dy+dz*dz);
 }
-float PVector::dist(PVector& v1,PVector& v2){
-    return v1.dist(v2);
+float PVector::dist(const PVector& v1,const PVector& v2){
+    PVector t = v1;
+    return t.dist(v2);
 }
-float PVector::dot(PVector v){
+float PVector::dot(const PVector& v){
     return this->dot(v.x,v.y,v.z);
 }
 float PVector::dot(float x, float y, float z){
@@ -1103,21 +1173,23 @@ float PVector::dot(float x, float y, float z){
     float dz = this->z * z;
     return dx+dy+dz;
 }
-float PVector::dot(PVector& v1, PVector& v2){
-    return v1.dot(v2);
+float PVector::dot(const PVector& v1,const  PVector& v2){
+    PVector t = v1;
+    return t.dot(v2);
 }
-PVector PVector::cross(PVector v){
+PVector PVector::cross(const PVector& v){
     float rX = this->y * v.z - this->z * v.y;
     float rY = this->z * v.x - this->x * v.z;
     float rZ = this->x * v.y - this->y * v.x;
     return PVector(rX,rY,rZ);
 }
-PVector PVector::cross(PVector& v, PVector& target){
+PVector PVector::cross(const PVector& v, PVector& target){
     PVector t = target.cross(v);
     return target.set(t);
 }
-PVector PVector::cross(PVector& v1, PVector& v2, PVector& target){
-    return target.set(v1.cross(v2));
+PVector PVector::cross(const PVector& v1, const PVector& v2, PVector& target){
+    target.set(v1);
+    return target.cross(v2);
 }
 PVector PVector::normalize(){
     float m = this->mag();
@@ -1156,11 +1228,12 @@ PVector PVector::rotate(float theta){
     this->y = x * s + y * c;
     return this->setMag(m);
 }
-PVector PVector::lerp(PVector v,float amt){
+PVector PVector::lerp(const PVector& v,float amt){
     return this->lerp(v.x,v.y,v.z,amt);
 }
-PVector PVector::lerp(PVector& v1, PVector& v2, float amt){
-    return v1.lerp(v2,amt);
+PVector PVector::lerp(const PVector& v1,const PVector& v2, float amt){
+    PVector t = v1;
+    return t.lerp(v2,amt);
 }
 PVector PVector::lerp(float x,float y,float z, float amt){
     this->x = this->x + amt * (x - this->x);
@@ -1168,11 +1241,11 @@ PVector PVector::lerp(float x,float y,float z, float amt){
     this->z = this->z + amt * (z - this->z);
     return *this;
 }
-float PVector::angleBetween(PVector& v1,PVector& v2){
+float PVector::angleBetween(const PVector& v1,const PVector& v2){
     float m1 = v1.mag();
     float m2 = v2.mag();
-    float dot = v1.dot(v2);
-    return acos(dot / (m1 * m2));
+    float d = dot(v1,v2);
+    return acos(d / (m1 * m2));
 }
 float* PVector::array(){
     return new float[3]{this->x,this->y,this->z};
@@ -2019,6 +2092,9 @@ PShape PShape::getChild(const std::string& name){
 }
 void PShape::addChild(PShape& child){
     this->childs.push_back(child);
+}
+std::vector<PVector> PShape::vertices(){
+    return this->vertexes;
 }
 int PShape::getVertexCount(){
     return vertexes.size();
